@@ -21,7 +21,7 @@
 
 #include "klondike.h"
 
-const struct card NULLCARD = { 0, 0 };
+const struct card NULLCARD = { NO_COLOR, NO_RANK, false };
 
 struct card *init_game (
 	struct card deck[],
