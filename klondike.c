@@ -30,7 +30,7 @@ struct card *init_game (
 	struct card waste[])
 {
 	memset(deck, 0, 53 * sizeof(*deck));
-	memset(tableau, 0, 7 * 14 * sizeof(**tableau));
+	memset(tableau, 0, 7 * 20 * sizeof(**tableau));
 	memset(foundation, 0, 4 * 14 * sizeof(**foundation));
 	memset(waste, 0, 29 * sizeof(*waste));
 
@@ -55,7 +55,7 @@ struct card *init_game (
 int main ()
 {
 	struct card deck[53];
-	struct card tableau[14][7];
+	struct card tableau[20][7];
 	struct card foundation[14][4];
 	struct card waste[29];
 
