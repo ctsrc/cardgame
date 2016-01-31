@@ -14,6 +14,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+enum mode {
+	CLASSIC = 0,	// Turn three cards at a time.
+	CASINO		// Turn one card at a time.
+};
+
 enum color {
 	NO_COLOR = 0,
 	HEARTS,
@@ -37,11 +42,6 @@ enum rank {
 	JACK,
 	QUEEN,
 	KING
-};
-
-enum mode {
-	CLASSIC = 0,	// Turn three cards at a time.
-	CASINO		// Turn one card at a time.
 };
 
 struct card {
