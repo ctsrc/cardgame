@@ -36,7 +36,7 @@ struct card *init_game (
 
 	struct card *deck_curr = deck;
 
-	for (int c = SPADES ; c < DIAMONDS ; c++)
+	for (int c = HEARTS ; c < CLUBS ; c++)
 	{
 		for (int r = ACE ; r < KING ; r++)
 		{
