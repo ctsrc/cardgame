@@ -24,7 +24,8 @@ enum color {
 	HEARTS,
 	SPADES,
 	DIAMONDS,
-	CLUBS
+	CLUBS,
+	UNKNOWN_COLOR
 };
 
 enum rank {
@@ -41,7 +42,8 @@ enum rank {
 	TEN,
 	JACK,
 	QUEEN,
-	KING
+	KING,
+	UNKNOWN_RANK
 };
 
 struct card {
