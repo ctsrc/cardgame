@@ -53,3 +53,4 @@ struct card {
 };
 
 extern const struct card NULLCARD;
+extern const struct card UNKNOWNCARD;
