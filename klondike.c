@@ -64,10 +64,6 @@ struct card *init_game (
 		}
 	}
 
-#ifdef DEBUG
-	print_deck(deck);
-#endif
-
 	// Fisher-Yates shuffle the deck.
 	for (int i = 51 ; i > 0 ; i--)
 	{
@@ -79,7 +75,6 @@ struct card *init_game (
 	}
 
 #ifdef DEBUG
-	fprintf(stderr, "---\n");
 	print_deck(deck);
 #endif
 
