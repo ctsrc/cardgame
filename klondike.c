@@ -19,7 +19,7 @@
 #include <stdio.h>
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || \
-#	defined(__SunOS_5_11) || defined(__APPLE__)
+	defined(__SunOS_5_11) || defined(__APPLE__)
 #include <stdlib.h>
 #else
 #include <bsd/stdlib.h>
