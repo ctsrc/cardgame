@@ -9,8 +9,8 @@ Klondike solitaire.
 
 ## Dependencies
 
-Needs `arc4random_uniform(3)`. Install [libbsd](http://libbsd.freedesktop.org/wiki/)
-if not using a BSD system. E.g., on Ubuntu:
+Install [libbsd](http://libbsd.freedesktop.org/wiki/) if `arc4random_uniform(3)`
+is not in the stdlib on your system. E.g., on Ubuntu:
 
 ```bash
 sudo apt-get install libbsd-dev
