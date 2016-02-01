@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <stdlib.h>
 #else
 #include <bsd/stdlib.h>
