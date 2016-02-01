@@ -51,13 +51,13 @@ void print_cards (struct card cs[])
 
 struct card *init_game (
 	struct card deck[],
-	struct card tableau[][7],
-	struct card foundation[][4],
+	struct card tableau[][20],
+	struct card foundation[][14],
 	struct card waste[])
 {
 	memset(deck, 0, 53 * sizeof(*deck));
-	memset(tableau, 0, 7 * 20 * sizeof(**tableau));
-	memset(foundation, 0, 4 * 14 * sizeof(**foundation));
+	memset(tableau, 0, 20 * 7 * sizeof(**tableau));
+	memset(foundation, 0, 14 * 4 * sizeof(**foundation));
 	memset(waste, 0, 29 * sizeof(*waste));
 
 	struct card *deck_curr = deck;
@@ -111,8 +111,8 @@ struct card *init_game (
 int main ()
 {
 	struct card deck[53];
-	struct card tableau[20][7];
-	struct card foundation[14][4];
+	struct card tableau[7][20];
+	struct card foundation[4][14];
 	struct card waste[29];
 
 	struct card *deck_top = init_game(deck, tableau, foundation, waste);
