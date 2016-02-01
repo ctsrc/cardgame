@@ -24,6 +24,16 @@
 const struct card NULLCARD = { NO_COLOR, NO_RANK, false };
 const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
 
+#ifdef DEBUG
+void print_deck (struct card deck[])
+{
+	for (int i = 0 ; i < 52 ; i++)
+	{
+		fprintf(stderr, "%d %d %d\n", deck[i].c, deck[i].r, deck[i].face_up);
+	}
+}
+#endif
+
 struct card *init_game (
 	struct card deck[],
 	struct card tableau[][7],
@@ -37,9 +47,9 @@ struct card *init_game (
 
 	struct card *deck_curr = deck;
 
-	for (int c = HEARTS ; c < CLUBS ; c++)
+	for (int c = HEARTS ; c <= CLUBS ; c++)
 	{
-		for (int r = ACE ; r < KING ; r++)
+		for (int r = ACE ; r <= KING ; r++)
 		{
 			deck_curr->c = c;
 			deck_curr->r = r;
@@ -47,6 +57,10 @@ struct card *init_game (
 			deck_curr++;
 		}
 	}
+
+#ifdef DEBUG
+	print_deck(deck);
+#endif
 
 	// TODO: Fisher-Yates shuffle the deck.
 
