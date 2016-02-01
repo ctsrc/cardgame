@@ -3,4 +3,4 @@ klondike:	klondike.c klondike.h
 
 dist/klondike:	klondike.c klondike.h
 	mkdir -p dist
-	cc -std=c11 -D_BSD_SOURCE $< -o dist/klondike
+	cc -std=c11 -D_BSD_SOURCE klondike.c -o dist/klondike
