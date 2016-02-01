@@ -84,13 +84,11 @@ struct card *init_game (
 	}
 
 	// Move cards to tableau and turn top-most card in each column.
-	int m = 0;
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		memcpy(tableau[i - 1], &(deck[52 - (i + m)]),
-			i * sizeof(*deck));
-		m += i;
-		memset(&(deck[52 - m]), 0, i * sizeof(*deck));
+		memcpy(tableau[i - 1], deck_curr - i, i * sizeof(*deck));
+		memset(deck_curr - i, 0, i * sizeof(*deck));
+		deck_curr -= i;
 
 		tableau[i - 1][i - 1].face_up = true;
 	}
@@ -105,7 +103,7 @@ struct card *init_game (
 	print_cards(deck);
 #endif
 
-	return deck_curr - 1;
+	return deck_curr;
 }
 
 int main ()
@@ -115,7 +113,12 @@ int main ()
 	struct card foundation[4][14];
 	struct card waste[29];
 
-	struct card *deck_top = init_game(deck, tableau, foundation, waste);
+	struct card *deck_end = init_game(deck, tableau, foundation, waste);
+
+#ifdef DEBUG
+	fprintf(stderr, "===\n");
+	print_cards(deck_end - 1);
+#endif
 
 	// TODO: Implement game.
 
