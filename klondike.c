@@ -83,7 +83,25 @@ struct card *init_game (
 		deck[j] = tmp;
 	}
 
+	// Move cards to tableau and turn top-most card in each column.
+	int m = 0;
+	for (int i = 1 ; i <= 7 ; i++)
+	{
+		memcpy(tableau[i - 1], &(deck[52 - (i + m)]),
+			i * sizeof(*deck));
+		m += i;
+		memset(&(deck[52 - m]), 0, i * sizeof(*deck));
+
+		tableau[i - 1][i - 1].face_up = true;
+	}
+
 #ifdef DEBUG
+	for (int i = 1 ; i <= 7 ; i++)
+	{
+		print_cards(tableau[i - 1]);
+		fprintf(stderr, "---\n");
+	}
+
 	print_cards(deck);
 #endif
 
