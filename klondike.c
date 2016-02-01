@@ -30,12 +30,21 @@
 const struct card NULLCARD = { NO_COLOR, NO_RANK, false };
 const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
 
+/*
+ * XXX: Provided that any alignment space in card structs inserted
+ *	by the compiler is set to zero either by us or by the compiler,
+ *	and that we keep only directly comparable data in these structs,
+ *	memcmp on the structs will work as intended.
+ */
+#define IS_NULLCARD(PTR) !memcmp(PTR, &NULLCARD, sizeof(struct card))
+#define IS_UNKNOWNCARD(PTR) !memcmp(PTR, &UNKNOWNCARD, sizeof(struct card))
+
 #ifdef DEBUG
-void print_deck (struct card deck[])
+void print_cards (struct card cs[])
 {
-	for (int i = 0 ; i < 52 ; i++)
+	for (int i = 0 ; !IS_NULLCARD(&(cs[i])) ; i++)
 	{
-		fprintf(stderr, "%d %d %d\n", deck[i].c, deck[i].r, deck[i].face_up);
+		fprintf(stderr, "%d %d %d\n", cs[i].c, cs[i].r, cs[i].face_up);
 	}
 }
 #endif
@@ -75,7 +84,7 @@ struct card *init_game (
 	}
 
 #ifdef DEBUG
-	print_deck(deck);
+	print_cards(deck);
 #endif
 
 	return deck_curr - 1;
