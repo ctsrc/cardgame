@@ -6,11 +6,12 @@ Klondike solitaire.
 
   * FreeBSD 10.2
   * Lubuntu 14.04
+  * Raspbian GNU/Linux 8
 
 ## Dependencies
 
 Install [libbsd](http://libbsd.freedesktop.org/wiki/) if `arc4random_uniform(3)`
-is not in the stdlib on your system. E.g., on Ubuntu:
+is not in the stdlib on your system. E.g., on Debian and derivatives:
 
 ```bash
 sudo apt-get install libbsd-dev
