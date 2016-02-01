@@ -17,7 +17,12 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+
+#ifdef __FreeBSD__
+#include <stdlib.h>
+#else
 #include <bsd/stdlib.h>
+#endif
 
 #include "klondike.h"
 
