@@ -1,6 +1,6 @@
 # klondike
 
-Klondike solitaire.
+Klondike solitaire card game.
 
 ## Supported platforms
 
