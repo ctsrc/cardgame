@@ -16,7 +16,10 @@
 
 #include <stdbool.h>
 #include <string.h>
+
+#ifdef DEBUG
 #include <stdio.h>
+#endif
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || \
 	defined(__SunOS_5_11) || defined(__APPLE__)
