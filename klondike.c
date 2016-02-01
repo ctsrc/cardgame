@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <bsd/stdlib.h>
 
 #include "klondike.h"
 
@@ -62,7 +62,20 @@ struct card *init_game (
 	print_deck(deck);
 #endif
 
-	// TODO: Fisher-Yates shuffle the deck.
+	// Fisher-Yates shuffle the deck.
+	for (int i = 51 ; i > 0 ; i--)
+	{
+		int j = arc4random_uniform(i + 1);
+
+		struct card tmp = deck[i];
+		deck[i] = deck[j];
+		deck[j] = tmp;
+	}
+
+#ifdef DEBUG
+	fprintf(stderr, "---\n");
+	print_deck(deck);
+#endif
 
 	return deck_curr - 1;
 }
