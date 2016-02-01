@@ -5,7 +5,7 @@ Klondike solitaire.
 ## Supported platforms
 
   * FreeBSD 10.2
-  * Lubuntu 14.04
+  * Lubuntu 14.04 LTS
   * Raspbian GNU/Linux 8
 
 ## Dependencies
