@@ -189,7 +189,7 @@ int main ()
 		pull_from_deck(deck_end, waste_end, game_mode);
 		deck_end--;
 		waste_end += 1 + 2 * game_mode;
-		
+
 		redacted_copy(redacted_deck, deck,
 			53 * sizeof(*redacted_deck));
 		fprintf(stderr, "Deck: ");
@@ -204,7 +204,7 @@ int main ()
 			print_cards_h(redacted_tableau[i]);
 		}
 	}
-		
+
 	// TODO: Implement remainder of game.
 #endif
 
