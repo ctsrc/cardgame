@@ -64,18 +64,18 @@ void print_cards_h (struct card cs[])
 }
 #endif
 
-struct card *init_game (
-	struct card deck[],
-	struct card tableau[][20],
-	struct card foundation[][14],
-	struct card waste[])
+void init_game (
+	struct stack_of_cards *deck,
+	struct stack_of_cards *tableau,
+	struct stack_of_cards *foundation,
+	struct stack_of_cards *waste)
 {
-	memset(deck, 0, 53 * sizeof(*deck));
-	memset(tableau, 0, 20 * 7 * sizeof(**tableau));
-	memset(foundation, 0, 14 * 4 * sizeof(**foundation));
-	memset(waste, 0, 25 * sizeof(*waste));
+	memset(deck->cs, 0, 53 * sizeof(struct card));
+	memset(tableau->cs, 0, 20 * 7 * sizeof(struct card));
+	memset(foundation->cs, 0, 14 * 4 * sizeof(struct card));
+	memset(waste->cs, 0, 25 * sizeof(struct card));
 
-	struct card *deck_curr = deck;
+	struct card *deck_curr = deck->cs;
 
 	for (int c = HEARTS ; c <= CLUBS ; c++)
 	{
@@ -87,38 +87,42 @@ struct card *init_game (
 			deck_curr++;
 		}
 	}
+	deck->count = deck_curr - deck->cs;
 
 	// Fisher-Yates shuffle the deck.
 	for (int i = 51 ; i > 0 ; i--)
 	{
 		int j = arc4random_uniform(i + 1);
 
-		struct card tmp = deck[i];
-		deck[i] = deck[j];
-		deck[j] = tmp;
+		struct card tmp = deck->cs[i];
+		deck->cs[i] = deck->cs[j];
+		deck->cs[j] = tmp;
 	}
 
 	// Move cards to tableau and turn top-most card in each column.
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		memcpy(tableau[i - 1], deck_curr - i, i * sizeof(*deck));
-		memset(deck_curr - i, 0, i * sizeof(*deck));
+		memcpy(tableau[i - 1].cs, deck_curr - i,
+			i * sizeof(struct card));
+		tableau[i - 1].count += i;
+		memset(deck_curr - i, 0,
+			i * sizeof(struct card));
+		deck->count -= i;
 		deck_curr -= i;
 
-		tableau[i - 1][i - 1].face_up = true;
+		tableau[i - 1].cs[i - 1].face_up = true;
 	}
 
 #ifdef DEBUG
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		print_cards_v(tableau[i - 1]);
-		fprintf(stderr, "---\n");
+		print_cards_v(tableau[i - 1].cs);
+		fprintf(stderr, "--- %d\n", tableau[i - 1].count);
 	}
 
-	print_cards_v(deck);
+	print_cards_v(deck->cs);
+	fprintf(stderr, "=== %d\n", deck->count);
 #endif
-
-	return deck_curr;
 }
 
 /*
@@ -159,36 +163,58 @@ int main ()
 {
 	enum mode game_mode = CLASSIC;
 
-	// TODO: Encapsulated abstraction for stacks of cards.
-	struct card deck[53];
-	struct card redacted_deck[53];
-	struct card tableau[7][20];
-	struct card redacted_tableau[7][20];
-	struct card foundation[4][14];
-	struct card waste[25];
+	struct card cs_deck[53];
+	struct card cs_redacted_deck[53];
+	struct card cs_tableau[7][20];
+	struct card cs_redacted_tableau[7][20];
+	struct card cs_foundation[4][14];
+	struct card cs_waste[25];
 
-	struct card *deck_end = init_game(deck, tableau, foundation, waste);
-	struct card *waste_end = waste;
+	struct stack_of_cards deck = { cs_deck, 0 };
+	struct stack_of_cards redacted_deck = { cs_redacted_deck, 0 };
+	struct stack_of_cards tableau[7] =
+	{
+		{cs_tableau[0], 0 },
+		{cs_tableau[1], 0 },
+		{cs_tableau[2], 0 },
+		{cs_tableau[3], 0 },
+		{cs_tableau[4], 0 },
+		{cs_tableau[5], 0 },
+		{cs_tableau[6], 0 }
+	};
+	struct stack_of_cards redacted_tableau[7] =
+	{
+		{cs_redacted_tableau[0], 0 },
+		{cs_redacted_tableau[1], 0 },
+		{cs_redacted_tableau[2], 0 },
+		{cs_redacted_tableau[3], 0 },
+		{cs_redacted_tableau[4], 0 },
+		{cs_redacted_tableau[5], 0 },
+		{cs_redacted_tableau[6], 0 }
+	};
+	struct stack_of_cards foundation[4] =
+	{
+		{cs_foundation[0], 0 },
+		{cs_foundation[1], 0 },
+		{cs_foundation[2], 0 },
+		{cs_foundation[3], 0 }
+	};
+	struct stack_of_cards waste = { cs_waste, 0 };
+
+	init_game(&deck, tableau, foundation, &waste);
 
 #ifdef DEBUG
-	fprintf(stderr, "===\n");
-	print_cards_v(deck_end - 1);
+	print_cards_v(deck.cs);
 #endif
 
+/*
 	// THE GAME
 #ifdef DEBUG
 	for (;;)
 	{
 		fprintf(stderr, "\n\n");
 
-		/*
-		 * XXX: With future encapsulated abstraction
-		 *	for stacks of cards, we won't have to
-		 *	keep track of ends manually.
-		 */
-		pull_from_deck(deck_end, waste_end, game_mode);
-		deck_end -= 1 + 2 * game_mode;
-		waste_end += 1 + 2 * game_mode;
+		pull_from_deck(deck, waste, game_mode);
 
 		redacted_copy(redacted_deck, deck,
 			53 * sizeof(*redacted_deck));
@@ -207,6 +233,6 @@ int main ()
 
 	// TODO: Implement remainder of game.
 #endif
-
+*/
 	return EXIT_SUCCESS;
 }

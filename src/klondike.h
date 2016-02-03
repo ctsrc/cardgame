@@ -52,5 +52,10 @@ struct card {
 	bool face_up;
 };
 
+struct stack_of_cards {
+	struct card * const cs;
+	int count;
+};
+
 extern const struct card NULLCARD;
 extern const struct card UNKNOWNCARD;
