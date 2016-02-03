@@ -187,7 +187,7 @@ int main ()
 		 *	keep track of ends manually.
 		 */
 		pull_from_deck(deck_end, waste_end, game_mode);
-		deck_end--;
+		deck_end -= 1 + 2 * game_mode;
 		waste_end += 1 + 2 * game_mode;
 
 		redacted_copy(redacted_deck, deck,
