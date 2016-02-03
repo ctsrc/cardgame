@@ -43,12 +43,23 @@ const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
 #define IS_UNKNOWNCARD(PTR) !memcmp(PTR, &UNKNOWNCARD, sizeof(struct card))
 
 #ifdef DEBUG
-void print_cards (struct card cs[])
+void print_cards_v (struct card cs[])
 {
 	for (int i = 0 ; !IS_NULLCARD(&(cs[i])) ; i++)
 	{
-		fprintf(stderr, "%d %d %d\n", cs[i].c, cs[i].r, cs[i].face_up);
+		fprintf(stderr, "%02d %02d %d\n",
+			cs[i].c, cs[i].r, cs[i].face_up);
 	}
+}
+
+void print_cards_h (struct card cs[])
+{
+	for (int i = 0 ; !IS_NULLCARD(&(cs[i])) ; i++)
+	{
+		fprintf(stderr, "%02d %02d %d  ",
+			cs[i].c, cs[i].r, cs[i].face_up);
+	}
+	fprintf(stderr, "\n");
 }
 #endif
 
@@ -99,20 +110,38 @@ struct card *init_game (
 #ifdef DEBUG
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		print_cards(tableau[i - 1]);
+		print_cards_v(tableau[i - 1]);
 		fprintf(stderr, "---\n");
 	}
 
-	print_cards(deck);
+	print_cards_v(deck);
 #endif
 
 	return deck_curr;
 }
 
+/*
+ * XXX: It is up to caller to use a dstsz corresponding to the size of
+ *	the destination. In other words, we don't check that it's valid.
+ */
+void redacted_copy (struct card *dst, struct card *src, size_t dstsz) {
+	memcpy(dst, src, dstsz);
+
+	for (int i = 0 ; !IS_NULLCARD(&(dst[i])) ; i++)
+	{
+		if (!(dst[i].face_up))
+		{
+			dst[i] = UNKNOWNCARD;
+		}
+	}
+}
+
 int main ()
 {
 	struct card deck[53];
+	struct card redacted_deck[53];
 	struct card tableau[7][20];
+	struct card redacted_tableau[7][20];
 	struct card foundation[4][14];
 	struct card waste[25];
 
@@ -120,10 +149,25 @@ int main ()
 
 #ifdef DEBUG
 	fprintf(stderr, "===\n");
-	print_cards(deck_end - 1);
+	print_cards_v(deck_end - 1);
 #endif
 
-	// TODO: Implement game.
+	// THE GAME
+#ifdef DEBUG
+	fprintf(stderr, "\n\n");
+	redacted_copy(redacted_deck, deck, 53 * sizeof(*redacted_deck));
+	fprintf(stderr, "Deck: ");
+	print_cards_h(redacted_deck);
+	for (int i = 0 ; i < 7 ; i++)
+	{
+		fprintf(stderr, "Foundation %d: ", i);
+		redacted_copy(redacted_tableau[i], tableau[i],
+			20 * sizeof(*(redacted_tableau[i])));
+		print_cards_h(redacted_tableau[i]);
+	}
+
+	// TODO: Implement remainder of game.
+#endif
 
 	return EXIT_SUCCESS;
 }
