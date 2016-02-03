@@ -15,8 +15,8 @@
  */
 
 enum mode {
-	CLASSIC = 0,	// Turn three cards at a time.
-	CASINO		// Turn one card at a time.
+	CASINO = 0,	// Turn one card at a time.
+	CLASSIC		// Turn three cards at a time.
 };
 
 enum color {

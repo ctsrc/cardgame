@@ -16,6 +16,7 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -136,8 +137,29 @@ void redacted_copy (struct card *dst, struct card *src, size_t dstsz) {
 	}
 }
 
+void move_card (struct card *dst, struct card *src)
+{
+	memcpy(dst, src, sizeof(struct card));
+	memset(src, 0, sizeof(struct card));
+}
+
+void pull_from_deck (
+	struct card *deck_end,
+	struct card *waste_end,
+	enum mode game_mode)
+{
+	// TODO FIXME: Bad things will happen when we go out of cards in deck.
+	for (int i = 0 ; i < 1 + 2 * game_mode ; i++)
+	{
+		move_card(waste_end + i, deck_end - (i + 1));
+	}
+}
+
 int main ()
 {
+	enum mode game_mode = CLASSIC;
+
+	// TODO: Encapsulated abstraction for stacks of cards.
 	struct card deck[53];
 	struct card redacted_deck[53];
 	struct card tableau[7][20];
@@ -146,6 +168,7 @@ int main ()
 	struct card waste[25];
 
 	struct card *deck_end = init_game(deck, tableau, foundation, waste);
+	struct card *waste_end = waste;
 
 #ifdef DEBUG
 	fprintf(stderr, "===\n");
@@ -155,9 +178,20 @@ int main ()
 	// THE GAME
 #ifdef DEBUG
 	fprintf(stderr, "\n\n");
+
+	/*
+	 * XXX: With future encapsulated abstraction for stacks of cards,
+	 *	we won't have to keep track of ends manually.
+	 */
+	pull_from_deck(deck_end, waste_end, game_mode);
+	deck_end--;
+	waste_end += 1 + 2 * game_mode;
+
 	redacted_copy(redacted_deck, deck, 53 * sizeof(*redacted_deck));
 	fprintf(stderr, "Deck: ");
 	print_cards_h(redacted_deck);
+	fprintf(stderr, "Waste: ");
+	print_cards_h(waste);
 	for (int i = 0 ; i < 7 ; i++)
 	{
 		fprintf(stderr, "Tableau %d: ", i);
