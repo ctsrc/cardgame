@@ -160,7 +160,7 @@ int main ()
 	print_cards_h(redacted_deck);
 	for (int i = 0 ; i < 7 ; i++)
 	{
-		fprintf(stderr, "Foundation %d: ", i);
+		fprintf(stderr, "Tableau %d: ", i);
 		redacted_copy(redacted_tableau[i], tableau[i],
 			20 * sizeof(*(redacted_tableau[i])));
 		print_cards_h(redacted_tableau[i]);
