@@ -177,29 +177,34 @@ int main ()
 
 	// THE GAME
 #ifdef DEBUG
-	fprintf(stderr, "\n\n");
-
-	/*
-	 * XXX: With future encapsulated abstraction for stacks of cards,
-	 *	we won't have to keep track of ends manually.
-	 */
-	pull_from_deck(deck_end, waste_end, game_mode);
-	deck_end--;
-	waste_end += 1 + 2 * game_mode;
-
-	redacted_copy(redacted_deck, deck, 53 * sizeof(*redacted_deck));
-	fprintf(stderr, "Deck: ");
-	print_cards_h(redacted_deck);
-	fprintf(stderr, "Waste: ");
-	print_cards_h(waste);
-	for (int i = 0 ; i < 7 ; i++)
+	for (;;)
 	{
-		fprintf(stderr, "Tableau %d: ", i);
-		redacted_copy(redacted_tableau[i], tableau[i],
-			20 * sizeof(*(redacted_tableau[i])));
-		print_cards_h(redacted_tableau[i]);
-	}
+		fprintf(stderr, "\n\n");
 
+		/*
+		 * XXX: With future encapsulated abstraction
+		 *	for stacks of cards, we won't have to
+		 *	keep track of ends manually.
+		 */
+		pull_from_deck(deck_end, waste_end, game_mode);
+		deck_end--;
+		waste_end += 1 + 2 * game_mode;
+		
+		redacted_copy(redacted_deck, deck,
+			53 * sizeof(*redacted_deck));
+		fprintf(stderr, "Deck: ");
+		print_cards_h(redacted_deck);
+		fprintf(stderr, "Waste: ");
+		print_cards_h(waste);
+		for (int i = 0 ; i < 7 ; i++)
+		{
+			fprintf(stderr, "Tableau %d: ", i);
+			redacted_copy(redacted_tableau[i], tableau[i],
+				20 * sizeof(*(redacted_tableau[i])));
+			print_cards_h(redacted_tableau[i]);
+		}
+	}
+		
 	// TODO: Implement remainder of game.
 #endif
 
