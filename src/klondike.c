@@ -174,30 +174,30 @@ int main ()
 	struct stack_of_cards redacted_deck = { cs_redacted_deck, 0 };
 	struct stack_of_cards tableau[7] =
 	{
-		{cs_tableau[0], 0 },
-		{cs_tableau[1], 0 },
-		{cs_tableau[2], 0 },
-		{cs_tableau[3], 0 },
-		{cs_tableau[4], 0 },
-		{cs_tableau[5], 0 },
-		{cs_tableau[6], 0 }
+		{ cs_tableau[0], 0 },
+		{ cs_tableau[1], 0 },
+		{ cs_tableau[2], 0 },
+		{ cs_tableau[3], 0 },
+		{ cs_tableau[4], 0 },
+		{ cs_tableau[5], 0 },
+		{ cs_tableau[6], 0 }
 	};
 	struct stack_of_cards redacted_tableau[7] =
 	{
-		{cs_redacted_tableau[0], 0 },
-		{cs_redacted_tableau[1], 0 },
-		{cs_redacted_tableau[2], 0 },
-		{cs_redacted_tableau[3], 0 },
-		{cs_redacted_tableau[4], 0 },
-		{cs_redacted_tableau[5], 0 },
-		{cs_redacted_tableau[6], 0 }
+		{ cs_redacted_tableau[0], 0 },
+		{ cs_redacted_tableau[1], 0 },
+		{ cs_redacted_tableau[2], 0 },
+		{ cs_redacted_tableau[3], 0 },
+		{ cs_redacted_tableau[4], 0 },
+		{ cs_redacted_tableau[5], 0 },
+		{ cs_redacted_tableau[6], 0 }
 	};
 	struct stack_of_cards foundation[4] =
 	{
-		{cs_foundation[0], 0 },
-		{cs_foundation[1], 0 },
-		{cs_foundation[2], 0 },
-		{cs_foundation[3], 0 }
+		{ cs_foundation[0], 0 },
+		{ cs_foundation[1], 0 },
+		{ cs_foundation[2], 0 },
+		{ cs_foundation[3], 0 }
 	};
 	struct stack_of_cards waste = { cs_waste, 0 };
 
