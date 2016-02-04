@@ -204,7 +204,7 @@ int main ()
 	init_game(&deck, tableau, foundation, &waste);
 
 #ifdef DEBUG
-	print_cards_v(deck.cs);
+	print_cards_v(&(deck.cs[deck.count - 1]));
 #endif
 
 /*
