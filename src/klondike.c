@@ -67,13 +67,13 @@ void print_state (struct game_state *gs)
 
 	for (int i = 0 ; i < 4 ; i++)
 	{
-		fprintf(stderr, "foundation #%d ", i);
+		fprintf(stderr, "foudt #%d ", i);
 		print_cards_h(&(gs->foundation[i]));
 	}
 
 	for (int i = 0 ; i < 7 ; i++)
 	{
-		fprintf(stderr, "tableau #%d ", i);
+		fprintf(stderr, "tblau #%d ", i);
 		print_cards_h(&(gs->tableau[i]));
 	}
 }
