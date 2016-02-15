@@ -57,9 +57,9 @@ struct stack_of_cards {
 	int count;
 };
 
-struct server_game_state {
-	struct stack_of_cards shadow_deck;
-	struct stack_of_cards shadow_tableau[7];
+struct game_state {
+	struct stack_of_cards deck;
+	struct stack_of_cards tableau[7];
 	struct stack_of_cards foundation[4];
 	struct stack_of_cards waste;
 };

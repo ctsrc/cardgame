@@ -57,7 +57,7 @@ void print_cards_h (struct stack_of_cards *s)
 #endif
 
 // TODO: client_game_state
-void init_game (struct server_game_state *sgs)
+void init_game (struct game_state *gs)
 {
 	struct card cs_tmp_deck[53];
 	memset(cs_tmp_deck, 0, 53 * sizeof(struct card));
@@ -84,38 +84,38 @@ void init_game (struct server_game_state *sgs)
 		cs_tmp_deck[j] = tmp;
 	}
 
-	memset(sgs->shadow_deck.cs, 0, 25 * sizeof(struct card));
+	memset(gs->deck.cs, 0, 25 * sizeof(struct card));
 	for (int i = 0 ; i < 7 ; i++)
 	{
-		memset(sgs->shadow_tableau[i].cs, 0, 20 * sizeof(struct card));
+		memset(gs->tableau[i].cs, 0, 20 * sizeof(struct card));
 	}
 	for (int i = 0 ; i < 4 ; i++)
 	{
-		memset(sgs->foundation[i].cs, 0, 14 * sizeof(struct card));
+		memset(gs->foundation[i].cs, 0, 14 * sizeof(struct card));
 	}
-	memset(sgs->waste.cs, 0, 25 * sizeof(struct card));
+	memset(gs->waste.cs, 0, 25 * sizeof(struct card));
 
 	// Move cards to tableau and turn top-most card in each column.
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		memcpy(sgs->shadow_tableau[i - 1].cs, card_curr - i,
+		memcpy(gs->tableau[i - 1].cs, card_curr - i,
 			i * sizeof(struct card));
-		sgs->shadow_tableau[i - 1].count += i;
-		sgs->shadow_tableau[i - 1].cs[i - 1].face_up = true;
+		gs->tableau[i - 1].count += i;
+		gs->tableau[i - 1].cs[i - 1].face_up = true;
 		card_curr -= i;
 	}
 
-	// Move remainder of cards to shadow deck
+	// Move remainder of cards to deck
 	int nc_rem = (card_curr - cs_tmp_deck);
-	memcpy(sgs->shadow_deck.cs, cs_tmp_deck, nc_rem * sizeof(struct card));
-	sgs->shadow_deck.count = nc_rem;
+	memcpy(gs->deck.cs, cs_tmp_deck, nc_rem * sizeof(struct card));
+	gs->deck.count = nc_rem;
 
 #ifdef DEBUG
-	print_cards_h(&(sgs->shadow_deck));
+	print_cards_h(&(gs->deck));
 
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		print_cards_h(&(sgs->shadow_tableau[i - 1]));
+		print_cards_h(&(gs->tableau[i - 1]));
 	}
 #endif
 }
@@ -198,7 +198,7 @@ int main ()
 		{ cs_redacted_tableau[6], 0 }
 	};
 
-	struct server_game_state sgs =
+	struct game_state shadow =
 	{
 		{ cs_shadow_deck, 0 },
 		{
@@ -219,13 +219,13 @@ int main ()
 		{ cs_waste, 0 }
 	};
 
-	init_game(&sgs);
+	init_game(&shadow);
 
 	//struct client_game_state cgs = { 0 };
 
 		/*
 #ifdef DEBUG
-	print_cards_v(&(sgs.shadow_deck));
+	print_cards_v(&(gs.shadow_deck));
 #endif
 
 #ifdef DEBUG
@@ -253,7 +253,7 @@ int main ()
 		}
 
 		fprintf(stderr, "---\n");
-	} while (pull_from_deck(&(sgs.shadow_deck), &(sgs.waste), game_mode)
+	} while (pull_from_deck(&(gs.shadow_deck), &(gs.waste), game_mode)
 		!= 0);
 
 	// TODO: Implement remainder of game.
