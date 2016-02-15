@@ -44,17 +44,9 @@ const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
 #define IS_UNKNOWNCARD(PTR) !memcmp(PTR, &UNKNOWNCARD, sizeof(struct card))
 
 #ifdef DEBUG
-void print_cards_v (struct stack_of_cards *s)
-{
-	for (int i = 0 ; !IS_NULLCARD(&(s->cs[i])) ; i++)
-	{
-		fprintf(stderr, "%02d %02d %d\n",
-			s->cs[i].c, s->cs[i].r, s->cs[i].face_up);
-	}
-}
-
 void print_cards_h (struct stack_of_cards *s)
 {
+	fprintf(stderr, "(%d): ", s->count);
 	for (int i = 0 ; !IS_NULLCARD(&(s->cs[i])) ; i++)
 	{
 		fprintf(stderr, "%02d %02d %d  ",
@@ -64,64 +56,67 @@ void print_cards_h (struct stack_of_cards *s)
 }
 #endif
 
-void init_game (
-	struct stack_of_cards *deck,
-	struct stack_of_cards *tableau,
-	struct stack_of_cards *foundation,
-	struct stack_of_cards *waste)
+// TODO: client_game_state
+void init_game (struct server_game_state *sgs)
 {
-	memset(deck->cs, 0, 53 * sizeof(struct card));
-	memset(tableau->cs, 0, 20 * 7 * sizeof(struct card));
-	memset(foundation->cs, 0, 14 * 4 * sizeof(struct card));
-	memset(waste->cs, 0, 25 * sizeof(struct card));
+	struct card cs_tmp_deck[53];
+	memset(cs_tmp_deck, 0, 53 * sizeof(struct card));
 
-	struct card *deck_curr = deck->cs;
-
+	struct card *card_curr = cs_tmp_deck;
 	for (int c = HEARTS ; c <= CLUBS ; c++)
 	{
 		for (int r = ACE ; r <= KING ; r++)
 		{
-			deck_curr->c = c;
-			deck_curr->r = r;
-			deck_curr->face_up = false;
-			deck_curr++;
+			card_curr->c = c;
+			card_curr->r = r;
+			card_curr->face_up = false;
+			card_curr++;
 		}
 	}
-	deck->count = deck_curr - deck->cs;
 
 	// Fisher-Yates shuffle the deck.
 	for (int i = 51 ; i > 0 ; i--)
 	{
 		int j = arc4random_uniform(i + 1);
 
-		struct card tmp = deck->cs[i];
-		deck->cs[i] = deck->cs[j];
-		deck->cs[j] = tmp;
+		struct card tmp = cs_tmp_deck[i];
+		cs_tmp_deck[i] = cs_tmp_deck[j];
+		cs_tmp_deck[j] = tmp;
 	}
+
+	memset(sgs->shadow_deck.cs, 0, 25 * sizeof(struct card));
+	for (int i = 0 ; i < 7 ; i++)
+	{
+		memset(sgs->shadow_tableau[i].cs, 0, 20 * sizeof(struct card));
+	}
+	for (int i = 0 ; i < 4 ; i++)
+	{
+		memset(sgs->foundation[i].cs, 0, 14 * sizeof(struct card));
+	}
+	memset(sgs->waste.cs, 0, 25 * sizeof(struct card));
 
 	// Move cards to tableau and turn top-most card in each column.
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		memcpy(tableau[i - 1].cs, deck_curr - i,
+		memcpy(sgs->shadow_tableau[i - 1].cs, card_curr - i,
 			i * sizeof(struct card));
-		tableau[i - 1].count += i;
-		memset(deck_curr - i, 0,
-			i * sizeof(struct card));
-		deck->count -= i;
-		deck_curr -= i;
-
-		tableau[i - 1].cs[i - 1].face_up = true;
+		sgs->shadow_tableau[i - 1].count += i;
+		sgs->shadow_tableau[i - 1].cs[i - 1].face_up = true;
+		card_curr -= i;
 	}
+
+	// Move remainder of cards to shadow deck
+	int nc_rem = (card_curr - cs_tmp_deck);
+	memcpy(sgs->shadow_deck.cs, cs_tmp_deck, nc_rem * sizeof(struct card));
+	sgs->shadow_deck.count = nc_rem;
 
 #ifdef DEBUG
+	print_cards_h(&(sgs->shadow_deck));
+
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		print_cards_v(&(tableau[i - 1]));
-		fprintf(stderr, "--- %d\n", tableau[i - 1].count);
+		print_cards_h(&(sgs->shadow_tableau[i - 1]));
 	}
-
-	print_cards_v(deck);
-	fprintf(stderr, "=== %d\n", deck->count);
 #endif
 }
 
@@ -184,25 +179,14 @@ int main ()
 {
 	enum mode game_mode = CLASSIC;
 
-	struct card cs_shadow_deck[53];
-	struct card cs_redacted_deck[53];
+	struct card cs_shadow_deck[25];
+	struct card cs_redacted_deck[25];
 	struct card cs_shadow_tableau[7][20];
 	struct card cs_redacted_tableau[7][20];
 	struct card cs_foundation[4][14];
 	struct card cs_waste[25];
 
-	struct stack_of_cards shadow_deck = { cs_shadow_deck, 0 };
 	struct stack_of_cards redacted_deck = { cs_redacted_deck, 0 };
-	struct stack_of_cards shadow_tableau[7] =
-	{
-		{ cs_shadow_tableau[0], 0 },
-		{ cs_shadow_tableau[1], 0 },
-		{ cs_shadow_tableau[2], 0 },
-		{ cs_shadow_tableau[3], 0 },
-		{ cs_shadow_tableau[4], 0 },
-		{ cs_shadow_tableau[5], 0 },
-		{ cs_shadow_tableau[6], 0 }
-	};
 	struct stack_of_cards redacted_tableau[7] =
 	{
 		{ cs_redacted_tableau[0], 0 },
@@ -213,19 +197,35 @@ int main ()
 		{ cs_redacted_tableau[5], 0 },
 		{ cs_redacted_tableau[6], 0 }
 	};
-	struct stack_of_cards foundation[4] =
+
+	struct server_game_state sgs =
 	{
-		{ cs_foundation[0], 0 },
-		{ cs_foundation[1], 0 },
-		{ cs_foundation[2], 0 },
-		{ cs_foundation[3], 0 }
+		{ cs_shadow_deck, 0 },
+		{
+			{ cs_redacted_tableau[0], 0 },
+			{ cs_redacted_tableau[1], 0 },
+			{ cs_redacted_tableau[2], 0 },
+			{ cs_redacted_tableau[3], 0 },
+			{ cs_redacted_tableau[4], 0 },
+			{ cs_redacted_tableau[5], 0 },
+			{ cs_redacted_tableau[6], 0 }
+		},
+		{
+			{ cs_foundation[0], 0 },
+			{ cs_foundation[1], 0 },
+			{ cs_foundation[2], 0 },
+			{ cs_foundation[3], 0 }
+		},
+		{ cs_waste, 0 }
 	};
-	struct stack_of_cards waste = { cs_waste, 0 };
 
-	init_game(&shadow_deck, shadow_tableau, foundation, &waste);
+	init_game(&sgs);
 
+	//struct client_game_state cgs = { 0 };
+
+		/*
 #ifdef DEBUG
-	print_cards_v(&shadow_deck);
+	print_cards_v(&(sgs.shadow_deck));
 #endif
 
 #ifdef DEBUG
@@ -234,6 +234,8 @@ int main ()
 	{
 		redacted_copy(&redacted_deck, &shadow_deck,
 			53 * sizeof(*(redacted_deck.cs)));
+
+		//print(&client_game_state);
 
 		fprintf(stderr, "Deck (%d): ", redacted_deck.count);
 		print_cards_h(&redacted_deck);
@@ -251,9 +253,11 @@ int main ()
 		}
 
 		fprintf(stderr, "---\n");
-	} while (pull_from_deck(&shadow_deck, &waste, game_mode) != 0);
+	} while (pull_from_deck(&(sgs.shadow_deck), &(sgs.waste), game_mode)
+		!= 0);
 
 	// TODO: Implement remainder of game.
 #endif
+		*/
 	return EXIT_SUCCESS;
 }
