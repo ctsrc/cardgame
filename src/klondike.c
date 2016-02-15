@@ -235,18 +235,18 @@ int main ()
 		redacted_copy(&redacted_deck, &shadow_deck,
 			53 * sizeof(*(redacted_deck.cs)));
 
-		fprintf(stderr, "Deck (%d): ", shadow_deck.count);
+		fprintf(stderr, "Deck (%d): ", redacted_deck.count);
 		print_cards_h(&redacted_deck);
 		fprintf(stderr, "Waste (%d): ", waste.count);
 		print_cards_h(&waste);
 
 		for (int i = 0 ; i < 7 ; i++)
 		{
-			fprintf(stderr, "Tableau #%d (%d): ",
-				i, shadow_tableau[i].count);
 			redacted_copy(&(redacted_tableau[i]),
 				&(shadow_tableau[i]),
 				20 * sizeof(*(redacted_tableau[i].cs)));
+			fprintf(stderr, "Tableau #%d (%d): ",
+				i, redacted_tableau[i].count);
 			print_cards_h(&(redacted_tableau[i]));
 		}
 
