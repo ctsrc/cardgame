@@ -44,21 +44,21 @@ const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
 #define IS_UNKNOWNCARD(PTR) !memcmp(PTR, &UNKNOWNCARD, sizeof(struct card))
 
 #ifdef DEBUG
-void print_cards_v (struct card cs[])
+void print_cards_v (struct stack_of_cards *s)
 {
-	for (int i = 0 ; !IS_NULLCARD(&(cs[i])) ; i++)
+	for (int i = 0 ; !IS_NULLCARD(&(s->cs[i])) ; i++)
 	{
 		fprintf(stderr, "%02d %02d %d\n",
-			cs[i].c, cs[i].r, cs[i].face_up);
+			s->cs[i].c, s->cs[i].r, s->cs[i].face_up);
 	}
 }
 
-void print_cards_h (struct card cs[])
+void print_cards_h (struct stack_of_cards *s)
 {
-	for (int i = 0 ; !IS_NULLCARD(&(cs[i])) ; i++)
+	for (int i = 0 ; !IS_NULLCARD(&(s->cs[i])) ; i++)
 	{
 		fprintf(stderr, "%02d %02d %d  ",
-			cs[i].c, cs[i].r, cs[i].face_up);
+			s->cs[i].c, s->cs[i].r, s->cs[i].face_up);
 	}
 	fprintf(stderr, "\n");
 }
@@ -116,11 +116,11 @@ void init_game (
 #ifdef DEBUG
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		print_cards_v(tableau[i - 1].cs);
+		print_cards_v(&(tableau[i - 1]));
 		fprintf(stderr, "--- %d\n", tableau[i - 1].count);
 	}
 
-	print_cards_v(deck->cs);
+	print_cards_v(deck);
 	fprintf(stderr, "=== %d\n", deck->count);
 #endif
 }
@@ -129,34 +129,55 @@ void init_game (
  * XXX: It is up to caller to use a dstsz corresponding to the size of
  *	the destination. In other words, we don't check that it's valid.
  */
-void redacted_copy (struct card *dst, struct card *src, size_t dstsz) {
-	memcpy(dst, src, dstsz);
+void redacted_copy (
+	struct stack_of_cards *dst,
+	struct stack_of_cards *src,
+	size_t dstsz)
+{
+	memcpy(dst->cs, src->cs, dstsz);
+	dst->count = src->count;
 
-	for (int i = 0 ; !IS_NULLCARD(&(dst[i])) ; i++)
+	for (int i = 0 ; !IS_NULLCARD(&(dst->cs[i])) ; i++)
 	{
-		if (!(dst[i].face_up))
+		if (!(dst->cs[i].face_up))
 		{
-			dst[i] = UNKNOWNCARD;
+			dst->cs[i] = UNKNOWNCARD;
 		}
 	}
 }
 
-void move_card (struct card *dst, struct card *src)
+bool move_card (struct stack_of_cards *dst, struct stack_of_cards *src)
 {
-	memcpy(dst, src, sizeof(struct card));
-	memset(src, 0, sizeof(struct card));
+	if (src->count >= 1)
+	{
+		memcpy(&(dst->cs[dst->count]), &(src->cs[src->count - 1]),
+			sizeof(struct card));
+		dst->count++;
+		memset(&(src->cs[src->count - 1]), 0, sizeof(struct card));
+		src->count--;
+
+		return true;
+	}
+
+	return false;
 }
 
-void pull_from_deck (
-	struct card *deck_end,
-	struct card *waste_end,
+int pull_from_deck (
+	struct stack_of_cards *deck,
+	struct stack_of_cards *waste,
 	enum mode game_mode)
 {
-	// TODO FIXME: Bad things will happen when we go out of cards in deck.
-	for (int i = 0 ; i < 1 + 2 * game_mode ; i++)
+	int i;
+
+	for (i = 0 ; i < 1 + 2 * game_mode; i++)
 	{
-		move_card(waste_end + i, deck_end - (i + 1));
+		if (!move_card(waste, deck))
+		{
+			break;
+		}
 	}
+
+	return i;
 }
 
 int main ()
@@ -204,35 +225,34 @@ int main ()
 	init_game(&deck, tableau, foundation, &waste);
 
 #ifdef DEBUG
-	print_cards_v(&(deck.cs[deck.count - 1]));
+	print_cards_v(&deck);
 #endif
 
-/*
-	// THE GAME
 #ifdef DEBUG
-	for (;;)
+	fprintf(stderr, "\n\nTEST: Move cards from deck to waste.\n");
+	do
 	{
-		fprintf(stderr, "\n\n");
+		redacted_copy(&redacted_deck, &deck,
+			53 * sizeof(*(redacted_deck.cs)));
 
-		pull_from_deck(deck, waste, game_mode);
+		fprintf(stderr, "Deck (%d): ", deck.count);
+		print_cards_h(&redacted_deck);
+		fprintf(stderr, "Waste (%d): ", waste.count);
+		print_cards_h(&waste);
 
-		redacted_copy(redacted_deck, deck,
-			53 * sizeof(*redacted_deck));
-		fprintf(stderr, "Deck: ");
-		print_cards_h(redacted_deck);
-		fprintf(stderr, "Waste: ");
-		print_cards_h(waste);
 		for (int i = 0 ; i < 7 ; i++)
 		{
-			fprintf(stderr, "Tableau %d: ", i);
-			redacted_copy(redacted_tableau[i], tableau[i],
-				20 * sizeof(*(redacted_tableau[i])));
-			print_cards_h(redacted_tableau[i]);
+			fprintf(stderr, "Tableau #%d (%d): ",
+				i, tableau[i].count);
+			redacted_copy(&(redacted_tableau[i]), &(tableau[i]),
+				20 * sizeof(*(redacted_tableau[i].cs)));
+			print_cards_h(&(redacted_tableau[i]));
 		}
-	}
+
+		fprintf(stderr, "---\n");
+	} while (pull_from_deck(&deck, &waste, game_mode) != 0);
 
 	// TODO: Implement remainder of game.
 #endif
-*/
 	return EXIT_SUCCESS;
 }
