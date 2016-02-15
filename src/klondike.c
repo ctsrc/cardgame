@@ -184,24 +184,24 @@ int main ()
 {
 	enum mode game_mode = CLASSIC;
 
-	struct card cs_deck[53];
+	struct card cs_shadow_deck[53];
 	struct card cs_redacted_deck[53];
-	struct card cs_tableau[7][20];
+	struct card cs_shadow_tableau[7][20];
 	struct card cs_redacted_tableau[7][20];
 	struct card cs_foundation[4][14];
 	struct card cs_waste[25];
 
-	struct stack_of_cards deck = { cs_deck, 0 };
+	struct stack_of_cards shadow_deck = { cs_shadow_deck, 0 };
 	struct stack_of_cards redacted_deck = { cs_redacted_deck, 0 };
-	struct stack_of_cards tableau[7] =
+	struct stack_of_cards shadow_tableau[7] =
 	{
-		{ cs_tableau[0], 0 },
-		{ cs_tableau[1], 0 },
-		{ cs_tableau[2], 0 },
-		{ cs_tableau[3], 0 },
-		{ cs_tableau[4], 0 },
-		{ cs_tableau[5], 0 },
-		{ cs_tableau[6], 0 }
+		{ cs_shadow_tableau[0], 0 },
+		{ cs_shadow_tableau[1], 0 },
+		{ cs_shadow_tableau[2], 0 },
+		{ cs_shadow_tableau[3], 0 },
+		{ cs_shadow_tableau[4], 0 },
+		{ cs_shadow_tableau[5], 0 },
+		{ cs_shadow_tableau[6], 0 }
 	};
 	struct stack_of_cards redacted_tableau[7] =
 	{
@@ -222,20 +222,20 @@ int main ()
 	};
 	struct stack_of_cards waste = { cs_waste, 0 };
 
-	init_game(&deck, tableau, foundation, &waste);
+	init_game(&shadow_deck, shadow_tableau, foundation, &waste);
 
 #ifdef DEBUG
-	print_cards_v(&deck);
+	print_cards_v(&shadow_deck);
 #endif
 
 #ifdef DEBUG
 	fprintf(stderr, "\n\nTEST: Move cards from deck to waste.\n");
 	do
 	{
-		redacted_copy(&redacted_deck, &deck,
+		redacted_copy(&redacted_deck, &shadow_deck,
 			53 * sizeof(*(redacted_deck.cs)));
 
-		fprintf(stderr, "Deck (%d): ", deck.count);
+		fprintf(stderr, "Deck (%d): ", shadow_deck.count);
 		print_cards_h(&redacted_deck);
 		fprintf(stderr, "Waste (%d): ", waste.count);
 		print_cards_h(&waste);
@@ -243,14 +243,15 @@ int main ()
 		for (int i = 0 ; i < 7 ; i++)
 		{
 			fprintf(stderr, "Tableau #%d (%d): ",
-				i, tableau[i].count);
-			redacted_copy(&(redacted_tableau[i]), &(tableau[i]),
+				i, shadow_tableau[i].count);
+			redacted_copy(&(redacted_tableau[i]),
+				&(shadow_tableau[i]),
 				20 * sizeof(*(redacted_tableau[i].cs)));
 			print_cards_h(&(redacted_tableau[i]));
 		}
 
 		fprintf(stderr, "---\n");
-	} while (pull_from_deck(&deck, &waste, game_mode) != 0);
+	} while (pull_from_deck(&shadow_deck, &waste, game_mode) != 0);
 
 	// TODO: Implement remainder of game.
 #endif
