@@ -278,18 +278,6 @@ int main ()
 	struct card cs_foundation[4][14];
 	struct card cs_waste[25];
 
-	struct stack_of_cards redacted_deck = { tick, cs_redacted_deck, 0 };
-	struct stack_of_cards redacted_tableau[7] =
-	{
-		{ tick, cs_redacted_tableau[0], 0 },
-		{ tick, cs_redacted_tableau[1], 0 },
-		{ tick, cs_redacted_tableau[2], 0 },
-		{ tick, cs_redacted_tableau[3], 0 },
-		{ tick, cs_redacted_tableau[4], 0 },
-		{ tick, cs_redacted_tableau[5], 0 },
-		{ tick, cs_redacted_tableau[6], 0 }
-	};
-
 	struct game_state shadow =
 	{
 		tick,
