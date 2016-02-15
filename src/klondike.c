@@ -201,6 +201,8 @@ int init_game (struct game_state *shadow, struct game_state *client, int tick)
 
 	// Initialize waste
 	memset(shadow->waste.cs, 0, 25 * sizeof(struct card));
+	shadow->waste.count = 0;
+	shadow->waste.last_modified = tick;
 
 	// Initialize deck
 	memset(shadow->deck.cs, 0, 25 * sizeof(struct card));
