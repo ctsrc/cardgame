@@ -68,3 +68,11 @@ struct game_state {
 
 extern const struct card NULLCARD;
 extern const struct card UNKNOWNCARD;
+
+enum deck_action {
+	DECK_NO_ACTION = 0,
+	DECK_PULLED_ONE,
+	DECK_PULLED_TWO,
+	DECK_PULLED_THREE,
+	DECK_RECYCLED
+};

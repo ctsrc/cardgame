@@ -255,6 +255,17 @@ int pull_from_deck (
 {
 	int i;
 
+	if (shadow->deck.count == 0 && shadow->waste.count > 0)
+	{
+		while (shadow->waste.count > 0)
+		{
+			move_card(&(shadow->deck), &(shadow->waste), tick);
+		}
+		shadow->last_modified = *tick;
+
+		return DECK_RECYCLED;
+	}
+
 	for (i = 0 ; i < 1 + 2 * game_mode; i++)
 	{
 		if (!move_card(&(shadow->waste), &(shadow->deck), tick))
@@ -332,7 +343,13 @@ int main ()
 		update_client_data(&client, &shadow);
 		fprintf(stderr, "--- client ");
 		print_state(&client);
-	} while (pull_from_deck(&shadow, game_mode, &tick) != 0);
+	} while (pull_from_deck(&shadow, game_mode, &tick) != DECK_RECYCLED);
+
+	update_client_data(&client, &shadow);
+	fprintf(stderr, "--- shadow ");
+	print_state(&shadow);
+	fprintf(stderr, "--- client ");
+	print_state(&client);
 
 	// TODO: Implement remainder of game.
 #endif
