@@ -257,9 +257,10 @@ int pull_from_deck (
 
 	if (shadow->deck.count == 0 && shadow->waste.count > 0)
 	{
-		while (shadow->waste.count > 0)
+		for (i = 0 ; shadow->waste.count > 0 ; i++)
 		{
 			move_card(&(shadow->deck), &(shadow->waste), tick);
+			shadow->deck.cs[i].face_up = false;
 		}
 		shadow->last_modified = *tick;
 
@@ -272,6 +273,7 @@ int pull_from_deck (
 		{
 			break;
 		}
+		shadow->waste.cs[shadow->waste.count - 1].face_up = true;
 		shadow->last_modified = *tick;
 	}
 
