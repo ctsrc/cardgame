@@ -61,9 +61,9 @@ struct stack_of_cards {
 struct game_state {
 	int last_modified;
 	struct stack_of_cards deck;
-	struct stack_of_cards tableau[7];
-	struct stack_of_cards foundation[4];
 	struct stack_of_cards waste;
+	struct stack_of_cards foundation[4];
+	struct stack_of_cards tableau[7];
 };
 
 extern const struct card NULLCARD;

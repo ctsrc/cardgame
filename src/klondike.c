@@ -54,6 +54,25 @@ void print_cards_h (struct stack_of_cards *s)
 	}
 	fprintf(stderr, "\n");
 }
+
+void print_state (struct game_state *gs)
+{
+	fprintf(stderr, "(%d) ---\n", gs->last_modified);
+
+	print_cards_h(&(gs->deck));
+
+	print_cards_h(&(gs->waste));
+
+	for (int i = 0 ; i < 7 ; i++)
+	{
+		print_cards_h(&(gs->tableau[i]));
+	}
+
+	for (int i = 0 ; i < 4 ; i++)
+	{
+		print_cards_h(&(gs->foundation[i]));
+	}
+}
 #endif
 
 /*
@@ -97,17 +116,16 @@ void update_client_data (struct game_state *client, struct game_state *shadow)
 {
 	if (client->last_modified < shadow->last_modified)
 	{
+		// Update last_modified
+		client->last_modified = shadow->last_modified;
+
 		// Update deck
 		redacted_copy(&(client->deck), &(shadow->deck),
 			25 * sizeof(*(client->deck.cs)));
 
-		// Update tableaus
-		for (int i = 0 ; i < 7 ; i++)
-		{
-			redacted_copy(&(client->tableau[i]),
-				&(shadow->tableau[i]),
-				20 * sizeof(*(client->tableau[i].cs)));
-		}
+		// Update waste
+		plain_copy(&(client->waste), &(shadow->waste),
+			25 * sizeof(*(client->waste.cs)));
 
 		// Update foundations
 		for (int i = 0 ; i < 4 ; i++)
@@ -117,12 +135,13 @@ void update_client_data (struct game_state *client, struct game_state *shadow)
 				14 * sizeof(*(client->foundation[i].cs)));
 		}
 
-		// Update waste
-		plain_copy(&(client->waste), &(shadow->waste),
-			25 * sizeof(*(client->waste.cs)));
-
-		// Update last_modified
-		client->last_modified = shadow->last_modified;
+		// Update tableaus
+		for (int i = 0 ; i < 7 ; i++)
+		{
+			redacted_copy(&(client->tableau[i]),
+				&(shadow->tableau[i]),
+				20 * sizeof(*(client->tableau[i].cs)));
+		}
 	}
 }
 
@@ -155,17 +174,6 @@ int init_game (struct game_state *shadow, struct game_state *client, int tick)
 		cs_tmp_deck[j] = tmp;
 	}
 
-	// Initialize waste
-	memset(shadow->waste.cs, 0, 25 * sizeof(struct card));
-
-	// Initialize foundations
-	for (int i = 0 ; i < 4 ; i++)
-	{
-		memset(shadow->foundation[i].cs, 0, 14 * sizeof(struct card));
-		shadow->foundation[i].count = 0;
-		shadow->foundation[i].last_modified = tick;
-	}
-
 	// Initialize tableaus
 	for (int i = 1 ; i <= 7 ; i++)
 	{
@@ -179,6 +187,17 @@ int init_game (struct game_state *shadow, struct game_state *client, int tick)
 		card_curr -= i;
 	}
 
+	// Initialize foundations
+	for (int i = 0 ; i < 4 ; i++)
+	{
+		memset(shadow->foundation[i].cs, 0, 14 * sizeof(struct card));
+		shadow->foundation[i].count = 0;
+		shadow->foundation[i].last_modified = tick;
+	}
+
+	// Initialize waste
+	memset(shadow->waste.cs, 0, 25 * sizeof(struct card));
+
 	// Initialize deck
 	memset(shadow->deck.cs, 0, 25 * sizeof(struct card));
 	int nc_rem = (card_curr - cs_tmp_deck);
@@ -190,12 +209,8 @@ int init_game (struct game_state *shadow, struct game_state *client, int tick)
 	shadow->last_modified = tick;
 
 #ifdef DEBUG
-	print_cards_h(&(shadow->deck));
-
-	for (int i = 1 ; i <= 7 ; i++)
-	{
-		print_cards_h(&(shadow->tableau[i - 1]));
-	}
+	fprintf(stderr, "--- shadow ");
+	print_state(shadow);
 #endif
 
 	update_client_data(client, shadow);
@@ -203,15 +218,22 @@ int init_game (struct game_state *shadow, struct game_state *client, int tick)
 	return tick;
 }
 
-bool move_card (struct stack_of_cards *dst, struct stack_of_cards *src)
+bool move_card (
+	struct stack_of_cards *dst,
+	struct stack_of_cards *src,
+	int *tick)
 {
 	if (src->count >= 1)
 	{
+		(*tick)++;
+
 		memcpy(&(dst->cs[dst->count]), &(src->cs[src->count - 1]),
 			sizeof(struct card));
 		dst->count++;
+		dst->last_modified = *tick;
 		memset(&(src->cs[src->count - 1]), 0, sizeof(struct card));
 		src->count--;
+		src->last_modified = *tick;
 
 		return true;
 	}
@@ -220,18 +242,19 @@ bool move_card (struct stack_of_cards *dst, struct stack_of_cards *src)
 }
 
 int pull_from_deck (
-	struct stack_of_cards *deck,
-	struct stack_of_cards *waste,
-	enum mode game_mode)
+	struct game_state *shadow,
+	enum mode game_mode,
+	int *tick)
 {
 	int i;
 
 	for (i = 0 ; i < 1 + 2 * game_mode; i++)
 	{
-		if (!move_card(waste, deck))
+		if (!move_card(&(shadow->waste), &(shadow->deck), tick))
 		{
 			break;
 		}
+		shadow->last_modified = *tick;
 	}
 
 	return i;
@@ -265,6 +288,13 @@ int main ()
 	{
 		tick,
 		{ tick, cs_shadow_deck, 0 },
+		{ tick, cs_waste, 0 },
+		{
+			{ tick, cs_foundation[0], 0 },
+			{ tick, cs_foundation[1], 0 },
+			{ tick, cs_foundation[2], 0 },
+			{ tick, cs_foundation[3], 0 }
+		},
 		{
 			{ tick, cs_shadow_tableau[0], 0 },
 			{ tick, cs_shadow_tableau[1], 0 },
@@ -273,20 +303,20 @@ int main ()
 			{ tick, cs_shadow_tableau[4], 0 },
 			{ tick, cs_shadow_tableau[5], 0 },
 			{ tick, cs_shadow_tableau[6], 0 }
-		},
-		{
-			{ tick, cs_foundation[0], 0 },
-			{ tick, cs_foundation[1], 0 },
-			{ tick, cs_foundation[2], 0 },
-			{ tick, cs_foundation[3], 0 }
-		},
-		{ tick, cs_waste, 0 }
+		}
 	};
 
 	struct game_state client =
 	{
 		tick,
 		{ tick, cs_redacted_deck, 0 },
+		{ tick, cs_waste, 0 },
+		{
+			{ tick, cs_foundation[0], 0 },
+			{ tick, cs_foundation[1], 0 },
+			{ tick, cs_foundation[2], 0 },
+			{ tick, cs_foundation[3], 0 }
+		},
 		{
 			{ tick, cs_redacted_tableau[0], 0 },
 			{ tick, cs_redacted_tableau[1], 0 },
@@ -295,37 +325,22 @@ int main ()
 			{ tick, cs_redacted_tableau[4], 0 },
 			{ tick, cs_redacted_tableau[5], 0 },
 			{ tick, cs_redacted_tableau[6], 0 }
-		},
-		{
-			{ tick, cs_foundation[0], 0 },
-			{ tick, cs_foundation[1], 0 },
-			{ tick, cs_foundation[2], 0 },
-			{ tick, cs_foundation[3], 0 }
-		},
-		{ tick, cs_waste, 0 }
+		}
 	};
 
 	tick = init_game(&shadow, &client, tick);
 
-		/*
 #ifdef DEBUG
-	fprintf(stderr, "\n\nTEST: Move cards from deck to waste.\n");
+	fprintf(stderr, "TEST: Move cards from deck to waste.\n");
 	do
 	{
-		//print(&client_game_state);
-
-		fprintf(stderr, "Deck (%d): ", redacted_deck.count);
-		print_cards_h(&redacted_deck);
-		fprintf(stderr, "Waste (%d): ", waste.count);
-		print_cards_h(&waste);
-
-
-		fprintf(stderr, "---\n");
-	} while (pull_from_deck(&(shadow.deck), &(shadow.waste), game_mode)
-		!= 0);
+		update_client_data(&client, &shadow);
+		fprintf(stderr, "--- client ");
+		print_state(&client);
+	} while (pull_from_deck(&shadow, game_mode, &tick) != 0);
 
 	// TODO: Implement remainder of game.
 #endif
-		*/
+
 	return EXIT_SUCCESS;
 }
