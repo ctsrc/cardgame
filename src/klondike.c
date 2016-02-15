@@ -59,18 +59,22 @@ void print_state (struct game_state *gs)
 {
 	fprintf(stderr, "(%d) ---\n", gs->last_modified);
 
+	fprintf(stderr, "deck ");
 	print_cards_h(&(gs->deck));
 
+	fprintf(stderr, "waste ");
 	print_cards_h(&(gs->waste));
-
-	for (int i = 0 ; i < 7 ; i++)
-	{
-		print_cards_h(&(gs->tableau[i]));
-	}
 
 	for (int i = 0 ; i < 4 ; i++)
 	{
+		fprintf(stderr, "foundation #%d ", i);
 		print_cards_h(&(gs->foundation[i]));
+	}
+
+	for (int i = 0 ; i < 7 ; i++)
+	{
+		fprintf(stderr, "tableau #%d ", i);
+		print_cards_h(&(gs->tableau[i]));
 	}
 }
 #endif
