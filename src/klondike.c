@@ -56,7 +56,6 @@ void print_cards_h (struct stack_of_cards *s)
 }
 #endif
 
-// TODO: client_game_state
 void init_game (struct game_state *gs)
 {
 	struct card cs_tmp_deck[53];
