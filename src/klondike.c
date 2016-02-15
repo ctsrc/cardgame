@@ -149,9 +149,12 @@ void update_client_data (struct game_state *client, struct game_state *shadow)
 	}
 }
 
-int init_game (struct game_state *shadow, struct game_state *client, int tick)
+void init_game (
+	struct game_state *shadow,
+	struct game_state *client,
+	int *tick)
 {
-	tick++;
+	(*tick)++;
 
 	// Create temporary deck
 	struct card cs_tmp_deck[53];
@@ -186,7 +189,7 @@ int init_game (struct game_state *shadow, struct game_state *client, int tick)
 			i * sizeof(struct card));
 		shadow->tableau[i - 1].cs[i - 1].face_up = true;
 		shadow->tableau[i - 1].count += i;
-		shadow->tableau[i - 1].last_modified = tick;
+		shadow->tableau[i - 1].last_modified = *tick;
 
 		card_curr -= i;
 	}
@@ -196,23 +199,23 @@ int init_game (struct game_state *shadow, struct game_state *client, int tick)
 	{
 		memset(shadow->foundation[i].cs, 0, 14 * sizeof(struct card));
 		shadow->foundation[i].count = 0;
-		shadow->foundation[i].last_modified = tick;
+		shadow->foundation[i].last_modified = *tick;
 	}
 
 	// Initialize waste
 	memset(shadow->waste.cs, 0, 25 * sizeof(struct card));
 	shadow->waste.count = 0;
-	shadow->waste.last_modified = tick;
+	shadow->waste.last_modified = *tick;
 
 	// Initialize deck
 	memset(shadow->deck.cs, 0, 25 * sizeof(struct card));
 	int nc_rem = (card_curr - cs_tmp_deck);
 	memcpy(shadow->deck.cs, cs_tmp_deck, nc_rem * sizeof(struct card));
 	shadow->deck.count = nc_rem;
-	shadow->deck.last_modified = tick;
+	shadow->deck.last_modified = *tick;
 
 	// Update last_modified
-	shadow->last_modified = tick;
+	shadow->last_modified = *tick;
 
 #ifdef DEBUG
 	fprintf(stderr, "--- shadow ");
@@ -220,8 +223,6 @@ int init_game (struct game_state *shadow, struct game_state *client, int tick)
 #endif
 
 	update_client_data(client, shadow);
-
-	return tick;
 }
 
 bool move_card (
@@ -322,7 +323,7 @@ int main ()
 		}
 	};
 
-	tick = init_game(&shadow, &client, tick);
+	init_game(&shadow, &client, &tick);
 
 #ifdef DEBUG
 	fprintf(stderr, "TEST: Move cards from deck to waste.\n");
