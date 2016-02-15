@@ -46,7 +46,7 @@ const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
 #ifdef DEBUG
 void print_cards_h (struct stack_of_cards *s)
 {
-	fprintf(stderr, "(%d): ", s->count);
+	fprintf(stderr, "(%d, %d): ", s->last_modified, s->count);
 	for (int i = 0 ; !IS_NULLCARD(&(s->cs[i])) ; i++)
 	{
 		fprintf(stderr, "%02d %02d %d  ",
@@ -56,11 +56,83 @@ void print_cards_h (struct stack_of_cards *s)
 }
 #endif
 
-void init_game (struct game_state *gs)
+/*
+ * XXX: It is up to caller to use a dstsz corresponding to the size of
+ *	the destination. In other words, we don't check that it's valid.
+ */
+void redacted_copy (
+	struct stack_of_cards *dst,
+	struct stack_of_cards *src,
+	size_t dstsz)
 {
+	if (dst->last_modified < src->last_modified)
+	{
+		memcpy(dst->cs, src->cs, dstsz);
+		dst->count = src->count;
+		dst->last_modified = src->last_modified;
+
+		for (int i = 0 ; !IS_NULLCARD(&(dst->cs[i])) ; i++)
+		{
+			if (!(dst->cs[i].face_up))
+			{
+				dst->cs[i] = UNKNOWNCARD;
+			}
+		}
+	}
+}
+void plain_copy (
+	struct stack_of_cards *dst,
+	struct stack_of_cards *src,
+	size_t dstsz)
+{
+	if (dst->last_modified < src->last_modified)
+	{
+		memcpy(dst->cs, src->cs, dstsz);
+		dst->count = src->count;
+		dst->last_modified = src->last_modified;
+	}
+}
+
+void update_client_data (struct game_state *client, struct game_state *shadow)
+{
+	if (client->last_modified < shadow->last_modified)
+	{
+		// Update deck
+		redacted_copy(&(client->deck), &(shadow->deck),
+			25 * sizeof(*(client->deck.cs)));
+
+		// Update tableaus
+		for (int i = 0 ; i < 7 ; i++)
+		{
+			redacted_copy(&(client->tableau[i]),
+				&(shadow->tableau[i]),
+				20 * sizeof(*(client->tableau[i].cs)));
+		}
+
+		// Update foundations
+		for (int i = 0 ; i < 4 ; i++)
+		{
+			plain_copy(&(client->foundation[i]),
+				&(shadow->foundation[i]),
+				14 * sizeof(*(client->foundation[i].cs)));
+		}
+
+		// Update waste
+		plain_copy(&(client->waste), &(shadow->waste),
+			25 * sizeof(*(client->waste.cs)));
+
+		// Update last_modified
+		client->last_modified = shadow->last_modified;
+	}
+}
+
+int init_game (struct game_state *shadow, struct game_state *client, int tick)
+{
+	tick++;
+
+	// Create temporary deck
 	struct card cs_tmp_deck[53];
 	memset(cs_tmp_deck, 0, 53 * sizeof(struct card));
-
 	struct card *card_curr = cs_tmp_deck;
 	for (int c = HEARTS ; c <= CLUBS ; c++)
 	{
@@ -73,7 +145,7 @@ void init_game (struct game_state *gs)
 		}
 	}
 
-	// Fisher-Yates shuffle the deck.
+	// Fisher-Yates shuffle the temporary deck
 	for (int i = 51 ; i > 0 ; i--)
 	{
 		int j = arc4random_uniform(i + 1);
@@ -83,61 +155,52 @@ void init_game (struct game_state *gs)
 		cs_tmp_deck[j] = tmp;
 	}
 
-	memset(gs->deck.cs, 0, 25 * sizeof(struct card));
-	for (int i = 0 ; i < 7 ; i++)
-	{
-		memset(gs->tableau[i].cs, 0, 20 * sizeof(struct card));
-	}
+	// Initialize waste
+	memset(shadow->waste.cs, 0, 25 * sizeof(struct card));
+
+	// Initialize foundations
 	for (int i = 0 ; i < 4 ; i++)
 	{
-		memset(gs->foundation[i].cs, 0, 14 * sizeof(struct card));
+		memset(shadow->foundation[i].cs, 0, 14 * sizeof(struct card));
+		shadow->foundation[i].count = 0;
+		shadow->foundation[i].last_modified = tick;
 	}
-	memset(gs->waste.cs, 0, 25 * sizeof(struct card));
 
-	// Move cards to tableau and turn top-most card in each column.
+	// Initialize tableaus
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		memcpy(gs->tableau[i - 1].cs, card_curr - i,
+		memset(shadow->tableau[i - 1].cs, 0, 20 * sizeof(struct card));
+		memcpy(shadow->tableau[i - 1].cs, card_curr - i,
 			i * sizeof(struct card));
-		gs->tableau[i - 1].count += i;
-		gs->tableau[i - 1].cs[i - 1].face_up = true;
+		shadow->tableau[i - 1].cs[i - 1].face_up = true;
+		shadow->tableau[i - 1].count += i;
+		shadow->tableau[i - 1].last_modified = tick;
+
 		card_curr -= i;
 	}
 
-	// Move remainder of cards to deck
+	// Initialize deck
+	memset(shadow->deck.cs, 0, 25 * sizeof(struct card));
 	int nc_rem = (card_curr - cs_tmp_deck);
-	memcpy(gs->deck.cs, cs_tmp_deck, nc_rem * sizeof(struct card));
-	gs->deck.count = nc_rem;
+	memcpy(shadow->deck.cs, cs_tmp_deck, nc_rem * sizeof(struct card));
+	shadow->deck.count = nc_rem;
+	shadow->deck.last_modified = tick;
+
+	// Update last_modified
+	shadow->last_modified = tick;
 
 #ifdef DEBUG
-	print_cards_h(&(gs->deck));
+	print_cards_h(&(shadow->deck));
 
 	for (int i = 1 ; i <= 7 ; i++)
 	{
-		print_cards_h(&(gs->tableau[i - 1]));
+		print_cards_h(&(shadow->tableau[i - 1]));
 	}
 #endif
-}
 
-/*
- * XXX: It is up to caller to use a dstsz corresponding to the size of
- *	the destination. In other words, we don't check that it's valid.
- */
-void redacted_copy (
-	struct stack_of_cards *dst,
-	struct stack_of_cards *src,
-	size_t dstsz)
-{
-	memcpy(dst->cs, src->cs, dstsz);
-	dst->count = src->count;
+	update_client_data(client, shadow);
 
-	for (int i = 0 ; !IS_NULLCARD(&(dst->cs[i])) ; i++)
-	{
-		if (!(dst->cs[i].face_up))
-		{
-			dst->cs[i] = UNKNOWNCARD;
-		}
-	}
+	return tick;
 }
 
 bool move_card (struct stack_of_cards *dst, struct stack_of_cards *src)
@@ -176,6 +239,7 @@ int pull_from_deck (
 
 int main ()
 {
+	int tick = 0;
 	enum mode game_mode = CLASSIC;
 
 	struct card cs_shadow_deck[25];
@@ -185,55 +249,69 @@ int main ()
 	struct card cs_foundation[4][14];
 	struct card cs_waste[25];
 
-	struct stack_of_cards redacted_deck = { cs_redacted_deck, 0 };
+	struct stack_of_cards redacted_deck = { tick, cs_redacted_deck, 0 };
 	struct stack_of_cards redacted_tableau[7] =
 	{
-		{ cs_redacted_tableau[0], 0 },
-		{ cs_redacted_tableau[1], 0 },
-		{ cs_redacted_tableau[2], 0 },
-		{ cs_redacted_tableau[3], 0 },
-		{ cs_redacted_tableau[4], 0 },
-		{ cs_redacted_tableau[5], 0 },
-		{ cs_redacted_tableau[6], 0 }
+		{ tick, cs_redacted_tableau[0], 0 },
+		{ tick, cs_redacted_tableau[1], 0 },
+		{ tick, cs_redacted_tableau[2], 0 },
+		{ tick, cs_redacted_tableau[3], 0 },
+		{ tick, cs_redacted_tableau[4], 0 },
+		{ tick, cs_redacted_tableau[5], 0 },
+		{ tick, cs_redacted_tableau[6], 0 }
 	};
 
 	struct game_state shadow =
 	{
-		{ cs_shadow_deck, 0 },
+		tick,
+		{ tick, cs_shadow_deck, 0 },
 		{
-			{ cs_redacted_tableau[0], 0 },
-			{ cs_redacted_tableau[1], 0 },
-			{ cs_redacted_tableau[2], 0 },
-			{ cs_redacted_tableau[3], 0 },
-			{ cs_redacted_tableau[4], 0 },
-			{ cs_redacted_tableau[5], 0 },
-			{ cs_redacted_tableau[6], 0 }
+			{ tick, cs_shadow_tableau[0], 0 },
+			{ tick, cs_shadow_tableau[1], 0 },
+			{ tick, cs_shadow_tableau[2], 0 },
+			{ tick, cs_shadow_tableau[3], 0 },
+			{ tick, cs_shadow_tableau[4], 0 },
+			{ tick, cs_shadow_tableau[5], 0 },
+			{ tick, cs_shadow_tableau[6], 0 }
 		},
 		{
-			{ cs_foundation[0], 0 },
-			{ cs_foundation[1], 0 },
-			{ cs_foundation[2], 0 },
-			{ cs_foundation[3], 0 }
+			{ tick, cs_foundation[0], 0 },
+			{ tick, cs_foundation[1], 0 },
+			{ tick, cs_foundation[2], 0 },
+			{ tick, cs_foundation[3], 0 }
 		},
-		{ cs_waste, 0 }
+		{ tick, cs_waste, 0 }
 	};
 
-	init_game(&shadow);
+	struct game_state client =
+	{
+		tick,
+		{ tick, cs_redacted_deck, 0 },
+		{
+			{ tick, cs_redacted_tableau[0], 0 },
+			{ tick, cs_redacted_tableau[1], 0 },
+			{ tick, cs_redacted_tableau[2], 0 },
+			{ tick, cs_redacted_tableau[3], 0 },
+			{ tick, cs_redacted_tableau[4], 0 },
+			{ tick, cs_redacted_tableau[5], 0 },
+			{ tick, cs_redacted_tableau[6], 0 }
+		},
+		{
+			{ tick, cs_foundation[0], 0 },
+			{ tick, cs_foundation[1], 0 },
+			{ tick, cs_foundation[2], 0 },
+			{ tick, cs_foundation[3], 0 }
+		},
+		{ tick, cs_waste, 0 }
+	};
 
-	//struct client_game_state cgs = { 0 };
+	tick = init_game(&shadow, &client, tick);
 
 		/*
-#ifdef DEBUG
-	print_cards_v(&(gs.shadow_deck));
-#endif
-
 #ifdef DEBUG
 	fprintf(stderr, "\n\nTEST: Move cards from deck to waste.\n");
 	do
 	{
-		redacted_copy(&redacted_deck, &shadow_deck,
-			53 * sizeof(*(redacted_deck.cs)));
-
 		//print(&client_game_state);
 
 		fprintf(stderr, "Deck (%d): ", redacted_deck.count);
@@ -241,18 +319,9 @@ int main ()
 		fprintf(stderr, "Waste (%d): ", waste.count);
 		print_cards_h(&waste);
 
-		for (int i = 0 ; i < 7 ; i++)
-		{
-			redacted_copy(&(redacted_tableau[i]),
-				&(shadow_tableau[i]),
-				20 * sizeof(*(redacted_tableau[i].cs)));
-			fprintf(stderr, "Tableau #%d (%d): ",
-				i, redacted_tableau[i].count);
-			print_cards_h(&(redacted_tableau[i]));
-		}
 
 		fprintf(stderr, "---\n");
-	} while (pull_from_deck(&(gs.shadow_deck), &(gs.waste), game_mode)
+	} while (pull_from_deck(&(shadow.deck), &(shadow.waste), game_mode)
 		!= 0);
 
 	// TODO: Implement remainder of game.

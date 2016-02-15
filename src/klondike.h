@@ -53,11 +53,13 @@ struct card {
 };
 
 struct stack_of_cards {
+	int last_modified;
 	struct card * const cs;
 	int count;
 };
 
 struct game_state {
+	int last_modified;
 	struct stack_of_cards deck;
 	struct stack_of_cards tableau[7];
 	struct stack_of_cards foundation[4];
