@@ -31,6 +31,22 @@
 
 #include "klondike.h"
 
+#ifdef DEBUG
+/*
+ * Debug level is set at run time by the -D <n> argument.
+ * Binary must have been built with debugging enabled.
+ *
+ * The debug levels are:
+ * 1 - Default. Print client data.
+ * 2 - Print shadow data.
+ * 3 - Do not shuffle deck.
+ * 4 - Enable editing of shadow data.
+ *
+ * TODO: Debug level 4.
+ */
+int debug_level = 1;
+#endif
+
 const struct card NULLCARD = { NO_COLOR, NO_RANK, false };
 const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
 
@@ -169,6 +185,10 @@ void init_game (struct game_state *shadow, struct game_state *client, int t)
 		}
 	}
 
+#ifdef DEBUG
+	if (debug_level < 3)
+	{
+#endif
 	// Fisher-Yates shuffle the temporary deck
 	for (int i = 51 ; i > 0 ; i--)
 	{
@@ -178,6 +198,9 @@ void init_game (struct game_state *shadow, struct game_state *client, int t)
 		cs_tmp_deck[i] = cs_tmp_deck[j];
 		cs_tmp_deck[j] = tmp;
 	}
+#ifdef DEBUG
+	}
+#endif
 
 	// Initialize tableaus
 	for (int i = 1 ; i <= 7 ; i++)
@@ -213,8 +236,11 @@ void init_game (struct game_state *shadow, struct game_state *client, int t)
 	shadow->deck.last_modified = shadow->last_modified;
 
 #ifdef DEBUG
-	fprintf(stderr, "--- shadow ");
-	print_state(shadow);
+	if (debug_level >= 2)
+	{
+		fprintf(stderr, "--- shadow ");
+		print_state(shadow);
+	}
 #endif
 
 	update_client_data(client, shadow);
@@ -267,8 +293,15 @@ int pull_from_deck (struct game_state *shadow, enum mode game_mode, int t)
 	return i;
 }
 
-int main ()
+int main (int argc, char *argv[])
 {
+#ifdef DEBUG
+	if (argc == 3 && strcmp(argv[1], "-D") == 0)
+	{
+		debug_level = atoi(argv[2]);
+	}
+#endif
+
 	enum mode game_mode = CLASSIC;
 
 	struct card cs_shadow_deck[25];
@@ -338,8 +371,13 @@ int main ()
 	}
 
 	update_client_data(&client, &shadow);
-	fprintf(stderr, "--- shadow ");
-	print_state(&shadow);
+
+	if (debug_level >= 2)
+	{
+		fprintf(stderr, "--- shadow ");
+		print_state(&shadow);
+	}
+
 	fprintf(stderr, "--- client ");
 	print_state(&client);
 
