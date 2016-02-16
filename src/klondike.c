@@ -149,12 +149,10 @@ void update_client_data (struct game_state *client, struct game_state *shadow)
 	}
 }
 
-void init_game (
-	struct game_state *shadow,
-	struct game_state *client,
-	int *tick)
+void init_game (struct game_state *shadow, struct game_state *client, int t)
 {
-	(*tick)++;
+	// Update shadow last_modified
+	shadow->last_modified = t;
 
 	// Create temporary deck
 	struct card cs_tmp_deck[53];
@@ -189,7 +187,7 @@ void init_game (
 			i * sizeof(struct card));
 		shadow->tableau[i - 1].cs[i - 1].face_up = true;
 		shadow->tableau[i - 1].count += i;
-		shadow->tableau[i - 1].last_modified = *tick;
+		shadow->tableau[i - 1].last_modified = shadow->last_modified;
 
 		card_curr -= i;
 	}
@@ -199,23 +197,20 @@ void init_game (
 	{
 		memset(shadow->foundation[i].cs, 0, 14 * sizeof(struct card));
 		shadow->foundation[i].count = 0;
-		shadow->foundation[i].last_modified = *tick;
+		shadow->foundation[i].last_modified = shadow->last_modified;
 	}
 
 	// Initialize waste
 	memset(shadow->waste.cs, 0, 25 * sizeof(struct card));
 	shadow->waste.count = 0;
-	shadow->waste.last_modified = *tick;
+	shadow->waste.last_modified = shadow->last_modified;
 
 	// Initialize deck
 	memset(shadow->deck.cs, 0, 25 * sizeof(struct card));
 	int nc_rem = (card_curr - cs_tmp_deck);
 	memcpy(shadow->deck.cs, cs_tmp_deck, nc_rem * sizeof(struct card));
 	shadow->deck.count = nc_rem;
-	shadow->deck.last_modified = *tick;
-
-	// Update last_modified
-	shadow->last_modified = *tick;
+	shadow->deck.last_modified = shadow->last_modified;
 
 #ifdef DEBUG
 	fprintf(stderr, "--- shadow ");
@@ -225,22 +220,17 @@ void init_game (
 	update_client_data(client, shadow);
 }
 
-bool move_card (
-	struct stack_of_cards *dst,
-	struct stack_of_cards *src,
-	int *tick)
+bool move_card (struct stack_of_cards *dst, struct stack_of_cards *src, int t)
 {
 	if (src->count >= 1)
 	{
-		(*tick)++;
-
 		memcpy(&(dst->cs[dst->count]), &(src->cs[src->count - 1]),
 			sizeof(struct card));
 		dst->count++;
-		dst->last_modified = *tick;
+		dst->last_modified = t;
 		memset(&(src->cs[src->count - 1]), 0, sizeof(struct card));
 		src->count--;
-		src->last_modified = *tick;
+		src->last_modified = t;
 
 		return true;
 	}
@@ -248,10 +238,7 @@ bool move_card (
 	return false;
 }
 
-int pull_from_deck (
-	struct game_state *shadow,
-	enum mode game_mode,
-	int *tick)
+int pull_from_deck (struct game_state *shadow, enum mode game_mode, int t)
 {
 	int i;
 
@@ -259,22 +246,22 @@ int pull_from_deck (
 	{
 		for (i = 0 ; shadow->waste.count > 0 ; i++)
 		{
-			move_card(&(shadow->deck), &(shadow->waste), tick);
+			move_card(&(shadow->deck), &(shadow->waste), t);
 			shadow->deck.cs[i].face_up = false;
 		}
-		shadow->last_modified = *tick;
+		shadow->last_modified = t;
 
 		return DECK_RECYCLED;
 	}
 
 	for (i = 0 ; i < 1 + 2 * game_mode; i++)
 	{
-		if (!move_card(&(shadow->waste), &(shadow->deck), tick))
+		if (!move_card(&(shadow->waste), &(shadow->deck), t))
 		{
 			break;
 		}
 		shadow->waste.cs[shadow->waste.count - 1].face_up = true;
-		shadow->last_modified = *tick;
+		shadow->last_modified = t;
 	}
 
 	return i;
@@ -282,7 +269,6 @@ int pull_from_deck (
 
 int main ()
 {
-	int tick = 0;
 	enum mode game_mode = CLASSIC;
 
 	struct card cs_shadow_deck[25];
@@ -294,58 +280,62 @@ int main ()
 
 	struct game_state shadow =
 	{
-		tick,
-		{ tick, cs_shadow_deck, 0 },
-		{ tick, cs_waste, 0 },
+		-1,
+		{ -1, cs_shadow_deck, 0 },
+		{ -1, cs_waste, 0 },
 		{
-			{ tick, cs_foundation[0], 0 },
-			{ tick, cs_foundation[1], 0 },
-			{ tick, cs_foundation[2], 0 },
-			{ tick, cs_foundation[3], 0 }
+			{ -1, cs_foundation[0], 0 },
+			{ -1, cs_foundation[1], 0 },
+			{ -1, cs_foundation[2], 0 },
+			{ -1, cs_foundation[3], 0 }
 		},
 		{
-			{ tick, cs_shadow_tableau[0], 0 },
-			{ tick, cs_shadow_tableau[1], 0 },
-			{ tick, cs_shadow_tableau[2], 0 },
-			{ tick, cs_shadow_tableau[3], 0 },
-			{ tick, cs_shadow_tableau[4], 0 },
-			{ tick, cs_shadow_tableau[5], 0 },
-			{ tick, cs_shadow_tableau[6], 0 }
+			{ -1, cs_shadow_tableau[0], 0 },
+			{ -1, cs_shadow_tableau[1], 0 },
+			{ -1, cs_shadow_tableau[2], 0 },
+			{ -1, cs_shadow_tableau[3], 0 },
+			{ -1, cs_shadow_tableau[4], 0 },
+			{ -1, cs_shadow_tableau[5], 0 },
+			{ -1, cs_shadow_tableau[6], 0 }
 		}
 	};
 
 	struct game_state client =
 	{
-		tick,
-		{ tick, cs_redacted_deck, 0 },
-		{ tick, cs_waste, 0 },
+		-1,
+		{ -1, cs_redacted_deck, 0 },
+		{ -1, cs_waste, 0 },
 		{
-			{ tick, cs_foundation[0], 0 },
-			{ tick, cs_foundation[1], 0 },
-			{ tick, cs_foundation[2], 0 },
-			{ tick, cs_foundation[3], 0 }
+			{ -1, cs_foundation[0], 0 },
+			{ -1, cs_foundation[1], 0 },
+			{ -1, cs_foundation[2], 0 },
+			{ -1, cs_foundation[3], 0 }
 		},
 		{
-			{ tick, cs_redacted_tableau[0], 0 },
-			{ tick, cs_redacted_tableau[1], 0 },
-			{ tick, cs_redacted_tableau[2], 0 },
-			{ tick, cs_redacted_tableau[3], 0 },
-			{ tick, cs_redacted_tableau[4], 0 },
-			{ tick, cs_redacted_tableau[5], 0 },
-			{ tick, cs_redacted_tableau[6], 0 }
+			{ -1, cs_redacted_tableau[0], 0 },
+			{ -1, cs_redacted_tableau[1], 0 },
+			{ -1, cs_redacted_tableau[2], 0 },
+			{ -1, cs_redacted_tableau[3], 0 },
+			{ -1, cs_redacted_tableau[4], 0 },
+			{ -1, cs_redacted_tableau[5], 0 },
+			{ -1, cs_redacted_tableau[6], 0 }
 		}
 	};
 
-	init_game(&shadow, &client, &tick);
+	int t = 0;
+	init_game(&shadow, &client, t);
 
 #ifdef DEBUG
+	fprintf(stderr, "--- client ");
+	print_state(&client);
+
 	fprintf(stderr, "TEST: Move cards from deck to waste.\n");
-	do
+	while (pull_from_deck(&shadow, game_mode, ++t) != DECK_RECYCLED)
 	{
 		update_client_data(&client, &shadow);
 		fprintf(stderr, "--- client ");
 		print_state(&client);
-	} while (pull_from_deck(&shadow, game_mode, &tick) != DECK_RECYCLED);
+	}
 
 	update_client_data(&client, &shadow);
 	fprintf(stderr, "--- shadow ");
