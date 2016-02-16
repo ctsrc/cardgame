@@ -47,7 +47,6 @@
 int debug_level = 1;
 #endif
 
-const struct card NULLCARD = { NO_COLOR, NO_RANK, false };
 const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
 
 /*
@@ -56,14 +55,13 @@ const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
  *	and that we keep only directly comparable data in these structs,
  *	memcmp on the structs will work as intended.
  */
-#define IS_NULLCARD(PTR) !memcmp(PTR, &NULLCARD, sizeof(struct card))
 #define IS_UNKNOWNCARD(PTR) !memcmp(PTR, &UNKNOWNCARD, sizeof(struct card))
 
 #ifdef DEBUG
 void print_cards_h (struct stack_of_cards *s)
 {
 	fprintf(stderr, "(%d, %d): ", s->last_modified, s->count);
-	for (int i = 0 ; !IS_NULLCARD(&(s->cs[i])) ; i++)
+	for (int i = 0 ; i < s->count ; i++)
 	{
 		fprintf(stderr, "%02d %02d %d  ",
 			s->cs[i].c, s->cs[i].r, s->cs[i].face_up);
@@ -110,7 +108,7 @@ void redacted_copy (
 		dst->count = src->count;
 		dst->last_modified = src->last_modified;
 
-		for (int i = 0 ; !IS_NULLCARD(&(dst->cs[i])) ; i++)
+		for (int i = 0 ; i < dst->count ; i++)
 		{
 			if (!(dst->cs[i].face_up))
 			{
