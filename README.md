@@ -26,5 +26,11 @@ make
 ## Run
 
 ```bash
+./debug/klondike
+```
+
+## Debug
+
+```bash
 ./debug/klondike -D 4
 ```
