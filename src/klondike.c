@@ -33,7 +33,7 @@
 
 #ifdef DEBUG
 /*
- * Debug level is set at run time by the -D <n> argument.
+ * Debug level is set at run time by the -d <n> argument.
  * Binary must have been built with debugging enabled.
  *
  * The debug levels are:
@@ -296,7 +296,7 @@ int pull_from_deck (struct game_state *shadow, enum mode game_mode, int t)
 int main (int argc, char *argv[])
 {
 #ifdef DEBUG
-	if (argc == 3 && strcmp(argv[1], "-D") == 0)
+	if (argc == 3 && strcmp(argv[1], "-d") == 0)
 	{
 		debug_level = atoi(argv[2]);
 	}
