@@ -44,7 +44,7 @@
  *
  * TODO: Debug level 4.
  */
-int debug_level = 1;
+enum debug_level dbglvl = DBG_PRINT_CLIENT;
 #endif
 
 const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
@@ -184,7 +184,7 @@ void init_game (struct game_state *shadow, struct game_state *client, int t)
 	}
 
 #ifdef DEBUG
-	if (debug_level < 3)
+	if (dbglvl < DBG_NO_SHUFFLE)
 	{
 #endif
 	// Fisher-Yates shuffle the temporary deck
@@ -234,7 +234,7 @@ void init_game (struct game_state *shadow, struct game_state *client, int t)
 	shadow->deck.last_modified = shadow->last_modified;
 
 #ifdef DEBUG
-	if (debug_level >= 2)
+	if (dbglvl >= DBG_PRINT_SHADOW)
 	{
 		fprintf(stderr, "--- shadow ");
 		print_state(shadow);
@@ -296,7 +296,7 @@ int main (int argc, char *argv[])
 #ifdef DEBUG
 	if (argc == 3 && strcmp(argv[1], "-d") == 0)
 	{
-		debug_level = atoi(argv[2]);
+		dbglvl = atoi(argv[2]);
 	}
 #endif
 
@@ -370,7 +370,7 @@ int main (int argc, char *argv[])
 
 	update_client_data(&client, &shadow);
 
-	if (debug_level >= 2)
+	if (dbglvl >= DBG_PRINT_SHADOW)
 	{
 		fprintf(stderr, "--- shadow ");
 		print_state(&shadow);

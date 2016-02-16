@@ -14,6 +14,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+enum debug_level {
+	DBG_PRINT_CLIENT = 1,
+	DBG_PRINT_SHADOW,
+	DBG_NO_SHUFFLE,
+	DBG_EDIT_SHADOW
+};
+
 enum mode {
 	CASINO = 0,	// Turn one card at a time.
 	CLASSIC		// Turn three cards at a time.
