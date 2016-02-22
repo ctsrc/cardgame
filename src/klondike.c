@@ -40,9 +40,7 @@
  * 1 - Default. Print client data.
  * 2 - Print shadow data.
  * 3 - Do not shuffle deck.
- * 4 - Enable editing of shadow data.
  *
- * TODO: Debug level 4.
  */
 enum debug_level dbglvl = DBG_PRINT_CLIENT;
 #endif

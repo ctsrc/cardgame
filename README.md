@@ -32,11 +32,11 @@ make
 ## Run
 
 ```bash
-./debug/klondike
+./build/$(cc -dumpmachine)/debug/klondike
 ```
 
 ## Debug
 
 ```bash
-./debug/klondike -d 4
+./build/$(cc -dumpmachine)/debug/klondike -d 3
 ```

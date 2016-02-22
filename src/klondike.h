@@ -17,8 +17,7 @@
 enum debug_level {
 	DBG_PRINT_CLIENT = 1,
 	DBG_PRINT_SHADOW,
-	DBG_NO_SHUFFLE,
-	DBG_EDIT_SHADOW
+	DBG_NO_SHUFFLE
 };
 
 enum mode {

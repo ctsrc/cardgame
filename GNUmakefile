@@ -1,25 +1,27 @@
+TRIPLET=$(shell cc -dumpmachine)
+
 .PHONY: all
 
-all: debug
+all: debug release
 
-debug/klondike:	src/klondike.c src/klondike.h
-	mkdir -p debug
-	cc -std=c11 -g -O0 -DDEBUG -D_BSD_SOURCE -D_DEFAULT_SOURCE src/klondike.c -o debug/klondike -lbsd -lm
+build/${TRIPLET}/debug/klondike:	src/klondike.c src/klondike.h
+	mkdir -p build/${TRIPLET}/debug
+	cc -std=c11 -g -O0 -DDEBUG -D_BSD_SOURCE -D_DEFAULT_SOURCE src/klondike.c -o build/${TRIPLET}/debug/klondike -lbsd -lm
 
-release/klondike:	src/klondike.c src/klondike.h
-	mkdir -p release
-	cc -std=c11 -D_BSD_SOURCE -D_DEFAULT_SOURCE src/klondike.c -o release/klondike -lbsd -lm
+build/${TRIPLET}/release/klondike:	src/klondike.c src/klondike.h
+	mkdir -p build/${TRIPLET}/release
+	cc -std=c11 -D_BSD_SOURCE -D_DEFAULT_SOURCE src/klondike.c -o build/${TRIPLET}/release/klondike -lbsd -lm
 
-.PHONY: release debug clean distclean
+.PHONY: debug release clean distclean
 
-release: release/klondike
+debug: build/${TRIPLET}/debug/klondike
 
-debug: debug/klondike
+release: build/${TRIPLET}/release/klondike
 
 clean:
-	-rm debug/klondike
-	-rmdir debug
+	-rm build/${TRIPLET}/debug/klondike
+	-rmdir build/${TRIPLET}/debug
 
 distclean: clean
-	-rm release/klondike
-	-rmdir release
+	-rm build/${TRIPLET}/release/klondike
+	-rmdir build/${TRIPLET}/release build/${TRIPLET} build
