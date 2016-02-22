@@ -5,7 +5,7 @@ Klondike solitaire card game.
 ## Supported platforms
 
   * FreeBSD 10.2
-  * Lubuntu 14.04 LTS
+  * Fedora 23
   * Raspbian GNU/Linux 8
 
 ## Dependencies
@@ -15,6 +15,12 @@ is not in the libc on your system. E.g., on Debian and derivatives:
 
 ```bash
 sudo apt-get install libbsd-dev
+```
+
+Similarily, on Fedora, do:
+
+```bash
+sudo dnf install libbsd-devel
 ```
 
 ## Build
