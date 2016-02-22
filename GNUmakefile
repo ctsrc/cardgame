@@ -4,11 +4,11 @@ all: debug
 
 debug/klondike:	src/klondike.c src/klondike.h
 	mkdir -p debug
-	cc -std=c11 -g -O0 -DDEBUG -D_BSD_SOURCE src/klondike.c -o debug/klondike -lbsd -lm
+	cc -std=c11 -g -O0 -DDEBUG -D_BSD_SOURCE -D_DEFAULT_SOURCE src/klondike.c -o debug/klondike -lbsd -lm
 
 release/klondike:	src/klondike.c src/klondike.h
 	mkdir -p release
-	cc -std=c11 -D_BSD_SOURCE src/klondike.c -o release/klondike -lbsd -lm
+	cc -std=c11 -D_BSD_SOURCE -D_DEFAULT_SOURCE src/klondike.c -o release/klondike -lbsd -lm
 
 .PHONY: release debug clean distclean
 
