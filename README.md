@@ -11,13 +11,15 @@ Klondike solitaire card game.
 ## Dependencies
 
 Install [libbsd](http://libbsd.freedesktop.org/wiki/) if `arc4random_uniform(3)`
-is not in the libc on your system. E.g., on Debian and derivatives:
+is not in the libc on your system.
+
+### Debian and derivatives
 
 ```bash
 sudo apt-get install libbsd-dev
 ```
 
-Similarily, on Fedora, do:
+### Fedora and RHEL derivatives
 
 ```bash
 sudo dnf install libbsd-devel
