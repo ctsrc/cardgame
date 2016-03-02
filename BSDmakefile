@@ -23,5 +23,4 @@ clean:
 	-rmdir build/${TRIPLET}/debug
 
 distclean: clean
-	-rm build/${TRIPLET}/release/klondike
-	-rmdir build/${TRIPLET}/release build/${TRIPLET} build
+	-rm -r build
