@@ -6,7 +6,7 @@ all: debug release
 
 build/${TRIPLET}/debug/klondike:	src/klondike.c src/klondike.h
 	mkdir -p build/${TRIPLET}/debug
-	cc -std=c99 -g -O0 -DDEBUG -D_BSD_SOURCE src/klondike.c -o build/${TRIPLET}/debug/klondike -lm
+	cc -std=c99 -g -O0 -Wall -DDEBUG -D_BSD_SOURCE src/klondike.c -o build/${TRIPLET}/debug/klondike -lm
 
 build/${TRIPLET}/release/klondike:	src/klondike.c src/klondike.h
 	mkdir -p build/${TRIPLET}/release
