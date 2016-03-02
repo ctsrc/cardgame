@@ -6,7 +6,7 @@ Klondike solitaire card game.
 
   * FreeBSD 10.2
   * Fedora 23
-  * Raspbian GNU/Linux 8
+  * Debian GNU/Linux 8
 
 ## Dependencies
 
