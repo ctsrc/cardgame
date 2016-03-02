@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Automatically rebuild and run klondike when source files change.
-# Depends on inotifywait, which is part of inotify-tools on Fedora 23.
+# Depends on inotifywait, which is part of inotify-tools on
+# FreeBSD 10.2, Fedora 23 and Debian GNU/Linux 8.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
