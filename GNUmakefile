@@ -10,7 +10,7 @@ build/${TRIPLET}/debug/klondike:	src/klondike.c src/klondike.h
 
 build/${TRIPLET}/release/klondike:	src/klondike.c src/klondike.h
 	mkdir -p build/${TRIPLET}/release
-	cc -std=c11 -D_BSD_SOURCE -D_DEFAULT_SOURCE src/klondike.c -o build/${TRIPLET}/release/klondike -lbsd -lm
+	cc -std=c11 -Ofast -D_BSD_SOURCE -D_DEFAULT_SOURCE src/klondike.c -o build/${TRIPLET}/release/klondike -lbsd -lm
 
 .PHONY: debug release clean distclean
 
