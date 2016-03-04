@@ -42,3 +42,82 @@ make
 ```bash
 ./build/$( cc -dumpmachine )/debug/klondike -d 3
 ```
+
+## Developing
+
+### Development workspace
+
+Included in this repository are two files relating to my development workspace;
+`workspace.bash` and `workspace.desktop`. The former is a bash script which
+when run will launch and arrange four terminals. The latter is
+a [desktop entry file](https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html)
+which will run the aforementioned script.
+
+The development workspace script is made for use on Fedora 23. Additionally,
+for the workspace script and desktop entry file to work, the repository root
+must be at `$HOME/src/github.com/en90/klondike/`. If you choose to put
+the repository elsewhere, you must remember to edit those two files
+if you want to make use of them.
+
+The development workspace script depends on the 256 color multi-language
+version of rxvt-unicode known as `urxvt256c-ml`, because unlike `lxterminal`
+which I had been using for a good while up until when I wrote this script,
+`urxvt256c-ml` will set `_NET_WM_PID` correctly on Fedora 23 and so
+I decided to switch to using `urxvt256c-ml` since I have previously been
+a happy user of the 256 color version of rxvt-unicode and I figured that
+if I was going to switch away from `lxterminal`, I wanted to see first
+if 256 color rxvt-unicode would be behave as I wanted with regards to
+`_NET_WM_PID` and furthermore, if I was going to switch to that,
+I might as well try the multi-language version of it.
+
+So that's what I ended up with.
+
+```bash
+sudo dnf install rxvt-unicode-256color-ml
+```
+
+Shortly after having written `workspace.bash`, I switched from LXDE to LXQt
+because I've been meaning to do so as LXQt appears to be the future of LXDE,
+and also I like Qt and welcome LXQt. I tested to see if `qterminal` would
+set `_NET_WM_PID` to the expected value and indeed it appeared to
+so one might say well why not just use qterminal then, but well I won't
+because I like rxvt-unicode and the only reason I stopped using rxvt-unicode
+was that I didn't bother to install and configure it at some point
+and then stopped using it but now that I have it installed and configured
+I'll stick with it for the foreseeable future.
+
+My configuration of rxvt-unicode, by the way, simply amounts to
+https://github.com/altercation/solarized/blob/master/xresources/solarized
+with the following two lines added:
+
+```
+URxvt.font: xft:Droid Sans Mono:size=14
+URxvt.scrollBar_right: true
+```
+
+Subsequently, I did
+
+```bash
+sudo dnf install google-droid-sans-mono-fonts
+xrdb -merge ~/.Xresources
+```
+
+With that in place then, I made the desktop entry file to run the script.
+This desktop entry file I then added to the quicklaunch on the LXQt panel.
+I did so by modifying `~/.config/lxqt/panel.conf` but one might as well
+just drag and drop the desktop entry file onto the quicklaunch widget.
+
+Furthermore after that, I used `lxqt-config` (LXQt Configuration Center)
+and a couple of other means to make changes including turning on
+focus follows mouse, switching icons theme to *Nimbus*,
+LXQt theme to *Ambiance*, setting the desktop background picture
+to `/usr/share/backgrounds/f23/extras/fog.jpg`, setting GUI font
+to *Noto Sans* and picking a matching color for the panel;
+`#88cf8a` with opacity set to about 0.5.
+
+And uh, that about covers everything I did, most of which might not be
+very interesting. So there's that. Here's a screenshot.
+
+![Workspace](/../screenshots/workspace.png?raw=true)
+
+Sorry about how long this section of the README became.
