@@ -53,6 +53,13 @@ when run will launch and arrange four terminals. The latter is
 a [desktop entry file](https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html)
 which will run the aforementioned script.
 
+The four terminals start with the following contents:
+
+* Top left terminal opens `src/klondike.c` in `$EDITOR`.
+* Top right terminal opens `src/klondike.h` in `$EDITOR`.
+* Bottom left terminal runs your shell in the root of the klondike repository.
+* Bottom right terminal runs `autothing.bash` which we'll get back to.
+
 The development workspace script is made for use on Fedora 23. Additionally,
 for the workspace script and desktop entry file to work, the repository root
 must be at `$HOME/src/github.com/en90/klondike/`. If you choose to put
