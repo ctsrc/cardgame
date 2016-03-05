@@ -63,10 +63,11 @@ make
 
 ![Screenshot of klondike workspace](/../screenshots/workspace.png?raw=true)
 
-Included in this repository are two files relating to my development workspace;
-`workspace.bash` and `workspace.desktop`. The former is a bash script which
-when run will launch and arrange four terminals. The latter is
-a [desktop entry file](https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html)
+Included in this repository are a few files relating to
+my development workspace for klondike; `workspace.bash`, `workspace.desktop`
+and `autothing.bash`. The first of those files is a bash script which
+when run will launch and arrange four terminals, each with a task of their own.
+The second is a [desktop entry file](https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html)
 which will run the aforementioned script.
 
 The four terminals start with the following contents:
