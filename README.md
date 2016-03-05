@@ -148,3 +148,10 @@ sudo dnf install inotify-tools make gcc valgrind # on Fedora 23
 ```bash
 sudo apt-get install inotify-tools make gcc valgrind # on Debian GNU/Linux 8
 ```
+
+## Copyright and license
+
+Copyright (c) 2016 Erik Nordstrøm &lt;erik@nordstroem.no&gt;
+
+Klondike is released under the terms of the ISC license.
+See `LICENSE` for details.
