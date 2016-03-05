@@ -2,6 +2,20 @@
 
 Klondike solitaire card game.
 
+## Table of Contents
+
+* [Supported platforms](#supported-platforms)
+* [Dependencies](#dependencies)
+  - [Debian and derivatives](#debian-and-derivatives)
+  - [Fedora and RHEL derivatives](#fedora-and-rhel-derivatives)
+* [Build](#build)
+* [Run](#run)
+* [Debug](#debug)
+* [Develop](#develop)
+  - [Development workspace](#development-workspace)
+  - [`autothing.bash`](#autothingbash)
+* [Copyright and license](#copyright-and-license)
+
 ## Supported platforms
 
   * FreeBSD 10.2
