@@ -152,7 +152,7 @@ Sorry about how long this section of the README became.
 ### `autothing.bash`
 
 The `autothing.bash` script rebuilds klondike and runs it under valgrind
-each time a source file is modified. In contrast to the workspace stuff,
+each time a source file is modified. In contrast to the workspace script,
 this script works fine on all of the supported platforms of klondike.
 
 To install the dependecies for `autothing.bash`, I do
