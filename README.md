@@ -70,7 +70,7 @@ when run will launch and arrange four terminals, each with a task of their own.
 The second is a [desktop entry file](https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html)
 which will run the aforementioned script.
 
-The four terminals start with the following contents:
+The tasks mentioned for the four terminals are as follows:
 
 * Top left terminal opens `src/klondike.c` in `$EDITOR`.
 * Top right terminal opens `src/klondike.h` in `$EDITOR`.
