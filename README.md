@@ -43,7 +43,7 @@ make
 ./build/$( cc -dumpmachine )/debug/klondike -d 3
 ```
 
-## Developing
+## Develop
 
 ### Development workspace
 
@@ -129,7 +129,7 @@ very interesting. So there's that. Here's a screenshot.
 
 Sorry about how long this section of the README became.
 
-#### `autothing.bash`
+### `autothing.bash`
 
 The `autothing.bash` script rebuilds klondike and runs it under valgrind
 each time a source file is modified. In contrast to the workspace stuff,
