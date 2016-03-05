@@ -61,6 +61,8 @@ make
 
 ### Development workspace
 
+![Workspace](/../screenshots/workspace.png?raw=true)
+
 Included in this repository are two files relating to my development workspace;
 `workspace.bash` and `workspace.desktop`. The former is a bash script which
 when run will launch and arrange four terminals. The latter is
@@ -143,9 +145,7 @@ sudo dnf install nimbus-icon-theme f23-backgrounds-extras-base \
 ```
 
 And uh, that about covers everything I did, most of which might not be
-very interesting. So there's that. Here's a screenshot.
-
-![Workspace](/../screenshots/workspace.png?raw=true)
+very interesting. So there's that.
 
 Sorry about how long this section of the README became.
 
