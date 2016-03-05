@@ -89,7 +89,7 @@ which I had been using for a good while up until when I wrote this script,
 I decided to switch to using `urxvt256c-ml` since I have previously been
 a happy user of the 256 color version of rxvt-unicode and I figured that
 if I was going to switch away from `lxterminal`, I wanted to see first
-if 256 color rxvt-unicode would be behave as I wanted with regards to
+if 256 color rxvt-unicode would behave as I wanted with regards to
 `_NET_WM_PID` and furthermore, if I was going to switch to that,
 I might as well try the multi-language version of it.
 
