@@ -102,8 +102,8 @@ sudo dnf install rxvt-unicode-256color-ml
 Shortly after having written `workspace.bash`, I switched from LXDE to LXQt
 because I've been meaning to do so as LXQt appears to be the future of LXDE,
 and also I like Qt and welcome LXQt. I tested to see if `qterminal` would
-set `_NET_WM_PID` to the expected value and indeed it appeared to
-so one might say so why not just use qterminal then, but well I won't
+set `_NET_WM_PID` to the expected value and indeed it appeared to.
+Now one might say so why not just use qterminal then, but well I won't
 because I like rxvt-unicode and the only reason I stopped using rxvt-unicode
 was that I didn't bother to install and configure it at some point
 and then stopped using it but now that I have it installed and configured
