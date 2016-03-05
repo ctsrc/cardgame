@@ -135,6 +135,12 @@ LXQt theme to *Ambiance*, setting the desktop background picture
 to `/usr/share/backgrounds/f23/extras/fog.jpg`, setting GUI font
 to *Noto Sans* and picking a matching color for the panel;
 `#88cf8a` with opacity set to about 0.5.
+Being able to make these changes requires
+
+```bash
+sudo dnf install nimbus-icon-theme f23-backgrounds-extras-base \
+                 google-noto-sans-fonts
+```
 
 And uh, that about covers everything I did, most of which might not be
 very interesting. So there's that. Here's a screenshot.
