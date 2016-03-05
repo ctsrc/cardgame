@@ -61,7 +61,7 @@ make
 
 ### Development workspace
 
-![Workspace](/../screenshots/workspace.png?raw=true)
+![Screenshot of klondike workspace](/../screenshots/workspace.png?raw=true)
 
 Included in this repository are two files relating to my development workspace;
 `workspace.bash` and `workspace.desktop`. The former is a bash script which
