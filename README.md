@@ -65,23 +65,22 @@ make
 
 Included in this repository are a few files relating to
 my development workspace for klondike; `workspace.bash`, `workspace.desktop`
-and `autothing.bash`. The first of those files is a bash script which
-when run will launch and arrange four terminals, each with a task of their own.
-The second is a [desktop entry file](https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html)
+and `autothing.bash`. The first of those files is a bash script made for use
+on Fedora 23, which when run will launch and arrange four terminals,
+each with a task of its own. The second is a [desktop entry file](https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html)
 which will run the aforementioned script.
 
-The tasks mentioned for the four terminals are as follows:
+The tasks assigned to each of the four terminals are as follows:
 
 * Top left terminal opens `src/klondike.c` in `$EDITOR`.
 * Top right terminal opens `src/klondike.h` in `$EDITOR`.
 * Bottom left terminal runs your shell in the root of the klondike repository.
 * Bottom right terminal runs `autothing.bash` which we'll get back to.
 
-The development workspace script is made for use on Fedora 23. Additionally,
-for the workspace script and desktop entry file to work, the repository root
-must be at `$HOME/src/github.com/en90/klondike/`. If you choose to put
-the repository elsewhere, you must remember to edit those two files
-if you want to make use of them.
+Additionally, for the workspace script and desktop entry file to work,
+the repository root must be at `$HOME/src/github.com/en90/klondike/`.
+If you choose to put the repository elsewhere, you must remember to
+edit those two files if you want to make use of them.
 
 The development workspace script depends on the 256 color multi-language
 version of rxvt-unicode known as `urxvt256c-ml`, because unlike `lxterminal`
