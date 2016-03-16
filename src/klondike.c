@@ -299,13 +299,13 @@ enum action_result pull_from_deck (struct game_state *shadow)
 				| FACE_UP;
 		}
 
-		return 1 + n;
+		return n;
 	}
 	else
 	{
 		if (shadow->waste.num_cards == 0)
 		{
-			return DECK_NO_ACTION;
+			return INVALID_ACTION;
 		}
 
 		while (shadow->waste.num_cards > 0)
