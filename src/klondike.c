@@ -14,13 +14,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdbool.h>
-#include <string.h>
-#include <math.h>
-
 #ifdef DEBUG
+#include <assert.h>
 #include <stdio.h>
 #endif
+
+#include <stdint.h>
+#include <string.h>
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || \
 	defined(__SunOS_5_11) || defined(__APPLE__)
@@ -29,356 +29,470 @@
 #include <bsd/stdlib.h>
 #endif
 
+#include <stdbool.h>
+
 #include "klondike.h"
 
-#ifdef DEBUG
-/*
- * Debug level is set at run time by the -d <n> argument.
- * Binary must have been built with debugging enabled.
- *
- * The debug levels are:
- * 1 - Default. Print client data.
- * 2 - Print shadow data.
- * 3 - Do not shuffle deck.
- *
- */
-enum debug_level dbglvl = DBG_PRINT_CLIENT;
-#endif
+void print_card (uint8_t);
+void print_card_verbose (uint8_t);
+void print_game_state (struct game_state *);
 
-const struct card UNKNOWNCARD = { UNKNOWN_COLOR, UNKNOWN_RANK, false };
-
-/*
- * XXX: Provided that any alignment space in card structs inserted
- *	by the compiler is set to zero either by us or by the compiler,
- *	and that we keep only directly comparable data in these structs,
- *	memcmp on the structs will work as intended.
- */
-#define IS_UNKNOWNCARD(PTR) !memcmp(PTR, &UNKNOWNCARD, sizeof(struct card))
-
-#ifdef DEBUG
-void print_cards_h (struct stack_of_cards *s)
+void redacted_copy_so_cards (struct so_cards *dst, struct so_cards const *src)
 {
-	fprintf(stderr, "(%d, %d): ", s->last_modified, s->count);
-	for (int i = 0 ; i < s->count ; i++)
+	for (int i = 1 ; i <= src->num_cards ; i++)
 	{
-		fprintf(stderr, "%02d %02d %d  ",
-			s->cs[i].c, s->cs[i].r, s->cs[i].face_up);
+		dst->cards[i] = UNKNOWNCARD;
 	}
-	fprintf(stderr, "\n");
+	dst->num_cards = src->num_cards;
 }
 
-void print_state (struct game_state *gs)
+void plain_copy_so_cards (struct so_cards *dst, struct so_cards const *src)
 {
-	fprintf(stderr, "(%d) ---\n", gs->last_modified);
-
-	fprintf(stderr, "deck ");
-	print_cards_h(&(gs->deck));
-
-	fprintf(stderr, "waste ");
-	print_cards_h(&(gs->waste));
-
-	for (int i = 0 ; i < 4 ; i++)
+	for (int i = 1 ; i <= src->num_cards ; i++)
 	{
-		fprintf(stderr, "foudt #%d ", i);
-		print_cards_h(&(gs->foundation[i]));
+		dst->cards[i] = src->cards[i];
 	}
+	dst->num_cards = src->num_cards;
+}
 
+void redacted_copy_df_so_cards (
+	struct so_cards *dst,
+	struct so_cards const *src)
+{
+	for (int i = 1 ; i <= src->num_cards ; i++)
+	{
+		if (src->cards[i] & FACE_UP)
+		{
+			dst->cards[i] = src->cards[i];
+		}
+		else
+		{
+			dst->cards[i] = UNKNOWNCARD;
+		}
+	}
+	dst->num_cards = src->num_cards;
+}
+
+void redacted_copy (struct game_state *client, struct game_state const *shadow)
+{
+#ifdef DEBUG
+	assert(client->t < shadow->t);
+	fprintf(stderr, "Updating client game state to t=%d.\n", shadow->t);
+#endif
+
+	memset(client, 0, sizeof(*client));
+
+	client->t = shadow->t;
+	client->is_shadow = false;
+	client->gm = shadow->gm;
+	client->dbglvl = shadow->dbglvl;
+
+	// Redacted copy, deck.
+	redacted_copy_so_cards(&(client->deck), &(shadow->deck));
+	// Plain copy, waste.
+	plain_copy_so_cards(&(client->waste), &(shadow->waste));
+
+	// Plain copy, foundations.
+	client->foundation[0] = shadow->foundation[0];
+	client->foundation[1] = shadow->foundation[1];
+	client->foundation[2] = shadow->foundation[2];
+	client->foundation[3] = shadow->foundation[3];
+
+	// Copy tableau cards with redaction of those down-facing.
 	for (int i = 0 ; i < 7 ; i++)
 	{
-		fprintf(stderr, "tblau #%d ", i);
-		print_cards_h(&(gs->tableau[i]));
+		redacted_copy_df_so_cards(&(client->tableau[i]),
+			&(shadow->tableau[i]));
 	}
 }
+
+void init_game (
+	struct game_state *shadow,
+	struct game_state *client,
+	enum debug_level dbglvl)
+{
+#ifdef DEBUG
+	fprintf(stderr, "Initializing game.\n");
 #endif
 
-/*
- * XXX: It is up to caller to use a dstsz corresponding to the size of
- *	the destination. In other words, we don't check that it's valid.
- */
-void redacted_copy (
-	struct stack_of_cards *dst,
-	struct stack_of_cards *src,
-	size_t dstsz)
-{
-	if (dst->last_modified < src->last_modified)
-	{
-		memcpy(dst->cs, src->cs, dstsz);
-		dst->count = src->count;
-		dst->last_modified = src->last_modified;
+	uint8_t tmp_deck[52];
 
-		for (int i = 0 ; i < dst->count ; i++)
+	{ // XXX: Constrain i to this scope.
+	int i = 0;
+	for (int color = HEARTS ; color <= CLUBS ; color++)
+	{
+		for (int rank = ACE ; rank <= KING ; rank++)
 		{
-			if (!(dst->cs[i].face_up))
-			{
-				dst->cs[i] = UNKNOWNCARD;
-			}
+			tmp_deck[i++] = encode(FACE_DOWN, color, rank);
 		}
 	}
-}
-void plain_copy (
-	struct stack_of_cards *dst,
-	struct stack_of_cards *src,
-	size_t dstsz)
-{
-	if (dst->last_modified < src->last_modified)
-	{
-		memcpy(dst->cs, src->cs, dstsz);
-		dst->count = src->count;
-		dst->last_modified = src->last_modified;
 	}
-}
 
-void update_client_data (struct game_state *client, struct game_state *shadow)
-{
-	if (client->last_modified < shadow->last_modified)
+	print_card_verbose(NULLCARD);
+	for (int i = 0 ; i < 52 ; i++)
 	{
-		// Update last_modified
-		client->last_modified = shadow->last_modified;
-
-		// Update deck
-		redacted_copy(&(client->deck), &(shadow->deck),
-			25 * sizeof(*(client->deck.cs)));
-
-		// Update waste
-		plain_copy(&(client->waste), &(shadow->waste),
-			25 * sizeof(*(client->waste.cs)));
-
-		// Update foundations
-		for (int i = 0 ; i < 4 ; i++)
-		{
-			plain_copy(&(client->foundation[i]),
-				&(shadow->foundation[i]),
-				14 * sizeof(*(client->foundation[i].cs)));
-		}
-
-		// Update tableaus
-		for (int i = 0 ; i < 7 ; i++)
-		{
-			redacted_copy(&(client->tableau[i]),
-				&(shadow->tableau[i]),
-				20 * sizeof(*(client->tableau[i].cs)));
-		}
+		print_card_verbose(tmp_deck[i]);
 	}
-}
-
-void init_game (struct game_state *shadow, struct game_state *client, int t)
-{
-	// Update shadow last_modified
-	shadow->last_modified = t;
-
-	// Create temporary deck
-	struct card cs_tmp_deck[53];
-	memset(cs_tmp_deck, 0, 53 * sizeof(struct card));
-	struct card *card_curr = cs_tmp_deck;
-	for (int c = HEARTS ; c <= CLUBS ; c++)
-	{
-		for (int r = ACE ; r <= KING ; r++)
-		{
-			card_curr->c = c;
-			card_curr->r = r;
-			card_curr->face_up = false;
-			card_curr++;
-		}
-	}
+	print_card_verbose(UNKNOWNCARD);
 
 #ifdef DEBUG
 	if (dbglvl < DBG_NO_SHUFFLE)
 	{
+	fprintf(stderr, "Shuffeling temporary deck.\n");
 #endif
 	// Fisher-Yates shuffle the temporary deck
 	for (int i = 51 ; i > 0 ; i--)
 	{
 		int j = arc4random_uniform(i + 1);
 
-		struct card tmp = cs_tmp_deck[i];
-		cs_tmp_deck[i] = cs_tmp_deck[j];
-		cs_tmp_deck[j] = tmp;
+		uint8_t tmp_card = tmp_deck[i];
+		tmp_deck[i] = tmp_deck[j];
+		tmp_deck[j] = tmp_card;
 	}
 #ifdef DEBUG
 	}
 #endif
 
-	// Initialize tableaus
-	for (int i = 1 ; i <= 7 ; i++)
-	{
-		memset(shadow->tableau[i - 1].cs, 0, 20 * sizeof(struct card));
-		memcpy(shadow->tableau[i - 1].cs, card_curr - i,
-			i * sizeof(struct card));
-		shadow->tableau[i - 1].cs[i - 1].face_up = true;
-		shadow->tableau[i - 1].count += i;
-		shadow->tableau[i - 1].last_modified = shadow->last_modified;
+	// First four members of our struct.
+	shadow->t = 0;
+	shadow->is_shadow = true;
+	shadow->gm = CLASSIC;
+	shadow->dbglvl = dbglvl;
 
-		card_curr -= i;
+	int k = 52; // Cards remaining
+
+	/*
+	 * Initialize tableaus and their offsets.
+	 *
+	 * XXX: We assign one card to each tableau at a time
+	 * 	in order like shown in the figure below, flipping
+	 * 	the topmost card in each tableau as we go.
+	 *
+	 * 	 1  2  3  4  5  6  7
+	 * 	    8  9 10 11 12 13
+	 * 	      14 15 16 17 18
+	 * 	         19 20 21 22
+	 * 	            23 24 25
+	 * 	               26 27
+	 * 	                  28
+	 *
+	 * 	This is similar to the way I do it by hand as well,
+	 * 	except I usually flip all the topmost cards at the end.
+	 *
+	 */
+	for (int i = 0 ; i < 7 ; i++)
+	{
+		for (int j = i ; j < 7 ; j++)
+		{
+			shadow->tableau[j].cards[i + 1] = tmp_deck[--k];
+		}
+		shadow->tableau[i].cards[i + 1] |= FACE_UP;
+		shadow->tableau[i].num_cards = i + 1;
 	}
 
-	// Initialize foundations
-	for (int i = 0 ; i < 4 ; i++)
-	{
-		memset(shadow->foundation[i].cs, 0, 14 * sizeof(struct card));
-		shadow->foundation[i].count = 0;
-		shadow->foundation[i].last_modified = shadow->last_modified;
-	}
-
-	// Initialize waste
-	memset(shadow->waste.cs, 0, 25 * sizeof(struct card));
-	shadow->waste.count = 0;
-	shadow->waste.last_modified = shadow->last_modified;
+	// Initialize foundation with NULLCARDs.
+	shadow->foundation[0] = NULLCARD;
+	shadow->foundation[1] = NULLCARD;
+	shadow->foundation[2] = NULLCARD;
+	shadow->foundation[3] = NULLCARD;
 
 	// Initialize deck
-	memset(shadow->deck.cs, 0, 25 * sizeof(struct card));
-	int nc_rem = (card_curr - cs_tmp_deck);
-	memcpy(shadow->deck.cs, cs_tmp_deck, nc_rem * sizeof(struct card));
-	shadow->deck.count = nc_rem;
-	shadow->deck.last_modified = shadow->last_modified;
-
-#ifdef DEBUG
-	if (dbglvl >= DBG_PRINT_SHADOW)
+	for (int i = k ; i > 0 ; i--)
 	{
-		fprintf(stderr, "--- shadow ");
-		print_state(shadow);
+		shadow->deck.cards[i] = tmp_deck[--k];
+		shadow->deck.num_cards++;
 	}
-#endif
 
-	update_client_data(client, shadow);
+	print_game_state(shadow);
+	redacted_copy(client, shadow);
+	print_game_state(client);
 }
 
-bool move_card (struct stack_of_cards *dst, struct stack_of_cards *src, int t)
+enum action_result pull_from_deck (struct game_state *);
+
+// XXX: Takes care of common work associated with all actions, keepin' it DRY.
+enum action_result action (
+	enum action_result (*f)(struct game_state *),
+	struct game_state *shadow,
+	struct game_state *client)
 {
-	if (src->count >= 1)
-	{
-		memcpy(&(dst->cs[dst->count]), &(src->cs[src->count - 1]),
-			sizeof(struct card));
-		dst->count++;
-		dst->last_modified = t;
-		memset(&(src->cs[src->count - 1]), 0, sizeof(struct card));
-		src->count--;
-		src->last_modified = t;
+	enum action_result r;
 
-		return true;
+	struct game_state tmp = *shadow;
+
+	if ((r = (*f)(&tmp)) != INVALID_ACTION)
+	{
+		*shadow = tmp;
+		(shadow->t)++;
+		print_game_state(shadow);
+		redacted_copy(client, shadow);
+		print_game_state(client);
 	}
 
-	return false;
-}
-
-int pull_from_deck (struct game_state *shadow, enum mode game_mode, int t)
-{
-	int i;
-
-	if (shadow->deck.count == 0 && shadow->waste.count > 0)
-	{
-		for (i = 0 ; shadow->waste.count > 0 ; i++)
-		{
-			move_card(&(shadow->deck), &(shadow->waste), t);
-			shadow->deck.cs[i].face_up = false;
-		}
-		shadow->last_modified = t;
-
-		return DECK_RECYCLED;
-	}
-
-	for (i = 0 ; i < 1 + 2 * game_mode; i++)
-	{
-		if (!move_card(&(shadow->waste), &(shadow->deck), t))
-		{
-			break;
-		}
-		shadow->waste.cs[shadow->waste.count - 1].face_up = true;
-		shadow->last_modified = t;
-	}
-
-	return i;
+	return r;
 }
 
 int main (int argc, char *argv[])
 {
+	struct game_state
+		shadow = {-1},
+		client = {-1};
+
+	{ // XXX: Constrain dbglvl to this scope.
 #ifdef DEBUG
+	enum debug_level dbglvl = DBG_PRINT_CLIENT;
 	if (argc == 3 && strcmp(argv[1], "-d") == 0)
 	{
 		dbglvl = atoi(argv[2]);
+		if (dbglvl < DBG_PRINT_CLIENT || dbglvl > DBG_NO_SHUFFLE)
+		{
+			fprintf(stderr, "Invalid debug level `%d'.\n", dbglvl);
+			return EXIT_FAILURE;
+		}
 	}
+#else
+	enum debug_level dbglvl = DBG_OFF;
 #endif
-
-	enum mode game_mode = CLASSIC;
-
-	struct card cs_shadow_deck[25];
-	struct card cs_redacted_deck[25];
-	struct card cs_shadow_tableau[7][20];
-	struct card cs_redacted_tableau[7][20];
-	struct card cs_foundation[4][14];
-	struct card cs_waste[25];
-
-	struct game_state shadow =
-	{
-		-1,
-		{ -1, cs_shadow_deck, 0 },
-		{ -1, cs_waste, 0 },
-		{
-			{ -1, cs_foundation[0], 0 },
-			{ -1, cs_foundation[1], 0 },
-			{ -1, cs_foundation[2], 0 },
-			{ -1, cs_foundation[3], 0 }
-		},
-		{
-			{ -1, cs_shadow_tableau[0], 0 },
-			{ -1, cs_shadow_tableau[1], 0 },
-			{ -1, cs_shadow_tableau[2], 0 },
-			{ -1, cs_shadow_tableau[3], 0 },
-			{ -1, cs_shadow_tableau[4], 0 },
-			{ -1, cs_shadow_tableau[5], 0 },
-			{ -1, cs_shadow_tableau[6], 0 }
-		}
-	};
-
-	struct game_state client =
-	{
-		-1,
-		{ -1, cs_redacted_deck, 0 },
-		{ -1, cs_waste, 0 },
-		{
-			{ -1, cs_foundation[0], 0 },
-			{ -1, cs_foundation[1], 0 },
-			{ -1, cs_foundation[2], 0 },
-			{ -1, cs_foundation[3], 0 }
-		},
-		{
-			{ -1, cs_redacted_tableau[0], 0 },
-			{ -1, cs_redacted_tableau[1], 0 },
-			{ -1, cs_redacted_tableau[2], 0 },
-			{ -1, cs_redacted_tableau[3], 0 },
-			{ -1, cs_redacted_tableau[4], 0 },
-			{ -1, cs_redacted_tableau[5], 0 },
-			{ -1, cs_redacted_tableau[6], 0 }
-		}
-	};
-
-	int t = 0;
-	init_game(&shadow, &client, t);
+	init_game(&shadow, &client, dbglvl);
+	}
 
 #ifdef DEBUG
-	fprintf(stderr, "--- client ");
-	print_state(&client);
 
-	fprintf(stderr, "TEST: Move cards from deck to waste.\n");
-	while (pull_from_deck(&shadow, game_mode, ++t) != DECK_RECYCLED)
+	/*
+	 * TEST #1: Cycle deck.
+	 */
+
+	struct game_state cmp_client = client;
+
+	int t_prev = shadow.t;
+	while (action(&pull_from_deck, &shadow, &client) != DECK_RECYCLED)
 	{
-		update_client_data(&client, &shadow);
-		fprintf(stderr, "--- client ");
-		print_state(&client);
+		assert(shadow.t == ++t_prev);
+		assert(memcmp(&cmp_client, &client, sizeof(client)) != 0);
 	}
+	assert(shadow.t == ++t_prev);
 
-	update_client_data(&client, &shadow);
+	cmp_client.t = client.t;
+	assert(memcmp(&cmp_client, &client, sizeof(client)) == 0);
 
-	if (dbglvl >= DBG_PRINT_SHADOW)
-	{
-		fprintf(stderr, "--- shadow ");
-		print_state(&shadow);
-	}
+	/*
+	 * TEST #2: TODO
+	 */
 
-	fprintf(stderr, "--- client ");
-	print_state(&client);
-
-	// TODO: Implement remainder of game.
 #endif
 
 	return EXIT_SUCCESS;
+}
+
+/*
+ * ACTIONS
+ */
+enum action_result pull_from_deck (struct game_state *shadow)
+{
+	if (shadow->deck.num_cards > 0)
+	{
+		int n = 0;
+		while ((n < 1 + 2 * shadow->gm)
+			&& shadow->deck.num_cards > 0)
+		{
+			n++;
+			shadow->waste.cards[++(shadow->waste.num_cards)] =
+				shadow->deck.cards[(shadow->deck.num_cards)--]
+				| FACE_UP;
+		}
+
+		return 1 + n;
+	}
+	else
+	{
+		if (shadow->waste.num_cards == 0)
+		{
+			return DECK_NO_ACTION;
+		}
+
+		while (shadow->waste.num_cards > 0)
+		{
+			shadow->deck.cards[++(shadow->deck.num_cards)] =
+				shadow->waste.cards[(shadow->waste.num_cards)--]
+				& ~FACE_UP;
+		}
+
+		return DECK_RECYCLED;
+	}
+}
+
+/*
+ * Debugging helper functions.
+ *
+ * XXX: These functions as well as the calls to them
+ *      and also the loops from which they are called
+ *      should be automatically removed in release builds
+ *      by all compilers worth their salt, thanks to
+ *      the ifdefs which make all of these empty functions
+ *      except when making a debug build.
+ */
+
+void print_card (uint8_t card)
+{
+#ifdef DEBUG
+	if (card != 0)
+	{
+		fprintf(stderr, " %d,%d", card & ~FACE_UP, card >> 7);
+	}
+	else
+	{
+		fprintf(stderr, " X");
+	}
+#endif
+}
+
+void print_card_verbose (uint8_t card)
+{
+#ifdef DEBUG
+	fprintf(stderr, "%3d\t", card);
+
+	for (int j = 7 ; j >= 0 ; j--)
+	{
+		fprintf(stderr, "%d", (card >> j) & 1);
+	}
+	fprintf(stderr, "\t");
+
+	if ((card & FACE_UP) == FACE_UP)
+	{
+		fprintf(stderr, "FACE_UP\t");
+	}
+	else
+	{
+		fprintf(stderr, "       \t");
+	}
+
+	switch ((card & MASK_COLOR) >> 4)
+	{
+		case NO_COLOR:
+			fprintf(stderr, "NO_COLOR     ");
+			break;
+		case HEARTS:
+			fprintf(stderr, "HEARTS       ");
+			break;
+		case SPADES:
+			fprintf(stderr, "SPADES       ");
+			break;
+		case DIAMONDS:
+			fprintf(stderr, "DIAMONDS     ");
+			break;
+		case CLUBS:
+			fprintf(stderr, "CLUBS        ");
+			break;
+		case UNKNOWN_COLOR:
+			fprintf(stderr, "UNKNOWN_COLOR");
+			break;
+		default:
+			abort();
+	}
+	fprintf(stderr, "\t");
+
+	switch (card & MASK_RANK)
+	{
+		case NO_RANK:
+			fprintf(stderr, "NO_RANK     ");
+			break;
+		case ACE:
+			fprintf(stderr, "ACE         ");
+			break;
+		case TWO:
+			fprintf(stderr, "TWO         ");
+			break;
+		case THREE:
+			fprintf(stderr, "THREE       ");
+			break;
+		case FOUR:
+			fprintf(stderr, "FOUR        ");
+			break;
+		case FIVE:
+			fprintf(stderr, "FIVE        ");
+			break;
+		case SIX:
+			fprintf(stderr, "SIX         ");
+			break;
+		case SEVEN:
+			fprintf(stderr, "SEVEN       ");
+			break;
+		case EIGHT:
+			fprintf(stderr, "EIGHT       ");
+			break;
+		case NINE:
+			fprintf(stderr, "NINE        ");
+			break;
+		case TEN:
+			fprintf(stderr, "TEN         ");
+			break;
+		case JACK:
+			fprintf(stderr, "JACK        ");
+			break;
+		case QUEEN:
+			fprintf(stderr, "QUEEN       ");
+			break;
+		case KING:
+			fprintf(stderr, "KING        ");
+			break;
+		case UNKNOWN_RANK:
+			fprintf(stderr, "UNKNOWN_RANK");
+			break;
+		default:
+			abort();
+	}
+	fprintf(stderr, "\n");
+#endif
+}
+
+void print_so_cards (struct so_cards const *cs)
+{
+#ifdef DEBUG
+	for (int i = 1 ; i <= cs->num_cards ; i++)
+	{
+		print_card(cs->cards[i]);
+	}
+	fprintf(stderr, "\n");
+#endif
+}
+
+void print_game_state (struct game_state *gs)
+{
+#ifdef DEBUG
+	if (gs->is_shadow && gs->dbglvl < DBG_PRINT_SHADOW)
+	{
+		return;
+	}
+
+	fprintf(stderr, "Printing %s game state with t=%d.\n",
+		(gs->is_shadow) ? "shadow" : "client", gs->t);
+
+	// Print deck.
+	fprintf(stderr, "deck (%d):", gs->deck.num_cards);
+	print_so_cards(&(gs->deck));
+
+	// Print waste.
+	fprintf(stderr, "waste (%d):", gs->waste.num_cards);
+	print_so_cards(&(gs->waste));
+
+	// Print foundations.
+	fprintf(stderr, "foudt (%d):",
+		(gs->foundation[0] & MASK_RANK)
+		+ (gs->foundation[1] & MASK_RANK)
+		+ (gs->foundation[2] & MASK_RANK)
+		+ (gs->foundation[3] & MASK_RANK));
+	print_card(gs->foundation[0]);
+	print_card(gs->foundation[1]);
+	print_card(gs->foundation[2]);
+	print_card(gs->foundation[3]);
+	fprintf(stderr, "\n");
+
+	// Print tableaus.
+	for (int i = 0 ; i < 7 ; i++)
+	{
+		fprintf(stderr, "tableau #%d (%d):",
+			i, gs->tableau[i].num_cards);
+		print_so_cards(&(gs->tableau[i]));
+	}
+#endif
 }
