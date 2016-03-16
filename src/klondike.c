@@ -39,10 +39,8 @@ void print_game_state (struct game_state *);
 
 void redacted_copy_so_cards (struct so_cards *dst, struct so_cards const *src)
 {
-	for (int i = 1 ; i <= src->num_cards ; i++)
-	{
-		dst->cards[i] = UNKNOWNCARD;
-	}
+	memset(&(dst->cards[1]), UNKNOWNCARD,
+		src->num_cards * sizeof(dst->cards[0]));
 	dst->num_cards = src->num_cards;
 }
 
