@@ -39,14 +39,14 @@ void print_game_state (struct game_state *);
 
 void redacted_copy_so_cards (struct so_cards *dst, struct so_cards const *src)
 {
-	memset(&(dst->cards[1]), UNKNOWNCARD,
+	memset(dst->cards, UNKNOWNCARD,
 		src->num_cards * sizeof(dst->cards[0]));
 	dst->num_cards = src->num_cards;
 }
 
 void plain_copy_so_cards (struct so_cards *dst, struct so_cards const *src)
 {
-	for (int i = 1 ; i <= src->num_cards ; i++)
+	for (int i = 0 ; i < src->num_cards ; i++)
 	{
 		dst->cards[i] = src->cards[i];
 	}
@@ -57,7 +57,7 @@ void redacted_copy_df_so_cards (
 	struct so_cards *dst,
 	struct so_cards const *src)
 {
-	for (int i = 1 ; i <= src->num_cards ; i++)
+	for (int i = 0 ; i < src->num_cards ; i++)
 	{
 		if (src->cards[i] & FACE_UP)
 		{
@@ -182,9 +182,9 @@ void init_game (
 	{
 		for (int j = i ; j < 7 ; j++)
 		{
-			shadow->tableau[j].cards[i + 1] = tmp_deck[--k];
+			shadow->tableau[j].cards[i] = tmp_deck[--k];
 		}
-		shadow->tableau[i].cards[i + 1] |= FACE_UP;
+		shadow->tableau[i].cards[i] |= FACE_UP;
 		shadow->tableau[i].num_cards = i + 1;
 	}
 
@@ -197,7 +197,7 @@ void init_game (
 	// Initialize deck
 	for (int i = k ; i > 0 ; i--)
 	{
-		shadow->deck.cards[i] = tmp_deck[--k];
+		shadow->deck.cards[i - 1] = tmp_deck[--k];
 		shadow->deck.num_cards++;
 	}
 
@@ -294,8 +294,8 @@ enum action_result pull_from_deck (struct game_state *shadow)
 			&& shadow->deck.num_cards > 0)
 		{
 			n++;
-			shadow->waste.cards[++(shadow->waste.num_cards)] =
-				shadow->deck.cards[(shadow->deck.num_cards)--]
+			shadow->waste.cards[(shadow->waste.num_cards)++] =
+				shadow->deck.cards[--(shadow->deck.num_cards)]
 				| FACE_UP;
 		}
 
@@ -310,8 +310,8 @@ enum action_result pull_from_deck (struct game_state *shadow)
 
 		while (shadow->waste.num_cards > 0)
 		{
-			shadow->deck.cards[++(shadow->deck.num_cards)] =
-				shadow->waste.cards[(shadow->waste.num_cards)--]
+			shadow->deck.cards[(shadow->deck.num_cards)++] =
+				shadow->waste.cards[--(shadow->waste.num_cards)]
 				& ~FACE_UP;
 		}
 
@@ -446,7 +446,7 @@ void print_card_verbose (uint8_t card)
 void print_so_cards (struct so_cards const *cs)
 {
 #ifdef DEBUG
-	for (int i = 1 ; i <= cs->num_cards ; i++)
+	for (int i = 0 ; i < cs->num_cards ; i++)
 	{
 		print_card(cs->cards[i]);
 	}

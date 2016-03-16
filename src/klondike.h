@@ -79,8 +79,8 @@ enum action_result
 
 struct so_cards // Stack of cards
 {
-	uint8_t cards[25]; // Bottom-most card is a NULLCARD.
-	int num_cards;     // Current number of cards held.
+	uint8_t cards[24];
+	int num_cards;
 };
 
 struct game_state
