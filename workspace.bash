@@ -85,3 +85,6 @@ for i in ${!wid_term[@]} ; do
   echo ${pid_term[i]} ${wid_term[i]} $cx $cy
   xdotool windowmove ${wid_term[i]} $cx $cy
 done
+
+# trigger build
+touch src/klondike.c
