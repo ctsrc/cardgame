@@ -72,8 +72,8 @@ which will run the aforementioned script.
 
 The tasks assigned to each of the four terminals are as follows:
 
-* Top left terminal opens `src/klondike.c` in `$EDITOR`.
-* Top right terminal opens `src/klondike.h` in `$EDITOR`.
+* Top left terminal opens `src/server/klondike.c` in `$EDITOR`.
+* Top right terminal opens `src/server/klondike.h` in `$EDITOR`.
 * Bottom left terminal runs your shell in the root of the klondike repository.
 * Bottom right terminal runs `autothing.bash` which we'll get back to.
 

@@ -42,9 +42,9 @@ function get_wid_by_pid ()
 cd ~/src/github.com/en90/klondike/ || exit 1
 
 # Launch terminals
-urxvt256c-ml -e $EDITOR "src/klondike.c" 2>/dev/null &
+urxvt256c-ml -e $EDITOR "src/server/klondike.c" 2>/dev/null &
 pid_term[0]=$!
-urxvt256c-ml -e $EDITOR "src/klondike.h" 2>/dev/null &
+urxvt256c-ml -e $EDITOR "src/server/klondike.h" 2>/dev/null &
 pid_term[1]=$!
 urxvt256c-ml 2>/dev/null &
 pid_term[2]=$!
@@ -87,4 +87,4 @@ for i in ${!wid_term[@]} ; do
 done
 
 # trigger build
-touch src/klondike.c
+touch src/server/klondike.c
