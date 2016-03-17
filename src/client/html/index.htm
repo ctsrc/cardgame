@@ -30,6 +30,9 @@ var ctx = c.getContext('2d');
 
 var iid; // Interval id
 
+var cw = 225; // Card width
+var ch = 350; // Card height
+
 var card = {};
 card.value = 255;
 card.x_last = 10;
@@ -48,7 +51,7 @@ function draw ()
 	ctx.clearRect(0, 0, c.width, c.height);
 
 	ctx.fillStyle = 'rgb(' + card.value + ',0,0)';
-	ctx.fillRect(card.x_cur, card.y_cur, 225, 350);
+	ctx.fillRect(card.x_cur, card.y_cur, cw, ch);
 }
 
 function pick (e)
@@ -72,8 +75,30 @@ function transpose (e)
 {
 	if (cursor.dragging)
 	{
-		card.x_cur = card.x_last + (e.layerX - cursor.x_down);
-		card.y_cur = card.y_last + (e.layerY - cursor.y_down);
+		x_cur = card.x_last + (e.layerX - cursor.x_down);
+		y_cur = card.y_last + (e.layerY - cursor.y_down);
+
+		// Margins x
+		if (x_cur > 0.9 * c.width)
+		{
+			x_cur = 0.9 * c.width;
+		}
+		else if (x_cur < 0.1 * c.width - cw)
+		{
+			x_cur = 0.1 * c.width - cw;
+		}
+		// Margins y
+		if (y_cur > 0.9 * c.height)
+		{
+			y_cur = 0.9 * c.height;
+		}
+		else if (y_cur < 0.1 * c.height - ch)
+		{
+			y_cur = 0.1 * c.height - ch;
+		}
+
+		card.x_cur = x_cur;
+		card.y_cur = y_cur;
 	}
 }
 c.addEventListener('mousemove', transpose);
