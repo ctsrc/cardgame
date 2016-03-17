@@ -79,23 +79,11 @@ function transpose (e)
 		y_cur = card.y_last + (e.layerY - cursor.y_down);
 
 		// Margins x
-		if (x_cur > 0.9 * c.width)
-		{
-			x_cur = 0.9 * c.width;
-		}
-		else if (x_cur < 0.1 * c.width - cw)
-		{
-			x_cur = 0.1 * c.width - cw;
-		}
+		x_cur = Math.max(0.1 * c.width - cw,
+				Math.min(x_cur, 0.9 * c.width));
 		// Margins y
-		if (y_cur > 0.9 * c.height)
-		{
-			y_cur = 0.9 * c.height;
-		}
-		else if (y_cur < 0.1 * c.height - ch)
-		{
-			y_cur = 0.1 * c.height - ch;
-		}
+		y_cur = Math.max(0.1 * c.height - ch,
+				Math.min(y_cur, 0.9 * c.height));
 
 		card.x_cur = x_cur;
 		card.y_cur = y_cur;
