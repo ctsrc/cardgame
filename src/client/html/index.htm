@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+/*
+ * Copyright (c) 2016 Erik Nordstrøm <erik@nordstroem.no>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+-->
+<html lang=en-US>
+<style>
+body { background: #00f; }
+#klondike { background: #0f0; }
+</style>
+<meta charset=UTF-8>
+<canvas id=klondike width=640 height=480></canvas>
+<script>
+var c = document.getElementById('klondike');
+var ctx = c.getContext('2d');
+
+var iid; // Interval id
+
+var card = {};
+card.value = 255;
+card.x_last = 10;
+card.y_last = 10;
+card.x_cur = card.x_last;
+card.y_cur = card.y_last;
+
+var cursor = {};
+cursor.x_down;
+cursor.y_down;
+cursor.dragging = false;
+
+function draw ()
+{
+	ctx.clearRect(0, 0, c.width, c.height);
+
+	ctx.fillStyle = 'rgb(' + card.value + ',0,0)';
+	ctx.fillRect(card.x_cur, card.y_cur, 225, 350);
+}
+
+function pick (e)
+{
+	var pixel = ctx.getImageData(e.layerX, e.layerY, 1, 1);
+	var card = pixel.data[0];
+
+	if (card && card != 94) // Not a NULLCARD and not an UNKNOWNCARD.
+	{
+		cursor.dragging = true;
+		cursor.x_down = e.layerX;
+		cursor.y_down = e.layerY;
+		draw();
+		iid = setInterval(draw, 16);
+	}
+}
+c.addEventListener('mousedown', pick);
+
+function transpose (e)
+{
+	if (cursor.dragging)
+	{
+		card.x_cur = card.x_last + (e.layerX - cursor.x_down);
+		card.y_cur = card.y_last + (e.layerY - cursor.y_down);
+		console.log(card.x_cur + ', ' + card.y_cur);
+	}
+}
+c.addEventListener('mousemove', transpose);
+
+function place (e)
+{
+	cursor.dragging = false;
+	card.x_last = card.x_cur;
+	card.y_last = card.y_cur;
+	draw();
+	clearInterval(iid);
+}
+c.addEventListener('mouseup', place);
+c.addEventListener('mouseout', place);
+
+draw();
+</script>
