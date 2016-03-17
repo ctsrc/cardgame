@@ -75,8 +75,8 @@ function transpose (e)
 {
 	if (cursor.dragging)
 	{
-		x_cur = card.x_last + (e.layerX - cursor.x_down);
-		y_cur = card.y_last + (e.layerY - cursor.y_down);
+		var x_cur = card.x_last + (e.layerX - cursor.x_down);
+		var y_cur = card.y_last + (e.layerY - cursor.y_down);
 
 		// XXX: Limit x to margins
 		card.x_cur = Math.max(0.1 * c.width - cw,
