@@ -43,7 +43,7 @@ card.y_cur = card.y_last;
 var cursor = {};
 cursor.x_down;
 cursor.y_down;
-cursor.dragging = false;
+cursor.is_dragging = false;
 cursor.card = null;
 
 function draw ()
@@ -62,7 +62,7 @@ function pick (e)
 	if (card_val && card_val != 94) // Card, not NULLCARD, not UNKNOWNCARD.
 	{
 		// TODO: Set cursor.card
-		cursor.dragging = true;
+		cursor.is_dragging = true;
 		cursor.x_down = e.layerX;
 		cursor.y_down = e.layerY;
 		draw();
@@ -73,7 +73,7 @@ c.addEventListener('mousedown', pick);
 
 function transpose (e)
 {
-	if (cursor.dragging)
+	if (cursor.is_dragging)
 	{
 		var x_cur = card.x_last + (e.layerX - cursor.x_down);
 		var y_cur = card.y_last + (e.layerY - cursor.y_down);
@@ -90,7 +90,7 @@ c.addEventListener('mousemove', transpose);
 
 function place (e)
 {
-	cursor.dragging = false;
+	cursor.is_dragging = false;
 	card.x_last = card.x_cur;
 	card.y_last = card.y_cur;
 	draw();
