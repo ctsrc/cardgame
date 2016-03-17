@@ -72,7 +72,6 @@ function transpose (e)
 	{
 		card.x_cur = card.x_last + (e.layerX - cursor.x_down);
 		card.y_cur = card.y_last + (e.layerY - cursor.y_down);
-		console.log(card.x_cur + ', ' + card.y_cur);
 	}
 }
 c.addEventListener('mousemove', transpose);
