@@ -78,10 +78,10 @@ function transpose (e)
 		x_cur = card.x_last + (e.layerX - cursor.x_down);
 		y_cur = card.y_last + (e.layerY - cursor.y_down);
 
-		// Margins x
+		// XXX: Limit x to margins
 		card.x_cur = Math.max(0.1 * c.width - cw,
 				Math.min(x_cur, 0.9 * c.width));
-		// Margins y
+		// XXX: Limit y to margins
 		card.y_cur = Math.max(0.1 * c.height - ch,
 				Math.min(y_cur, 0.9 * c.height));
 	}
