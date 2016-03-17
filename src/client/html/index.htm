@@ -41,6 +41,7 @@ var cursor = {};
 cursor.x_down;
 cursor.y_down;
 cursor.dragging = false;
+cursor.card = null;
 
 function draw ()
 {
@@ -53,10 +54,11 @@ function draw ()
 function pick (e)
 {
 	var pixel = ctx.getImageData(e.layerX, e.layerY, 1, 1);
-	var card = pixel.data[0];
+	var card_val = pixel.data[0];
 
-	if (card && card != 94) // Not a NULLCARD and not an UNKNOWNCARD.
+	if (card_val && card_val != 94) // Card, not NULLCARD, not UNKNOWNCARD.
 	{
+		// TODO: Set cursor.card
 		cursor.dragging = true;
 		cursor.x_down = e.layerX;
 		cursor.y_down = e.layerY;
