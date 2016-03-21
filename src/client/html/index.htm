@@ -18,6 +18,8 @@
 -->
 <html lang=en-US>
 <meta charset=UTF-8>
+<meta name="viewport"
+  content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Klondike</title>
 <style>
 body { background: #00f; }
@@ -25,6 +27,10 @@ body { background: #00f; }
 </style>
 <canvas id=klondike width=640 height=480></canvas>
 <script>
+document.body.addEventListener('touchmove', function(event) {
+	event.preventDefault();
+}, false);
+
 var c = document.getElementById('klondike');
 var ctx = c.getContext('2d');
 
@@ -59,26 +65,51 @@ function draw ()
 
 function pick (e)
 {
-	var pixel = ctx.getImageData(e.layerX, e.layerY, 1, 1);
+	var x, y;
+	if (e instanceof TouchEvent)
+	{
+		x = e.touches[0].pageX - c.offsetLeft;
+		y = e.touches[0].pageY - c.offsetTop;
+	}
+	else
+	{
+		x = e.layerX;
+		y = e.layerY;
+	}
+
+	var pixel = ctx.getImageData(x, y, 1, 1);
 	var card_val = pixel.data[0];
 
 	if (card_val && card_val != 94) // Card, not NULLCARD, not UNKNOWNCARD.
 	{
 		// TODO: Set cursor.card
 		cursor.is_dragging = true;
-		cursor.x_down = e.layerX;
-		cursor.y_down = e.layerY;
+		cursor.x_down = x;
+		cursor.y_down = y;
 		window.requestAnimationFrame(draw);
 	}
 }
 c.addEventListener('mousedown', pick);
+c.addEventListener('touchstart', pick);
 
 function transpose (e)
 {
 	if (cursor.is_dragging)
 	{
-		var x_cur = card.x_last + (e.layerX - cursor.x_down);
-		var y_cur = card.y_last + (e.layerY - cursor.y_down);
+		var x, y;
+		if (e instanceof TouchEvent)
+		{
+			x = e.touches[0].pageX - c.offsetLeft;
+			y = e.touches[0].pageY - c.offsetTop;
+		}
+		else
+		{
+			x = e.layerX;
+			y = e.layerY;
+		}
+
+		var x_cur = card.x_last + (x - cursor.x_down);
+		var y_cur = card.y_last + (y - cursor.y_down);
 
 		// XXX: Limit x to margins
 		card.x_cur = Math.max(0.1 * c.width - cw,
@@ -89,6 +120,7 @@ function transpose (e)
 	}
 }
 c.addEventListener('mousemove', transpose);
+c.addEventListener('touchmove', transpose);
 
 function place (e)
 {
@@ -99,6 +131,7 @@ function place (e)
 }
 c.addEventListener('mouseup', place);
 c.addEventListener('mouseout', place);
+c.addEventListener('touchend', place);
 
 draw();
 </script>
