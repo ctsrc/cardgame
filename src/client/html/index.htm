@@ -28,8 +28,6 @@ body { background: #00f; }
 var c = document.getElementById('klondike');
 var ctx = c.getContext('2d');
 
-var iid; // Interval id
-
 var cw = 225; // Card width
 var ch = 350; // Card height
 
@@ -52,6 +50,11 @@ function draw ()
 
 	ctx.fillStyle = 'rgb(' + card.value + ',0,0)';
 	ctx.fillRect(card.x_cur, card.y_cur, cw, ch);
+
+	if (cursor.is_dragging)
+	{
+		window.requestAnimationFrame(draw);
+	}
 }
 
 function pick (e)
@@ -65,8 +68,7 @@ function pick (e)
 		cursor.is_dragging = true;
 		cursor.x_down = e.layerX;
 		cursor.y_down = e.layerY;
-		draw();
-		iid = setInterval(draw, 16);
+		window.requestAnimationFrame(draw);
 	}
 }
 c.addEventListener('mousedown', pick);
@@ -93,8 +95,7 @@ function place (e)
 	cursor.is_dragging = false;
 	card.x_last = card.x_cur;
 	card.y_last = card.y_cur;
-	draw();
-	clearInterval(iid);
+	window.requestAnimationFrame(draw);
 }
 c.addEventListener('mouseup', place);
 c.addEventListener('mouseout', place);
