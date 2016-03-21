@@ -22,45 +22,312 @@
   content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Klondike</title>
 <style>
-body { background: #00f; }
-#klondike { background: #0f0; }
+body { background: #066; }
+canvas { background: #063; }
 </style>
-<canvas id=klondike width=640 height=480></canvas>
+<canvas id=game width=480 height=480></canvas>
+<canvas id=gback></canvas>
+<canvas id=pkabl></canvas>
+<canvas id=ptabl></canvas>
+<canvas id=gfore></canvas>
 <script>
 document.body.addEventListener('touchmove', function(event) {
 	event.preventDefault();
 }, false);
 
-var c = document.getElementById('klondike');
-var ctx = c.getContext('2d');
+var g = document.getElementById('game');
+var gtx = g.getContext('2d');
 
-var cw = 225; // Card width
-var ch = 350; // Card height
+var gb = document.getElementById('gback');
+//var gb = document.createElement('canvas');
+gb.width = g.width;
+gb.height = g.height;
+var gbtx = gb.getContext('2d');
 
-var card = {};
-card.value = 255;
-card.x_last = 10;
-card.y_last = 10;
-card.x_cur = card.x_last;
-card.y_cur = card.y_last;
+var pk = document.getElementById('pkabl');
+//var pk = document.createElement('canvas');
+pk.width = g.width;
+pk.height = g.height;
+var pktx = pk.getContext('2d');
 
-var cursor = {};
-cursor.x_down;
-cursor.y_down;
-cursor.is_dragging = false;
-cursor.card = null;
+var pt = document.getElementById('ptabl');
+//var pt = document.createElement('canvas');
+pt.width = g.width;
+pt.height = g.height;
+var pttx = pt.getContext('2d');
 
-function draw ()
+// Sizes measured in ratios.
+const CARDWIDTH = 2.25;
+const CARDHEIGHT = 3.50;
+const DISTVERT = 0.5; // vertical distance
+const DISTHORZ = 0.5; // horizontal distance
+const MARGINTOP = DISTVERT;
+const MARGINRIGHT = DISTHORZ;
+const MARGINBOTTOM = DISTVERT;
+const MARGINLEFT = DISTHORZ;
+const CANVASWIDTH = MARGINLEFT + 7 * CARDWIDTH + 6 * DISTHORZ + MARGINRIGHT;
+const CANVASHEIGHT = MARGINTOP + 2 * CARDHEIGHT + DISTVERT + 24 * DISTVERT
+	+ MARGINBOTTOM;
+
+var gf = document.getElementById('gfore');
+//var gf = document.createElement('canvas');
+gf.width = Math.floor(CARDWIDTH * (g.width / CANVASWIDTH));
+gf.height = Math.floor((12 * DISTVERT + CARDHEIGHT)
+	* (g.height / CANVASHEIGHT));
+var gftx = gf.getContext('2d');
+
+const enum_color =
+{
+	NO_COLOR : 0,
+	HEARTS : 1,
+	SPADES : 2,
+	DIAMONDS : 3,
+	CLUBS : 4,
+	UNKNOWN_COLOR : 5
+};
+
+const enum_rank =
+{
+	NO_RANK : 0,
+	ACE : 1,
+	TWO : 2,
+	THREE : 3,
+	FOUR : 4,
+	FIVE : 5,
+	SIX : 6,
+	SEVEN : 7,
+	EIGHT : 8,
+	NINE : 9,
+	TEN : 10,
+	JACK : 11,
+	QUEEN : 12,
+	KING : 13,
+	UNKNOWN_RANK : 14
+};
+
+const NULLCARD = 0;
+const UNKNOWNCARD = 94;
+
+const FACE_UP = Math.pow(2, 7);
+
+const MASK_COLOR = 7 << 4;
+const MASK_RANK = 15;
+
+var deck = new Array();
+var waste = new Array();
+var foundation = new Array();
+var tableau = new Array([], [], [], [], [], [], []);
+
+var hand = {};
+hand.x = 0;
+hand.y = 0;
+hand.is_holding = false;
+hand.offs_x = 0;
+hand.offs_y = 0;
+hand.cards = new Array();
+
+/*
+ * Initialize game.
+ *
+ * TODO: Get initial state from server.
+ */
+
+// Initialize deck
+//for (var i = 0 ; i < 24 ; i++)
+for (var i = 0 ; i < 18 ; i++)
+{
+	deck[i] = UNKNOWNCARD;
+}
+// Waste is empty as it should be. No further initialization required.
+// Initialize with a few cards for testing.
+waste = [43 | FACE_UP, 42 | FACE_UP, 41 | FACE_UP,
+	40 | FACE_UP, 39 | FACE_UP, 38 | FACE_UP];
+// Initialize foundations
+for (var i = 0 ; i < 4 ; i++)
+{
+	foundation[i] = NULLCARD;
+}
+// Initialize tableaus
+for (var i = 0 ; i < 7 ; i++)
+{
+	var j;
+	for (j = 0 ; j < i ; j++)
+	{
+		tableau[i][j] = UNKNOWNCARD;
+	}
+}
+tableau[0][0] = 77 | FACE_UP;
+tableau[1][1] = 70 | FACE_UP;
+tableau[2][2] = 61 | FACE_UP;
+tableau[3][3] = 56 | FACE_UP;
+tableau[4][4] = 52 | FACE_UP;
+tableau[5][5] = 49 | FACE_UP;
+tableau[6][6] = 44 | FACE_UP;
+
+function isFacingUp (card)
+{
+	return card & FACE_UP;
+}
+
+function getColor (card)
+{
+	return (card & MASK_COLOR) >> 4;
+}
+
+function getRank (card)
+{
+	return card & MASK_RANK;
+}
+
+function isFoundationPutable (fdt, card)
+{
+	return (getColor(fdt) == getColor(card)
+			&& (getRank(fdt) + 1) == getRank(card))
+		|| (!fdt && getRank(card) == enum_rank.ACE);
+}
+
+function renderCard (c, ctx, card, rx, ry)
+{
+	ctx.fillStyle = 'rgb(' + card + ',0,0)';
+	ctx.fillRect(Math.floor(rx * (c.width / CANVASWIDTH)),
+		Math.floor(ry * (c.height / CANVASHEIGHT)),
+		Math.floor(CARDWIDTH * (c.width / CANVASWIDTH)),
+		Math.floor(CARDHEIGHT * (c.height / CANVASHEIGHT)));
+}
+
+function renderTable (c, ctx)
 {
 	ctx.clearRect(0, 0, c.width, c.height);
 
-	ctx.fillStyle = 'rgb(' + card.value + ',0,0)';
-	ctx.fillRect(card.x_cur, card.y_cur, cw, ch);
-
-	if (cursor.is_dragging)
+	// Deck
+	if (deck.length > 0)
 	{
-		window.requestAnimationFrame(draw);
+		renderCard(c, ctx, deck[deck.length - 1], MARGINLEFT, MARGINTOP);
 	}
+
+	// Waste
+	var n = Math.min(3, waste.length);
+	for (var i = n ; i > 0 ; i--)
+	{
+		renderCard(c, ctx, waste[waste.length - i],
+			MARGINLEFT + CARDWIDTH + (1 + n - i) * DISTHORZ,
+			MARGINTOP);
+	}
+
+	// Foundations
+	for (var i = 0 ; i < 4 ; i++)
+	{
+		renderCard(c, ctx, foundation[i],
+			MARGINLEFT + (3 + i) * CARDWIDTH + (3 + i) * DISTHORZ,
+			MARGINTOP);
+	}
+
+	// Tableaus
+	for (var i = 0 ; i < 7 ; i++)
+	{
+		for (var j = 0 ; j < tableau[i].length ; j++)
+		{
+			renderCard(c, ctx, tableau[i][j],
+				MARGINLEFT + i * CARDWIDTH + i * DISTHORZ,
+				MARGINTOP + CARDHEIGHT + (1 + j) * DISTVERT);
+		}
+	}
+}
+
+function renderPickable (c, ctx)
+{
+	ctx.clearRect(0, 0, c.width, c.height);
+
+	// Deck is not pickable.
+
+	// Waste. Top-most card only.
+	if (waste.length > 0)
+	{
+		renderCard(c, ctx, waste[waste.length - 1],
+			MARGINLEFT + CARDWIDTH
+				+ (4 - waste.length % 3) * DISTHORZ,
+			MARGINTOP);
+	}
+
+	// Foundations
+	for (var i = 0 ; i < 4 ; i++)
+	{
+		if (foundation[i] > 0)
+		{
+			renderCard(c, ctx, foundation[i],
+				MARGINLEFT + (3 + i) * CARDWIDTH
+					+ (3 + i) * DISTHORZ,
+				MARGINTOP);
+		}
+	}
+
+	// Tableaus
+	for (var i = 0 ; i < 7 ; i++)
+	{
+		for (var j = 0 ; j < tableau[i].length ; j++)
+		{
+			if (isFacingUp(tableau[i][j]))
+			{
+				renderCard(c, ctx, tableau[i][j],
+					MARGINLEFT + i * CARDWIDTH
+						+ i * DISTHORZ,
+					MARGINTOP + CARDHEIGHT
+						+ (1 + j) * DISTVERT);
+			}
+		}
+	}
+}
+
+function renderPutable (c, ctx)
+{
+	ctx.clearRect(0, 0, c.width, c.height);
+
+	// Deck is not putable
+
+	// Waste is not putable
+
+	// Foundations
+	if (hand.cards.length == 1)
+	{
+		for (var i = 0 ; i < 4 ; i++)
+		{
+			if (isFoundationPutable(foundation[i],
+				hand.cards[0]))
+			{
+				renderCard(c, ctx, foundation[i],
+					MARGINLEFT + (3 + i) * CARDWIDTH
+						+ (3 + i) * DISTHORZ,
+					MARGINTOP);
+			}
+		}
+	}
+}
+
+function renderHand (c, ctx)
+{
+	ctx.clearRect(0, 0, c.width, c.height);
+
+	// Testing
+	ctx.fillStyle = 'rgb(0,0,255)';
+	ctx.fillRect(0, 0, c.width, c.height);
+}
+
+function renderGtx ()
+{
+	gtx.clearRect(0, 0, g.width, g.height);
+
+	gtx.drawImage(gb, 0, 0);
+
+	if (hand.is_holding)
+	{
+		renderHand(gf, gftx);
+		gtx.drawImage(gf, hand.x, hand.y);
+		window.requestAnimationFrame(renderGtx);
+	}
+}
+
+function draw ()
+{
 }
 
 function pick (e)
@@ -68,8 +335,8 @@ function pick (e)
 	var x, y;
 	if (window.TouchEvent && e instanceof TouchEvent)
 	{
-		x = e.touches[0].pageX - c.offsetLeft;
-		y = e.touches[0].pageY - c.offsetTop;
+		x = e.touches[0].pageX - g.offsetLeft;
+		y = e.touches[0].pageY - g.offsetTop;
 	}
 	else
 	{
@@ -77,30 +344,32 @@ function pick (e)
 		y = e.layerY;
 	}
 
-	var pixel = ctx.getImageData(x, y, 1, 1);
-	var card_val = pixel.data[0];
+	var pixel = pktx.getImageData(x, y, 1, 1);
+	var card = pixel.data[0];
 
-	if (card_val && card_val != 94) // Card, not NULLCARD, not UNKNOWNCARD.
+	if (card && card != UNKNOWNCARD) // Valid card
 	{
-		// TODO: Set cursor.card
-		cursor.is_dragging = true;
-		cursor.x_down = x;
-		cursor.y_down = y;
-		window.requestAnimationFrame(draw);
+		// TODO: Move picked to hand.cards
+		hand.is_holding = true;
+		hand.x = x;
+		hand.y = y;
+
+		renderTable(gb, gbtx);
+		window.requestAnimationFrame(renderGtx);
 	}
 }
-c.addEventListener('mousedown', pick);
-c.addEventListener('touchstart', pick);
+g.addEventListener('mousedown', pick);
+g.addEventListener('touchstart', pick);
 
 function transpose (e)
 {
-	if (cursor.is_dragging)
+	if (hand.is_holding)
 	{
 		var x, y;
 		if (window.TouchEvent && e instanceof TouchEvent)
 		{
-			x = e.touches[0].pageX - c.offsetLeft;
-			y = e.touches[0].pageY - c.offsetTop;
+			x = e.touches[0].pageX - g.offsetLeft;
+			y = e.touches[0].pageY - g.offsetTop;
 		}
 		else
 		{
@@ -108,30 +377,34 @@ function transpose (e)
 			y = e.layerY;
 		}
 
-		var x_cur = card.x_last + (x - cursor.x_down);
-		var y_cur = card.y_last + (y - cursor.y_down);
+		x += hand.offs_x;
+		y += hand.offs_y;
 
 		// XXX: Limit x to margins
-		card.x_cur = Math.max(0.1 * c.width - cw,
-				Math.min(x_cur, 0.9 * c.width));
+		hand.x = Math.max(0.1 * g.width
+				- CARDWIDTH * (g.width / CANVASWIDTH),
+			Math.min(x, 0.9 * g.width));
 		// XXX: Limit y to margins
-		card.y_cur = Math.max(0.1 * c.height - ch,
-				Math.min(y_cur, 0.9 * c.height));
+		hand.y = Math.max(0.1 * g.height
+				- CARDHEIGHT * (g.height / CANVASHEIGHT),
+			Math.min(y, 0.9 * g.height));
 	}
 }
-c.addEventListener('mousemove', transpose);
-c.addEventListener('touchmove', transpose);
+g.addEventListener('mousemove', transpose);
+g.addEventListener('touchmove', transpose);
 
 function place (e)
 {
-	cursor.is_dragging = false;
-	card.x_last = card.x_cur;
-	card.y_last = card.y_cur;
-	window.requestAnimationFrame(draw);
+	// TODO: Move placed from hand.cards
+	hand.is_holding = false;
+	renderTable(gb, gbtx);
+	renderPickable(pk, pktx);
 }
-c.addEventListener('mouseup', place);
-c.addEventListener('mouseout', place);
-c.addEventListener('touchend', place);
+g.addEventListener('mouseup', place);
+g.addEventListener('mouseout', place);
+g.addEventListener('touchend', place);
 
-draw();
+renderTable(gb, gbtx);
+renderPickable(pk, pktx);
+renderGtx();
 </script>
