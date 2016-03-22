@@ -27,6 +27,8 @@ canvas { background: #063; }
 </style>
 <canvas id=game width=480 height=480></canvas>
 <script id=ks>
+"use strict";
+
 document.body.addEventListener('touchmove', function (event) {
 	event.preventDefault();
 }, false);
@@ -146,7 +148,7 @@ function getRank (card)
 
 class RenderableCard
 {
-	constructor (card, x, y, origin, oidx, subarr = null)
+	constructor (card, x, y, origin, oidx, subarr)
 	{
 		this.card = card;
 		this.x = x;
@@ -170,7 +172,7 @@ table.deck =
 			return [new RenderableCard(
 				this.cards[this.cards.length - 1],
 				this.x, this.y, this.cards,
-				this.cards.length - 1)];
+				this.cards.length - 1, null)];
 		}
 
 		return [];
@@ -194,7 +196,7 @@ table.waste =
 				this.cards[this.cards.length - i],
 				this.x + (n - i) * DISTHORZ,
 				this.y, this.cards,
-				this.cards.length - i));
+				this.cards.length - i, null));
 		}
 
 		return ret;
@@ -228,7 +230,7 @@ table.foundation =
 			ret.push(new RenderableCard(
 				this.cards[i],
 				this.x + i * (CARDWIDTH + DISTHORZ),
-				this.y, this.cards, i));
+				this.y, this.cards, i, null));
 		}
 
 		return ret;
