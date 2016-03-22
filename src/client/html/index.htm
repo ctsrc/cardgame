@@ -457,12 +457,12 @@ function renderGame ()
 
 	if (hand.rl.length > 0)
 	{
-		gtx.drawImage(gf, hand.x, hand.y);
+		gtx.drawImage(gf, hand.x - hand.offs_x, hand.y - hand.offs_y);
 		window.requestAnimationFrame(renderGame);
 	}
 }
 
-function pick (e)
+function updateHandPos (e)
 {
 	var x, y;
 	if (window.TouchEvent && e instanceof TouchEvent)
@@ -476,7 +476,24 @@ function pick (e)
 		y = e.layerY;
 	}
 
-	var pixel = pktx.getImageData(x, y, 1, 1);
+	hand.x = x;
+	hand.y = y;
+
+	// XXX: Limit x to margins
+	hand.x = Math.max(0.1 * g.width
+			- CARDWIDTH * (g.width / CANVASWIDTH),
+		Math.min(x, 0.9 * g.width));
+	// XXX: Limit y to margins
+	hand.y = Math.max(0.1 * g.height
+			- CARDHEIGHT * (g.height / CANVASHEIGHT),
+		Math.min(y, 0.9 * g.height));
+}
+
+function pick (e)
+{
+	updateHandPos(e);
+
+	var pixel = pktx.getImageData(hand.x, hand.y, 1, 1);
 	var val = pixel.data[0];
 
 	if (val)
@@ -492,15 +509,17 @@ function pick (e)
 			cards = card.origin[card.subarr].splice(card.oidx);
 		}
 
+		hand.offs_x = hand.x -
+			Math.floor(card.x * (g.width / CANVASWIDTH));
+		hand.offs_y = hand.y -
+			Math.floor(card.y * (g.height / CANVASHEIGHT));
+
 		for (var i = 0 ; i < cards.length ; i++)
 		{
 			hand.rl.push(new RenderableCard(cards[i],
 				0, i * DISTVERT, card.origin,
 				card.oidx, card.subarr));
 		}
-
-		hand.x = x;
-		hand.y = y;
 
 		renderHand();
 		renderPutable();
@@ -515,29 +534,7 @@ function transpose (e)
 {
 	if (hand.rl.length > 0)
 	{
-		var x, y;
-		if (window.TouchEvent && e instanceof TouchEvent)
-		{
-			x = e.touches[0].pageX - g.offsetLeft;
-			y = e.touches[0].pageY - g.offsetTop;
-		}
-		else
-		{
-			x = e.layerX;
-			y = e.layerY;
-		}
-
-		x += hand.offs_x;
-		y += hand.offs_y;
-
-		// XXX: Limit x to margins
-		hand.x = Math.max(0.1 * g.width
-				- CARDWIDTH * (g.width / CANVASWIDTH),
-			Math.min(x, 0.9 * g.width));
-		// XXX: Limit y to margins
-		hand.y = Math.max(0.1 * g.height
-				- CARDHEIGHT * (g.height / CANVASHEIGHT),
-			Math.min(y, 0.9 * g.height));
+		updateHandPos(e);
 	}
 }
 g.addEventListener('mousemove', transpose);
