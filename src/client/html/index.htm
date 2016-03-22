@@ -346,7 +346,7 @@ table.initialize = function ()
 	// Waste is empty as it should be. No further initialization required.
 	// Initialize with a few cards for testing.
 	this.waste.cards = [43 | FACE_UP, 42 | FACE_UP, 41 | FACE_UP,
-		40 | FACE_UP, 39 | FACE_UP, 38 | FACE_UP];
+		36 | FACE_UP, 18 | FACE_UP, 17 | FACE_UP];
 
 	// Initialize foundations
 	for (var i = 0 ; i < 4 ; i++)
@@ -363,8 +363,8 @@ table.initialize = function ()
 			this.tableau.cards[i][j] = UNKNOWNCARD;
 		}
 	}
-	this.tableau.cards[0][0] = 77 | FACE_UP;
-	this.tableau.cards[1][1] = 70 | FACE_UP;
+	this.tableau.cards[0][0] = 21 | FACE_UP;
+	this.tableau.cards[1][1] = 19 | FACE_UP;
 	this.tableau.cards[2][2] = 61 | FACE_UP;
 	this.tableau.cards[3][3] = 56 | FACE_UP;
 	this.tableau.cards[4][4] = 52 | FACE_UP;
