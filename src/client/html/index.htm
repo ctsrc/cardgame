@@ -378,9 +378,21 @@ table.initialize();
 
 function cardRenderer (c, ctx)
 {
-	return function (rc)
+	return function (rc, idx)
 	{
 		ctx.fillStyle = 'rgb(' + rc.card + ',0,0)';
+		ctx.fillRect(Math.floor(rc.x * (c.width / CANVASWIDTH)),
+			Math.floor(rc.y * (c.height / CANVASHEIGHT)),
+			Math.floor(CARDWIDTH * (c.width / CANVASWIDTH)),
+			Math.floor(CARDHEIGHT * (c.height / CANVASHEIGHT)));
+	}
+}
+
+function cardIdxRenderer (c, ctx)
+{
+	return function (rc, idx)
+	{
+		ctx.fillStyle = 'rgb(' + (4 * idx + 1) + ',0,0)';
 		ctx.fillRect(Math.floor(rc.x * (c.width / CANVASWIDTH)),
 			Math.floor(rc.y * (c.height / CANVASHEIGHT)),
 			Math.floor(CARDWIDTH * (c.width / CANVASWIDTH)),
@@ -412,7 +424,7 @@ function renderTable ()
 	table.getRLVisible().forEach(renderRenderableCardToTable);
 }
 
-var renderRenderableCardToPickable = cardRenderer(pk, pktx);
+var renderRenderableCardToPickable = cardIdxRenderer(pk, pktx);
 function renderPickable ()
 {
 	pktx.clearRect(0, 0, pk.width, pk.height);
@@ -420,7 +432,7 @@ function renderPickable ()
 	table.getRLPickable().forEach(renderRenderableCardToPickable);
 }
 
-var renderRenderableCardToPutable = cardRenderer(pt, pttx);
+var renderRenderableCardToPutable = cardIdxRenderer(pt, pttx);
 function renderPutable ()
 {
 	pttx.clearRect(0, 0, pt.width, pt.height);
@@ -465,36 +477,26 @@ function pick (e)
 	}
 
 	var pixel = pktx.getImageData(x, y, 1, 1);
-	var card = pixel.data[0];
+	var val = pixel.data[0];
 
-	if (card && card != UNKNOWNCARD) // Valid card
+	if (val)
 	{
-		var search = table.getRLPickable();
-		var found;
-		for (var i = 0 ; i < search.length ; i++)
-		{
-			if (search[i].card == card)
-			{
-				found = search[i];
-				break;
-			}
-		}
-
+		var card = table.getRLPickable()[(val - 1) / 4];
 		var cards;
-		if (found.subarr === null)
+		if (card.subarr === null)
 		{
-			cards = found.origin.splice(found.oidx);
+			cards = card.origin.splice(card.oidx);
 		}
 		else
 		{
-			cards = found.origin[found.subarr].splice(found.oidx);
+			cards = card.origin[card.subarr].splice(card.oidx);
 		}
 
 		for (var i = 0 ; i < cards.length ; i++)
 		{
 			hand.rl.push(new RenderableCard(cards[i],
-				0, i * DISTVERT, found.origin,
-				found.oidx, found.subarr));
+				0, i * DISTVERT, card.origin,
+				card.oidx, card.subarr));
 		}
 
 		hand.x = x;
