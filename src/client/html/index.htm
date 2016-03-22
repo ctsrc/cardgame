@@ -26,11 +26,7 @@ body { background: #066; }
 canvas { background: #063; }
 </style>
 <canvas id=game width=480 height=480></canvas>
-<canvas id=table></canvas>
-<canvas id=pkabl></canvas>
-<canvas id=ptabl></canvas>
-<canvas id=gfore></canvas>
-<script>
+<script id=ks>
 document.body.addEventListener('touchmove', function (event) {
 	event.preventDefault();
 }, false);
@@ -38,20 +34,17 @@ document.body.addEventListener('touchmove', function (event) {
 var g = document.getElementById('game');
 var gtx = g.getContext('2d');
 
-var t = document.getElementById('table');
-//var t = document.createElement('canvas');
+var t = document.createElement('canvas');
 t.width = g.width;
 t.height = g.height;
 var ttx = t.getContext('2d');
 
-var pk = document.getElementById('pkabl');
-//var pk = document.createElement('canvas');
+var pk = document.createElement('canvas');
 pk.width = g.width;
 pk.height = g.height;
 var pktx = pk.getContext('2d');
 
-var pt = document.getElementById('ptabl');
-//var pt = document.createElement('canvas');
+var pt = document.createElement('canvas');
 pt.width = g.width;
 pt.height = g.height;
 var pttx = pt.getContext('2d');
@@ -69,12 +62,30 @@ const CANVASWIDTH = MARGINLEFT + 7 * CARDWIDTH + 6 * DISTHORZ + MARGINRIGHT;
 const CANVASHEIGHT = MARGINTOP + 2 * CARDHEIGHT + DISTVERT + 24 * DISTVERT
 	+ MARGINBOTTOM;
 
-var gf = document.getElementById('gfore');
-//var gf = document.createElement('canvas');
+var gf = document.createElement('canvas');
 gf.width = Math.floor(CARDWIDTH * (g.width / CANVASWIDTH));
 gf.height = Math.floor((12 * DISTVERT + CARDHEIGHT)
 	* (g.height / CANVASHEIGHT));
 var gftx = gf.getContext('2d');
+
+var debug = window.location.search.replace("?", "") === 'DEBUG';
+if (debug)
+{
+	var ks = document.getElementById('ks');
+
+	t.setAttribute('id', 'table');
+	document.body.insertBefore(t, ks);
+	document.body.insertBefore(document.createTextNode('\n'), ks);
+	pk.setAttribute('id', 'pkabl');
+	document.body.insertBefore(pk, ks);
+	document.body.insertBefore(document.createTextNode('\n'), ks);
+	pt.setAttribute('id', 'ptabl');
+	document.body.insertBefore(pt, ks);
+	document.body.insertBefore(document.createTextNode('\n'), ks);
+	gf.setAttribute('id', 'gfore');
+	document.body.insertBefore(gf, ks);
+	document.body.insertBefore(document.createTextNode('\n'), ks);
+}
 
 const enum_color =
 {
