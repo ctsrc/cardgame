@@ -2,6 +2,9 @@
 
 Klondike solitaire card game.
 
+You can check out the progress of the client at
+https://www.nordstroem.no/en-US/games/klondike/
+
 ## Table of Contents
 
 * [Supported platforms](#supported-platforms)
