@@ -575,9 +575,47 @@ g.addEventListener('touchmove', transpose);
 
 function place (e)
 {
-	// TODO: Move placed from hand.rl
-	renderTable();
-	renderPickable();
+	if (hand.rl.length > 0)
+	{
+		updateHandPos(e);
+
+		var pixel = pttx.getImageData(hand.x, hand.y, 1, 1);
+		var val = pixel.data[0];
+		var tgt;
+
+		if (val)
+		{
+			tgt = table.getRLPutable()[(val - 1) / 4];
+		}
+		else
+		{
+			tgt = hand.rl[0];
+		}
+		var cards = hand.rl.splice(0).map(function (e)
+		{
+			return e.card;
+		});
+
+		if (tgt.card)
+		{
+			if (tgt.subarr === null)
+			{
+				Array.prototype.push.apply(tgt.origin, cards);
+			}
+			else
+			{
+				Array.prototype.push.apply(
+					tgt.origin[tgt.subarr], cards);
+			}
+		}
+		else
+		{
+			tgt.origin[tgt.oidx] = cards[0];
+		}
+
+		renderTable();
+		renderPickable();
+	}
 }
 g.addEventListener('mouseup', place);
 g.addEventListener('mouseout', place);
