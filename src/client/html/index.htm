@@ -105,6 +105,11 @@ const enum_rank =
 	UNKNOWN_RANK : 14
 };
 
+const symb_color = ['', '♥', '♠', '♦', '♣', ''];
+
+const symb_rank = ['', 'A', '2', '3', '4', '5', '6',
+	'7', '8', '9', '10', 'J', 'Q', 'K', ''];
+
 const NULLCARD = 0;
 const UNKNOWNCARD = 94;
 
@@ -112,19 +117,6 @@ const FACE_UP = Math.pow(2, 7);
 
 const MASK_COLOR = 7 << 4;
 const MASK_RANK = 15;
-
-class RenderableCard
-{
-	constructor (card, x, y, origin, oidx, subarr = null)
-	{
-		this.card = card;
-		this.x = x;
-		this.y = y;
-		this.origin = origin;
-		this.oidx = oidx;
-		this.subarr = subarr;
-	}
-}
 
 function isFacingUp (card)
 {
@@ -139,6 +131,19 @@ function getColor (card)
 function getRank (card)
 {
 	return card & MASK_RANK;
+}
+
+class RenderableCard
+{
+	constructor (card, x, y, origin, oidx, subarr = null)
+	{
+		this.card = card;
+		this.x = x;
+		this.y = y;
+		this.origin = origin;
+		this.oidx = oidx;
+		this.subarr = subarr;
+	}
 }
 
 var table = {};
@@ -380,11 +385,39 @@ function cardRenderer (c, ctx)
 {
 	return function (rc, idx)
 	{
-		ctx.fillStyle = 'rgb(' + rc.card + ',0,0)';
-		ctx.fillRect(Math.floor(rc.x * (c.width / CANVASWIDTH)),
-			Math.floor(rc.y * (c.height / CANVASHEIGHT)),
-			Math.floor(CARDWIDTH * (c.width / CANVASWIDTH)),
-			Math.floor(CARDHEIGHT * (c.height / CANVASHEIGHT)));
+		var sx = Math.floor(rc.x * (c.width / CANVASWIDTH));
+		var sy = Math.floor(rc.y * (c.height / CANVASHEIGHT));
+		var sw = Math.floor(CARDWIDTH * (c.width / CANVASWIDTH));
+		var sh = Math.floor(CARDHEIGHT * (c.height / CANVASHEIGHT));
+
+		if (rc.card)
+		{
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.fillRect(sx, sy, sw, sh);
+
+			if (isFacingUp(rc.card))
+			{
+				ctx.fillStyle = 'rgb(255,255,255)';
+				ctx.fillRect(sx + 1, sy + 1, sw - 2, sh - 2);
+				ctx.fillStyle = 'rgb('
+					+ (getColor(rc.card) & 1) * 255
+					+ ',0,0)';
+				ctx.textBaseline = 'top';
+				ctx.fillText(symb_rank[getRank(rc.card)]
+					+ symb_color[getColor(rc.card)],
+					sx + 3, sy + 4);
+			}
+			else
+			{
+				ctx.fillStyle = 'rgb(0,0,255)';
+				ctx.fillRect(sx + 1, sy + 1, sw - 2, sh - 2);
+			}
+		}
+		else
+		{
+			ctx.fillStyle = 'rgb(128,128,128)';
+			ctx.fillRect(sx, sy, sw, sh);
+		}
 	}
 }
 
