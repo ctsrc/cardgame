@@ -130,6 +130,16 @@ function isFacingUp (card)
 	return card & FACE_UP;
 }
 
+function getColor (card)
+{
+	return (card & MASK_COLOR) >> 4;
+}
+
+function getRank (card)
+{
+	return card & MASK_RANK;
+}
+
 var table = {};
 table.deck =
 {
@@ -149,6 +159,7 @@ table.deck =
 		return [];
 	}
 	// Deck is not pickable.
+	// Deck is not putable.
 };
 table.waste =
 {
@@ -184,6 +195,7 @@ table.waste =
 		}
 		return [];
 	}
+	// Waste is not putable.
 };
 table.foundation =
 {
@@ -216,6 +228,30 @@ table.foundation =
 				ret.push(e);
 			}
 		});
+
+		return ret;
+	},
+	getRLPutable : function ()
+	{
+		var ret = [];
+
+
+		if (hand.cards.length == 1)
+		{
+			var h = hand.cards[0];
+			// XXX: getRLVisible is about as good as anything here.
+			this.getRLVisible().forEach(function (e)
+			{
+				var c = e.card;
+				if ((getColor(c) == getColor(h)
+						&& (getRank(c) + 1)
+							== getRank(h))
+					|| (!c && getRank(h) == enum_rank.ACE))
+				{
+					ret.push(e);
+				}
+			});
+		}
 
 		return ret;
 	}
@@ -256,6 +292,14 @@ table.tableau =
 		});
 
 		return ret;
+	},
+	getRLPutable : function (card)
+	{
+		var ret = [];
+
+		// TODO: Implement
+
+		return ret;
 	}
 };
 table.getRLVisible = function ()
@@ -278,6 +322,12 @@ table.getRLPickable = function ()
 		this.waste.getRLPickable(),
 		this.foundation.getRLPickable(),
 		this.tableau.getRLPickable());
+};
+table.getRLPutable = function ()
+{
+	return Array.prototype.concat.call(
+		this.foundation.getRLPutable(),
+		this.tableau.getRLPutable());
 };
 table.initialize = function ()
 {
@@ -345,23 +395,6 @@ hand.offs_x = 0;
 hand.offs_y = 0;
 hand.cards = new Array();
 
-function getColor (card)
-{
-	return (card & MASK_COLOR) >> 4;
-}
-
-function getRank (card)
-{
-	return card & MASK_RANK;
-}
-
-function isFoundationPutable (fdt, card)
-{
-	return (getColor(fdt) == getColor(card)
-			&& (getRank(fdt) + 1) == getRank(card))
-		|| (!fdt && getRank(card) == enum_rank.ACE);
-}
-
 function renderCard (c, ctx, card, rx, ry)
 {
 	ctx.fillStyle = 'rgb(' + card + ',0,0)';
@@ -387,41 +420,25 @@ function renderPickable ()
 	table.getRLPickable().forEach(renderRenderableCardToPickable);
 }
 
-function renderPutable (c, ctx)
+var renderRenderableCardToPutable = cardRenderer(pt, pttx);
+function renderPutable ()
 {
-	ctx.clearRect(0, 0, c.width, c.height);
+	pttx.clearRect(0, 0, pt.width, pt.height);
 
-	// Deck is not putable
-
-	// Waste is not putable
-
-	// Foundations
-	if (hand.cards.length == 1)
-	{
-		for (var i = 0 ; i < 4 ; i++)
-		{
-			if (isFoundationPutable(foundation[i],
-				hand.cards[0]))
-			{
-				renderCard(c, ctx, foundation[i],
-					MARGINLEFT + (3 + i) * CARDWIDTH
-						+ (3 + i) * DISTHORZ,
-					MARGINTOP);
-			}
-		}
-	}
+	table.getRLPutable().forEach(renderRenderableCardToPutable);
 }
 
-function renderHand (c, ctx)
+var renderRenderableCardToHand = cardRenderer(gf, gftx);
+function renderHand ()
 {
-	ctx.clearRect(0, 0, c.width, c.height);
+	gftx.clearRect(0, 0, gf.width, gf.height);
 
 	// Testing
-	ctx.fillStyle = 'rgb(0,0,255)';
-	ctx.fillRect(0, 0, c.width, c.height);
+	gftx.fillStyle = 'rgb(0,0,255)';
+	gftx.fillRect(0, 0, gf.width, gf.height);
 }
 
-function renderGtx ()
+function renderGame ()
 {
 	gtx.clearRect(0, 0, g.width, g.height);
 
@@ -429,9 +446,8 @@ function renderGtx ()
 
 	if (hand.is_holding)
 	{
-		renderHand(gf, gftx);
 		gtx.drawImage(gf, hand.x, hand.y);
-		window.requestAnimationFrame(renderGtx);
+		window.requestAnimationFrame(renderGame);
 	}
 }
 
@@ -459,8 +475,10 @@ function pick (e)
 		hand.x = x;
 		hand.y = y;
 
+		renderHand();
+		renderPutable();
 		renderTable();
-		window.requestAnimationFrame(renderGtx);
+		window.requestAnimationFrame(renderGame);
 	}
 }
 g.addEventListener('mousedown', pick);
@@ -511,5 +529,5 @@ g.addEventListener('touchend', place);
 
 renderTable();
 renderPickable();
-renderGtx();
+renderGame();
 </script>
