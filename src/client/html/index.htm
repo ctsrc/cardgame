@@ -115,13 +115,14 @@ const MASK_RANK = 15;
 
 class RenderableCard
 {
-	constructor (card, x, y, origin, oidx)
+	constructor (card, x, y, origin, oidx, subarr = null)
 	{
 		this.card = card;
 		this.x = x;
 		this.y = y;
 		this.origin = origin;
 		this.oidx = oidx;
+		this.subarr = subarr;
 	}
 }
 
@@ -235,9 +236,9 @@ table.foundation =
 	{
 		var ret = [];
 
-		if (hand.cards.length == 1)
+		if (hand.rl.length == 1)
 		{
-			var h = hand.cards[0];
+			var h = hand.rl[0].card;
 			// XXX: getRLVisible is about as good as anything here.
 			this.getRLVisible().forEach(function (e)
 			{
@@ -271,7 +272,8 @@ table.tableau =
 				ret.push(new RenderableCard(
 					this.cards[i][j],
 					this.x + i * (CARDWIDTH + DISTHORZ),
-					this.y + j * DISTVERT, this.cards, i));
+					this.y + j * DISTVERT, this.cards,
+					j, i));
 			}
 		}
 
@@ -389,10 +391,9 @@ function cardRenderer (c, ctx)
 var hand = {};
 hand.x = 0;
 hand.y = 0;
-hand.is_holding = false;
 hand.offs_x = 0;
 hand.offs_y = 0;
-hand.cards = new Array();
+hand.rl = new Array();
 
 function renderCard (c, ctx, card, rx, ry)
 {
@@ -427,14 +428,13 @@ function renderPutable ()
 	table.getRLPutable().forEach(renderRenderableCardToPutable);
 }
 
-var renderRenderableCardToHand = cardRenderer(gf, gftx);
+// XXX: We pass g instead of gf since card size is calculated from canvas size.
+var renderRenderableCardToHand = cardRenderer(g, gftx);
 function renderHand ()
 {
 	gftx.clearRect(0, 0, gf.width, gf.height);
 
-	// Testing
-	gftx.fillStyle = 'rgb(0,0,255)';
-	gftx.fillRect(0, 0, gf.width, gf.height);
+	hand.rl.forEach(renderRenderableCardToHand);
 }
 
 function renderGame ()
@@ -443,7 +443,7 @@ function renderGame ()
 
 	gtx.drawImage(t, 0, 0);
 
-	if (hand.is_holding)
+	if (hand.rl.length > 0)
 	{
 		gtx.drawImage(gf, hand.x, hand.y);
 		window.requestAnimationFrame(renderGame);
@@ -469,8 +469,34 @@ function pick (e)
 
 	if (card && card != UNKNOWNCARD) // Valid card
 	{
-		// TODO: Move picked to hand.cards
-		hand.is_holding = true;
+		var search = table.getRLPickable();
+		var found;
+		for (var i = 0 ; i < search.length ; i++)
+		{
+			if (search[i].card == card)
+			{
+				found = search[i];
+				break;
+			}
+		}
+
+		var cards;
+		if (found.subarr === null)
+		{
+			cards = found.origin.splice(found.oidx);
+		}
+		else
+		{
+			cards = found.origin[found.subarr].splice(found.oidx);
+		}
+
+		for (var i = 0 ; i < cards.length ; i++)
+		{
+			hand.rl.push(new RenderableCard(cards[i],
+				0, i * DISTVERT, found.origin,
+				found.oidx, found.subarr));
+		}
+
 		hand.x = x;
 		hand.y = y;
 
@@ -485,7 +511,7 @@ g.addEventListener('touchstart', pick);
 
 function transpose (e)
 {
-	if (hand.is_holding)
+	if (hand.rl.length > 0)
 	{
 		var x, y;
 		if (window.TouchEvent && e instanceof TouchEvent)
@@ -517,8 +543,7 @@ g.addEventListener('touchmove', transpose);
 
 function place (e)
 {
-	// TODO: Move placed from hand.cards
-	hand.is_holding = false;
+	// TODO: Move placed from hand.rl
 	renderTable();
 	renderPickable();
 }
