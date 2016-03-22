@@ -26,7 +26,7 @@ body { background: #066; }
 canvas { background: #063; }
 </style>
 <canvas id=game width=480 height=480></canvas>
-<canvas id=gback></canvas>
+<canvas id=table></canvas>
 <canvas id=pkabl></canvas>
 <canvas id=ptabl></canvas>
 <canvas id=gfore></canvas>
@@ -38,11 +38,11 @@ document.body.addEventListener('touchmove', function(event) {
 var g = document.getElementById('game');
 var gtx = g.getContext('2d');
 
-var gb = document.getElementById('gback');
-//var gb = document.createElement('canvas');
-gb.width = g.width;
-gb.height = g.height;
-var gbtx = gb.getContext('2d');
+var t = document.getElementById('table');
+//var t = document.createElement('canvas');
+t.width = g.width;
+t.height = g.height;
+var ttx = t.getContext('2d');
 
 var pk = document.getElementById('pkabl');
 //var pk = document.createElement('canvas');
@@ -113,10 +113,237 @@ const FACE_UP = Math.pow(2, 7);
 const MASK_COLOR = 7 << 4;
 const MASK_RANK = 15;
 
-var deck = new Array();
-var waste = new Array();
-var foundation = new Array();
-var tableau = new Array([], [], [], [], [], [], []);
+class RenderableCard
+{
+	constructor (card, x, y, origin, oidx)
+	{
+		this.card = card;
+		this.x = x;
+		this.y = y;
+		this.origin = origin;
+		this.oidx = oidx;
+	}
+}
+
+function isFacingUp (card)
+{
+	return card & FACE_UP;
+}
+
+var table = {};
+table.deck =
+{
+	x : MARGINLEFT,
+	y : MARGINTOP,
+	cards : new Array(),
+	getRLVisible : function ()
+	{
+		if (this.cards.length > 0)
+		{
+			return [new RenderableCard(
+				this.cards[this.cards.length - 1],
+				this.x, this.y, this.cards,
+				this.cards.length - 1)];
+		}
+
+		return [];
+	}
+	// Deck is not pickable.
+};
+table.waste =
+{
+	x : MARGINLEFT + CARDWIDTH + DISTHORZ,
+	y : MARGINTOP,
+	cards : new Array(),
+	getRLVisible : function ()
+	{
+		var ret = [];
+
+		var n = Math.min(3, this.cards.length);
+		for (var i = n ; i > 0 ; i--)
+		{
+			ret.push(new RenderableCard(
+				this.cards[this.cards.length - i],
+				this.x + (n - i) * DISTHORZ,
+				this.y, this.cards,
+				this.cards.length - i));
+		}
+
+		return ret;
+	},
+	getRLPickable : function ()
+	{
+		/*
+		 * XXX: Calling this.getRLVisible is
+		 * not *ideal* but it saves some typing.
+		 */
+		var v = this.getRLVisible();
+		if (v.length > 0)
+		{
+			return [v[v.length - 1]];
+		}
+		return [];
+	}
+};
+table.foundation =
+{
+	x : MARGINLEFT + 3 * (CARDWIDTH + DISTHORZ),
+	y : MARGINTOP,
+	cards : new Array(),
+	getRLVisible : function ()
+	{
+		var ret = [];
+
+		for (var i = 0 ; i < 4 ; i++)
+		{
+			ret.push(new RenderableCard(
+				this.cards[i],
+				this.x + i * (CARDWIDTH + DISTHORZ),
+				this.y, this.cards, i));
+		}
+
+		return ret;
+	},
+	getRLPickable : function ()
+	{
+		var ret = [];
+
+		// XXX: Using getRLVisible is about as good as anything here.
+		this.getRLVisible().forEach(function (e)
+		{
+			if (e.card)
+			{
+				ret.push(e);
+			}
+		});
+
+		return ret;
+	}
+};
+table.tableau =
+{
+	x : MARGINLEFT,
+	y : MARGINTOP + CARDHEIGHT + DISTVERT,
+	cards : new Array([], [], [], [], [], [], []),
+	getRLVisible : function ()
+	{
+		var ret = [];
+
+		for (var i = 0 ; i < 7 ; i++)
+		{
+			for (var j = 0 ; j < this.cards[i].length ; j++)
+			{
+				ret.push(new RenderableCard(
+					this.cards[i][j],
+					this.x + i * (CARDWIDTH + DISTHORZ),
+					this.y + j * DISTVERT, this.cards, i));
+			}
+		}
+
+		return ret;
+	},
+	getRLPickable : function ()
+	{
+		var ret = [];
+
+		// XXX: Using getRLVisible is about as good as anything here.
+		this.getRLVisible().forEach(function (e)
+		{
+			if (isFacingUp(e.card))
+			{
+				ret.push(e);
+			}
+		});
+
+		return ret;
+	}
+};
+table.getRLVisible = function ()
+{
+	/*
+	 * XXX: I prefer prototype call. I find it
+	 *      to be more readable than calling
+	 *      concat on first array with
+	 *      the others as arguments.
+	 */
+	return Array.prototype.concat.call(
+		this.deck.getRLVisible(),
+		this.waste.getRLVisible(),
+		this.foundation.getRLVisible(),
+		this.tableau.getRLVisible());
+};
+table.getRLPickable = function ()
+{
+	return Array.prototype.concat.call(
+		this.waste.getRLPickable(),
+		this.foundation.getRLPickable(),
+		this.tableau.getRLPickable());
+};
+table.initialize = function ()
+{
+	/*
+	 * Initialize game.
+	 *
+	 * TODO: Get initial state from server.
+	 */
+
+	// Initialize deck
+	//for (var i = 0 ; i < 24 ; i++)
+	for (var i = 0 ; i < 18 ; i++)
+	{
+		this.deck.cards[i] = UNKNOWNCARD;
+	}
+
+	// Waste is empty as it should be. No further initialization required.
+	// Initialize with a few cards for testing.
+	this.waste.cards = [43 | FACE_UP, 42 | FACE_UP, 41 | FACE_UP,
+		40 | FACE_UP, 39 | FACE_UP, 38 | FACE_UP];
+
+	// Initialize foundations
+	for (var i = 0 ; i < 4 ; i++)
+	{
+		this.foundation.cards[i] = NULLCARD;
+	}
+
+	// Initialize tableaus
+	for (var i = 0 ; i < 7 ; i++)
+	{
+		var j;
+		for (j = 0 ; j < i ; j++)
+		{
+			this.tableau.cards[i][j] = UNKNOWNCARD;
+		}
+	}
+	this.tableau.cards[0][0] = 77 | FACE_UP;
+	this.tableau.cards[1][1] = 70 | FACE_UP;
+	this.tableau.cards[2][2] = 61 | FACE_UP;
+	this.tableau.cards[3][3] = 56 | FACE_UP;
+	this.tableau.cards[4][4] = 52 | FACE_UP;
+	this.tableau.cards[5][5] = 49 | FACE_UP;
+	this.tableau.cards[6][6] = 44 | FACE_UP;
+};
+
+table.initialize();
+/*
+console.log(table.getRLVisible());
+table.getRLVisible().forEach(function (e, idx, arr)
+{
+	console.log(e.card + ', ' + e.x + ', ' + e.y + ', ' +
+		e.origin + ', ' + e.oidx);
+});
+*/
+
+function cardRenderer (c, ctx)
+{
+	return function (rc)
+	{
+		ctx.fillStyle = 'rgb(' + rc.card + ',0,0)';
+		ctx.fillRect(Math.floor(rc.x * (c.width / CANVASWIDTH)),
+			Math.floor(rc.y * (c.height / CANVASHEIGHT)),
+			Math.floor(CARDWIDTH * (c.width / CANVASWIDTH)),
+			Math.floor(CARDHEIGHT * (c.height / CANVASHEIGHT)));
+	}
+}
 
 var hand = {};
 hand.x = 0;
@@ -125,49 +352,6 @@ hand.is_holding = false;
 hand.offs_x = 0;
 hand.offs_y = 0;
 hand.cards = new Array();
-
-/*
- * Initialize game.
- *
- * TODO: Get initial state from server.
- */
-
-// Initialize deck
-//for (var i = 0 ; i < 24 ; i++)
-for (var i = 0 ; i < 18 ; i++)
-{
-	deck[i] = UNKNOWNCARD;
-}
-// Waste is empty as it should be. No further initialization required.
-// Initialize with a few cards for testing.
-waste = [43 | FACE_UP, 42 | FACE_UP, 41 | FACE_UP,
-	40 | FACE_UP, 39 | FACE_UP, 38 | FACE_UP];
-// Initialize foundations
-for (var i = 0 ; i < 4 ; i++)
-{
-	foundation[i] = NULLCARD;
-}
-// Initialize tableaus
-for (var i = 0 ; i < 7 ; i++)
-{
-	var j;
-	for (j = 0 ; j < i ; j++)
-	{
-		tableau[i][j] = UNKNOWNCARD;
-	}
-}
-tableau[0][0] = 77 | FACE_UP;
-tableau[1][1] = 70 | FACE_UP;
-tableau[2][2] = 61 | FACE_UP;
-tableau[3][3] = 56 | FACE_UP;
-tableau[4][4] = 52 | FACE_UP;
-tableau[5][5] = 49 | FACE_UP;
-tableau[6][6] = 44 | FACE_UP;
-
-function isFacingUp (card)
-{
-	return card & FACE_UP;
-}
 
 function getColor (card)
 {
@@ -195,87 +379,20 @@ function renderCard (c, ctx, card, rx, ry)
 		Math.floor(CARDHEIGHT * (c.height / CANVASHEIGHT)));
 }
 
-function renderTable (c, ctx)
+var renderRenderableCardToTable = cardRenderer(t, ttx);
+function renderTable ()
 {
-	ctx.clearRect(0, 0, c.width, c.height);
+	ttx.clearRect(0, 0, t.width, t.height);
 
-	// Deck
-	if (deck.length > 0)
-	{
-		renderCard(c, ctx, deck[deck.length - 1], MARGINLEFT, MARGINTOP);
-	}
-
-	// Waste
-	var n = Math.min(3, waste.length);
-	for (var i = n ; i > 0 ; i--)
-	{
-		renderCard(c, ctx, waste[waste.length - i],
-			MARGINLEFT + CARDWIDTH + (1 + n - i) * DISTHORZ,
-			MARGINTOP);
-	}
-
-	// Foundations
-	for (var i = 0 ; i < 4 ; i++)
-	{
-		renderCard(c, ctx, foundation[i],
-			MARGINLEFT + (3 + i) * CARDWIDTH + (3 + i) * DISTHORZ,
-			MARGINTOP);
-	}
-
-	// Tableaus
-	for (var i = 0 ; i < 7 ; i++)
-	{
-		for (var j = 0 ; j < tableau[i].length ; j++)
-		{
-			renderCard(c, ctx, tableau[i][j],
-				MARGINLEFT + i * CARDWIDTH + i * DISTHORZ,
-				MARGINTOP + CARDHEIGHT + (1 + j) * DISTVERT);
-		}
-	}
+	table.getRLVisible().forEach(renderRenderableCardToTable);
 }
 
-function renderPickable (c, ctx)
+var renderRenderableCardToPickable = cardRenderer(pk, pktx);
+function renderPickable ()
 {
-	ctx.clearRect(0, 0, c.width, c.height);
+	pktx.clearRect(0, 0, pk.width, pk.height);
 
-	// Deck is not pickable.
-
-	// Waste. Top-most card only.
-	if (waste.length > 0)
-	{
-		renderCard(c, ctx, waste[waste.length - 1],
-			MARGINLEFT + CARDWIDTH
-				+ (4 - waste.length % 3) * DISTHORZ,
-			MARGINTOP);
-	}
-
-	// Foundations
-	for (var i = 0 ; i < 4 ; i++)
-	{
-		if (foundation[i] > 0)
-		{
-			renderCard(c, ctx, foundation[i],
-				MARGINLEFT + (3 + i) * CARDWIDTH
-					+ (3 + i) * DISTHORZ,
-				MARGINTOP);
-		}
-	}
-
-	// Tableaus
-	for (var i = 0 ; i < 7 ; i++)
-	{
-		for (var j = 0 ; j < tableau[i].length ; j++)
-		{
-			if (isFacingUp(tableau[i][j]))
-			{
-				renderCard(c, ctx, tableau[i][j],
-					MARGINLEFT + i * CARDWIDTH
-						+ i * DISTHORZ,
-					MARGINTOP + CARDHEIGHT
-						+ (1 + j) * DISTVERT);
-			}
-		}
-	}
+	table.getRLPickable().forEach(renderRenderableCardToPickable);
 }
 
 function renderPutable (c, ctx)
@@ -316,7 +433,7 @@ function renderGtx ()
 {
 	gtx.clearRect(0, 0, g.width, g.height);
 
-	gtx.drawImage(gb, 0, 0);
+	gtx.drawImage(t, 0, 0);
 
 	if (hand.is_holding)
 	{
@@ -350,7 +467,7 @@ function pick (e)
 		hand.x = x;
 		hand.y = y;
 
-		renderTable(gb, gbtx);
+		renderTable();
 		window.requestAnimationFrame(renderGtx);
 	}
 }
@@ -393,14 +510,14 @@ function place (e)
 {
 	// TODO: Move placed from hand.cards
 	hand.is_holding = false;
-	renderTable(gb, gbtx);
-	renderPickable(pk, pktx);
+	renderTable();
+	renderPickable();
 }
 g.addEventListener('mouseup', place);
 g.addEventListener('mouseout', place);
 g.addEventListener('touchend', place);
 
-renderTable(gb, gbtx);
-renderPickable(pk, pktx);
+renderTable();
+renderPickable();
 renderGtx();
 </script>
