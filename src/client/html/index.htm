@@ -588,8 +588,6 @@ function place (e)
 {
 	if (hand.rl.length > 0)
 	{
-		updateHandPos(e);
-
 		var pixel = pttx.getImageData(hand.x, hand.y, 1, 1);
 		var val = pixel.data[0];
 		var tgt;
