@@ -73,16 +73,6 @@ enum action_result
 	DECK_RECYCLED
 };
 
-#define DW_DECK_BASE 0
-#define DW_BOTTOM 1
-#define DW_TOP 24
-#define DW_WASTE_BASE 25
-
-#define T_BASE 0
-#define T_BOTTOM 1
-#define T_TOP 19
-#define T_END 20
-
 union card
 {
 	uint8_t value;
