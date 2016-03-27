@@ -28,6 +28,12 @@ enum mode
 	CLASSIC		// Turn three cards at a time.
 };
 
+enum face
+{
+	FACE_DOWN = 0,
+	FACE_UP
+};
+
 enum color
 {
 	NO_COLOR = 0,
@@ -77,9 +83,20 @@ enum action_result
 #define T_TOP 19
 #define T_END 20
 
+union card
+{
+	uint8_t value;
+	struct
+	{
+		unsigned int rank : 4;
+		unsigned int color : 3;
+		unsigned int face_up : 1;
+	} fields;
+};
+
 struct so_cards // Stack of cards
 {
-	uint8_t cards[24];
+	union card cards[24];
 	int num_cards;
 };
 
@@ -94,23 +111,12 @@ struct game_state
 	struct so_cards deck;
 	struct so_cards waste;
 
-	// Foundations hold only their topmost card. NULLCARD when empty.
-	uint8_t foundation[4];
+	// Foundations hold only their topmost card. NULLCARD value when empty.
+	union card foundation[4];
 
 	struct so_cards tableau[7];
 };
 
-static const uint8_t FACE_UP = 1 << 7;
-static const uint8_t FACE_DOWN = 0;
-
-static const uint8_t MASK_COLOR = 7 << 4;
-static const uint8_t MASK_RANK = 15;
-
 // XXX: NULLCARD and UNKNOWNCARD both FACE_DOWN
 static const uint8_t NULLCARD = (NO_COLOR << 4) + NO_RANK;
 static const uint8_t UNKNOWNCARD = (UNKNOWN_COLOR << 4) + UNKNOWN_RANK;
-
-static inline uint8_t encode (uint8_t face_up, uint8_t color, uint8_t rank)
-{
-	return face_up | (color << 4) | rank;
-}

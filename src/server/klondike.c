@@ -33,8 +33,8 @@
 
 #include "klondike.h"
 
-void print_card (uint8_t);
-void print_card_verbose (uint8_t);
+void print_card (union card);
+void print_card_verbose (union card);
 void print_game_state (struct game_state *);
 
 void redacted_copy_so_cards (struct so_cards *dst, struct so_cards const *src)
@@ -59,13 +59,13 @@ void redacted_copy_df_so_cards (
 {
 	for (int i = 0 ; i < src->num_cards ; i++)
 	{
-		if (src->cards[i] & FACE_UP)
+		if (src->cards[i].fields.face_up)
 		{
 			dst->cards[i] = src->cards[i];
 		}
 		else
 		{
-			dst->cards[i] = UNKNOWNCARD;
+			dst->cards[i].value = UNKNOWNCARD;
 		}
 	}
 	dst->num_cards = src->num_cards;
@@ -113,7 +113,7 @@ void init_game (
 	fprintf(stderr, "Initializing game.\n");
 #endif
 
-	uint8_t tmp_deck[52];
+	union card tmp_deck[52];
 
 	{ // XXX: Constrain i to this scope.
 	int i = 0;
@@ -121,17 +121,18 @@ void init_game (
 	{
 		for (int rank = ACE ; rank <= KING ; rank++)
 		{
-			tmp_deck[i++] = encode(FACE_DOWN, color, rank);
+			tmp_deck[i++] = (union card)
+				{ .fields = { rank, color, FACE_DOWN } };
 		}
 	}
 	}
 
-	print_card_verbose(NULLCARD);
+	print_card_verbose((union card) { NULLCARD });
 	for (int i = 0 ; i < 52 ; i++)
 	{
 		print_card_verbose(tmp_deck[i]);
 	}
-	print_card_verbose(UNKNOWNCARD);
+	print_card_verbose((union card) { UNKNOWNCARD });
 
 #ifdef DEBUG
 	if (dbglvl < DBG_NO_SHUFFLE)
@@ -143,7 +144,7 @@ void init_game (
 	{
 		int j = arc4random_uniform(i + 1);
 
-		uint8_t tmp_card = tmp_deck[i];
+		union card tmp_card = tmp_deck[i];
 		tmp_deck[i] = tmp_deck[j];
 		tmp_deck[j] = tmp_card;
 	}
@@ -184,15 +185,15 @@ void init_game (
 		{
 			shadow->tableau[j].cards[i] = tmp_deck[--k];
 		}
-		shadow->tableau[i].cards[i] |= FACE_UP;
+		shadow->tableau[i].cards[i].fields.face_up = FACE_UP;
 		shadow->tableau[i].num_cards = i + 1;
 	}
 
-	// Initialize foundation with NULLCARDs.
-	shadow->foundation[0] = NULLCARD;
-	shadow->foundation[1] = NULLCARD;
-	shadow->foundation[2] = NULLCARD;
-	shadow->foundation[3] = NULLCARD;
+	// Initialize foundation with NULLCARD values.
+	shadow->foundation[0] = (union card) { NULLCARD };
+	shadow->foundation[1] = (union card) { NULLCARD };
+	shadow->foundation[2] = (union card) { NULLCARD };
+	shadow->foundation[3] = (union card) { NULLCARD };
 
 	// Initialize deck
 	for (int i = k ; i > 0 ; i--)
@@ -294,9 +295,10 @@ enum action_result pull_from_deck (struct game_state *shadow)
 			&& shadow->deck.num_cards > 0)
 		{
 			n++;
-			shadow->waste.cards[(shadow->waste.num_cards)++] =
-				shadow->deck.cards[--(shadow->deck.num_cards)]
-				| FACE_UP;
+			shadow->waste.cards[(shadow->waste.num_cards)] =
+				shadow->deck.cards[--(shadow->deck.num_cards)];
+			shadow->waste.cards[(shadow->waste.num_cards)++].fields.face_up =
+				FACE_UP;
 		}
 
 		return n;
@@ -310,9 +312,10 @@ enum action_result pull_from_deck (struct game_state *shadow)
 
 		while (shadow->waste.num_cards > 0)
 		{
-			shadow->deck.cards[(shadow->deck.num_cards)++] =
-				shadow->waste.cards[--(shadow->waste.num_cards)]
-				& ~FACE_UP;
+			shadow->deck.cards[(shadow->deck.num_cards)] =
+				shadow->waste.cards[--(shadow->waste.num_cards)];
+			shadow->deck.cards[(shadow->deck.num_cards)++].fields.face_up =
+				FACE_DOWN;
 		}
 
 		return DECK_RECYCLED;
@@ -330,12 +333,12 @@ enum action_result pull_from_deck (struct game_state *shadow)
  *      except when making a debug build.
  */
 
-void print_card (uint8_t card)
+void print_card (union card cd)
 {
 #ifdef DEBUG
-	if (card != 0)
+	if (cd.value != 0)
 	{
-		fprintf(stderr, " %d,%d", card & ~FACE_UP, card >> 7);
+		fprintf(stderr, " %d", cd.value);
 	}
 	else
 	{
@@ -344,18 +347,18 @@ void print_card (uint8_t card)
 #endif
 }
 
-void print_card_verbose (uint8_t card)
+void print_card_verbose (union card cd)
 {
 #ifdef DEBUG
-	fprintf(stderr, "%3d\t", card);
+	fprintf(stderr, "%3d\t", cd.value);
 
 	for (int j = 7 ; j >= 0 ; j--)
 	{
-		fprintf(stderr, "%d", (card >> j) & 1);
+		fprintf(stderr, "%d", (cd.value >> j) & 1);
 	}
 	fprintf(stderr, "\t");
 
-	if ((card & FACE_UP) == FACE_UP)
+	if (cd.fields.face_up)
 	{
 		fprintf(stderr, "FACE_UP\t");
 	}
@@ -364,7 +367,7 @@ void print_card_verbose (uint8_t card)
 		fprintf(stderr, "       \t");
 	}
 
-	switch ((card & MASK_COLOR) >> 4)
+	switch (cd.fields.color)
 	{
 		case NO_COLOR:
 			fprintf(stderr, "NO_COLOR     ");
@@ -385,11 +388,12 @@ void print_card_verbose (uint8_t card)
 			fprintf(stderr, "UNKNOWN_COLOR");
 			break;
 		default:
+			fprintf(stderr, "ERR: Invalid color %d", cd.fields.color);
 			abort();
 	}
 	fprintf(stderr, "\t");
 
-	switch (card & MASK_RANK)
+	switch (cd.fields.rank)
 	{
 		case NO_RANK:
 			fprintf(stderr, "NO_RANK     ");
@@ -475,10 +479,10 @@ void print_game_state (struct game_state *gs)
 
 	// Print foundations.
 	fprintf(stderr, "foudt (%d):",
-		(gs->foundation[0] & MASK_RANK)
-		+ (gs->foundation[1] & MASK_RANK)
-		+ (gs->foundation[2] & MASK_RANK)
-		+ (gs->foundation[3] & MASK_RANK));
+		(gs->foundation[0].fields.rank)
+		+ (gs->foundation[1].fields.rank)
+		+ (gs->foundation[2].fields.rank)
+		+ (gs->foundation[3].fields.rank));
 	print_card(gs->foundation[0]);
 	print_card(gs->foundation[1]);
 	print_card(gs->foundation[2]);
