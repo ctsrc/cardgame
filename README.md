@@ -10,7 +10,7 @@ https://www.nordstroem.no/en-US/games/klondike/
 * [Supported platforms](#supported-platforms)
 * [Dependencies](#dependencies)
   - [Debian and derivatives](#debian-and-derivatives)
-  - [Fedora and RHEL derivatives](#fedora-and-rhel-derivatives)
+  - [Fedora and derivatives](#fedora-and-derivatives)
 * [Build](#build)
 * [Run](#run)
 * [Debug](#debug)
@@ -36,7 +36,7 @@ is not in the libc on your system.
 sudo apt-get install libbsd-dev
 ```
 
-### Fedora and RHEL derivatives
+### Fedora and derivatives
 
 ```bash
 sudo dnf install libbsd-devel
