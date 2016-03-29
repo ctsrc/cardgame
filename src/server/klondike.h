@@ -22,7 +22,7 @@ enum debug_level
 	DBG_NO_SHUFFLE
 };
 
-enum mode
+enum game_mode
 {
 	CASINO = 1,	// Turn one card at a time from deck to waste.
 	CLASSIC = 3	// Turn three cards at a time from deck to waste.
@@ -95,7 +95,7 @@ struct game_state
 	int t; // "time" measured in number of valid moves.
 
 	bool is_shadow;
-	enum mode gm; // game mode
+	enum game_mode gm;
 	enum debug_level dbglvl;
 
 	struct so_cards deck;
