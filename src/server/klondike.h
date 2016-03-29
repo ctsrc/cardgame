@@ -24,8 +24,8 @@ enum debug_level
 
 enum mode
 {
-	CASINO = 0,	// Turn one card at a time.
-	CLASSIC		// Turn three cards at a time.
+	CASINO = 1,	// Turn one card at a time.
+	CLASSIC = 3	// Turn three cards at a time.
 };
 
 enum face

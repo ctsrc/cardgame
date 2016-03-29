@@ -291,7 +291,7 @@ enum action_result pull_from_deck (struct game_state *shadow)
 	if (shadow->deck.num_cards > 0)
 	{
 		int n = 0;
-		while ((n < 1 + 2 * shadow->gm)
+		while ((n < shadow->gm)
 			&& shadow->deck.num_cards > 0)
 		{
 			n++;
