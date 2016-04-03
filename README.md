@@ -1,6 +1,6 @@
 # klondike
 
-Klondike solitaire card game.
+Klondike solitaire card game server and client.
 
 You can check out the current state of the client at
 https://www.nordstroem.no/en-US/games/klondike/
