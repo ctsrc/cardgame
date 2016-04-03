@@ -94,7 +94,6 @@ struct game_state
 {
 	int t; // "time" measured in number of valid moves.
 
-	bool is_shadow;
 	enum game_mode gm;
 	enum debug_level dbglvl;
 
