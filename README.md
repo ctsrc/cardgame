@@ -63,7 +63,7 @@ make
 
 ## Hack
 
->u cant hack or nuthin, I got norton
+>u cant hack or nuthin, i got norton
 
 Jokes aside, this section is not about [security](#security).
 
