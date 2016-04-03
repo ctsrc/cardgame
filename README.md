@@ -14,9 +14,10 @@ https://www.nordstroem.no/en-US/games/klondike/
 * [Build](#build)
 * [Run](#run)
 * [Debug](#debug)
-* [Develop](#develop)
+* [Hack](#hack)
   - [Development workspace](#development-workspace)
   - [`autothing.bash`](#autothingbash)
+* [Security](#security)
 * [Copyright and license](#copyright-and-license)
 
 ## Supported platforms
@@ -60,7 +61,11 @@ make
 ./build/$( cc -dumpmachine )/debug/klondike -d 3
 ```
 
-## Develop
+## Hack
+
+>u cant hack or nuthin, I got norton
+
+Jokes aside, this section is not about [security](#security).
 
 ### Development workspace
 
@@ -171,6 +176,10 @@ sudo dnf install inotify-tools make gcc valgrind # on Fedora 23
 ```bash
 sudo apt-get install inotify-tools make gcc valgrind # on Debian GNU/Linux 8
 ```
+
+## Security
+
+TODO: Describe.
 
 ## Copyright and license
 
