@@ -148,7 +148,7 @@ void init_game (shadow_state *s, client_state *c, enum debug_level dbglvl)
 	}
 #endif
 
-	// First four members of our struct.
+	// First three members of our struct.
 	s->t = 0;
 	s->gm = CLASSIC;
 	s->dbglvl = dbglvl;
