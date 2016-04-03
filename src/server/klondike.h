@@ -107,6 +107,9 @@ struct game_state
 	struct so_cards tableau[7];
 };
 
+typedef struct game_state shadow_state;
+typedef struct game_state client_state;
+
 // XXX: NULLCARD and UNKNOWNCARD both FACE_DOWN
 static const uint8_t NULLCARD = (NO_COLOR << 4) + NO_RANK;
 static const uint8_t UNKNOWNCARD = (UNKNOWN_COLOR << 4) + UNKNOWN_RANK;
