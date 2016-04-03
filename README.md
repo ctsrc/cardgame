@@ -7,7 +7,7 @@ https://www.nordstroem.no/en-US/games/klondike/
 
 ## Table of Contents
 
-* [Supported platforms](#supported-platforms)
+* [Supported server platforms](#supported-server-platforms)
 * [Dependencies](#dependencies)
   - [Debian and derivatives](#debian-and-derivatives)
   - [Fedora and derivatives](#fedora-and-derivatives)
@@ -20,7 +20,7 @@ https://www.nordstroem.no/en-US/games/klondike/
 * [Security](#security)
 * [Copyright and license](#copyright-and-license)
 
-## Supported platforms
+## Supported server platforms
 
   * FreeBSD 10.2
   * Fedora 23
