@@ -170,11 +170,11 @@ sudo pkg install inotify-tools valgrind # on FreeBSD 10.2
 ```
 
 ```bash
-sudo dnf install inotify-tools make gcc valgrind # on Fedora 23
+sudo dnf install inotify-tools make gcc binutils valgrind # on Fedora 23
 ```
 
 ```bash
-sudo apt-get install inotify-tools make gcc valgrind # on Debian GNU/Linux 8
+sudo apt-get install inotify-tools make gcc binutils valgrind # on Debian GNU/Linux 8
 ```
 
 ## Security
