@@ -38,6 +38,12 @@ canvas {
 </style>
 <canvas id=game width=256 height=256></canvas>
 <script id=ks>
+document.body.addEventListener('touchmove', function (event) {
+        event.preventDefault();
+}, false);
+
+var debug = window.location.search.replace("?", "") === 'DEBUG';
+
 // Base units
 const CARDWIDTH = 2.5;
 const CARDHEIGHT = 3.5;
@@ -110,9 +116,6 @@ if (w_max < w_min)
 	w_max = w_min;
 }
 
-// TODO: Remove development testing assignment of w_max.
-w_max = w_min;
-
 function adaptToDimsAndRes ()
 {
 	var w_s = fitCanvasToDims(window.innerWidth, window.innerHeight);
@@ -125,11 +128,105 @@ function adaptToDimsAndRes ()
 		w_c = w_max;
 	}
 
-	g.width = w_c;
-	g.height = Math.floor(w_c * CANVASHEIGHT / CANVASWIDTH);
+	// DOM-object size relative to canvas size.
+	var ds = w_s / w_c;
 
-	// TODO: Remove development testing call to bench.
-	bench(g.width, g.height);
+	// Canvas scale relative to base units.
+	var cs = w_c / CANVASWIDTH;
+
+	g.width = w_c;
+	g.height = Math.floor(CANVASHEIGHT * cs);
+
+	const bw = 1 + Math.floor(ds);
+	const cw = Math.floor(CARDWIDTH * cs);
+	const ch = Math.floor(CARDHEIGHT * cs);
+
+	var sprites = document.createElement('canvas');
+	sprites.width = 15 * cw;
+	sprites.height = 6 * ch;
+	var stx = sprites.getContext('2d');
+
+	const enum_color =
+	{
+		NO_COLOR : 0,
+		HEARTS : 1,
+		SPADES : 2,
+		DIAMONDS : 3,
+		CLUBS : 4,
+		UNKNOWN_COLOR : 5
+	};
+
+	const enum_rank =
+	{
+		NO_RANK : 0,
+		ACE : 1,
+		TWO : 2,
+		THREE : 3,
+		FOUR : 4,
+		FIVE : 5,
+		SIX : 6,
+		SEVEN : 7,
+		EIGHT : 8,
+		NINE : 9,
+		TEN : 10,
+		JACK : 11,
+		QUEEN : 12,
+		KING : 13,
+		UNKNOWN_RANK : 14
+	};
+
+	const symb_color = ['', '♥', '♠', '♦', '♣', ''];
+
+	const symb_rank = ['', 'A', '2', '3', '4', '5', '6',
+		'7', '8', '9', '10', 'J', 'Q', 'K', ''];
+
+	stx.fillStyle = 'rgb(0,0,0)';
+	stx.fillRect(0, 0, sprites.width, sprites.height);
+
+	stx.fillStyle = 'rgb(128,128,128)';
+	stx.fillRect(enum_rank.NO_RANK * cw,
+		enum_color.NO_COLOR * ch, cw, ch);
+
+	stx.textBaseline = 'top';
+	stx.font = ((cw - (cw % 3))/3) + 'px serif';
+	for (var i = enum_color.HEARTS ; i <= enum_color.CLUBS ; i++)
+	{
+		for (var j = enum_rank.ACE ; j <= enum_rank.KING ; j++)
+		{
+			stx.fillStyle = 'rgb(255,255,255)';
+			stx.fillRect((j * cw) + bw, (i * ch) + bw,
+				cw - 2 * bw, ch - 2 * bw);
+			stx.fillStyle = 'rgb(' + (i & 1) * 255 + ',0,0)';
+			stx.fillText(symb_rank[j] + symb_color[i],
+				(j * cw) + bw + 3, (i * ch) + bw + 4);
+		}
+	}
+
+	stx.fillStyle = 'rgb(0,0,255)';
+	stx.fillRect((enum_rank.UNKNOWN_RANK * cw) + bw,
+		(enum_color.UNKNOWN_COLOR * ch) + bw,
+		cw - 2 * bw, ch - 2 * bw);
+
+	if (debug)
+	{
+		var old_sprites = document.getElementById('sprt');
+		if (old_sprites)
+		{
+			old_sprites.parentNode.removeChild(old_sprites);
+		}
+
+		var ks = document.getElementById('ks');
+
+		sprites.setAttribute('id', 'sprt');
+		sprites.style.width = Math.floor(sprites.width * ds) + 'px';
+		sprites.style.height = Math.floor(sprites.height * ds) + 'px';
+		document.body.insertBefore(sprites, ks);
+		document.body.insertBefore(document.createTextNode('\n'), ks);
+	}
+
+	// TODO: Remove development testing drawing.
+	gtx.drawImage(sprites, enum_rank.KING * cw, enum_color.SPADES * ch,
+		cw, ch, DISTHORZ * cs, DISTVERT * cs, cw, ch);
 }
 
 adaptToDimsAndRes();
