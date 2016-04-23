@@ -19,9 +19,9 @@
 (bind "uint32_t arc4random_uniform(uint32_t upper_bound)")
 
 (define (swap-index a b l)
-	(let ([A (take l a)]
-		[B (take (list-tail l (+ a 1)) (- b (+ a 1)))]
-		[C (list-tail l (+ b 1))])
+	(let ((A (take l a))
+		(B (take (list-tail l (+ a 1)) (- b (+ a 1))))
+		(C (list-tail l (+ b 1))))
 		(append A (cons (list-ref l b) B) (cons (list-ref l a) C))))
 
 ; Inside-out Fisher-Yates
@@ -30,7 +30,7 @@
 		(if (= 52 i)
 			d
 			(fill-deck
-				(let ([j (arc4random_uniform (+ i 1))])
+				(let ((j (arc4random_uniform (+ i 1))))
 					(if (= i j)
 						(cons i d)
 						(swap-index 0 (- i j) (cons i d))))
