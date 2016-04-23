@@ -38,5 +38,4 @@
 		'() 0))
 
 (define deck (shuffled-deck))
-(print (length deck))
-(print deck)
+(print (length deck) "\n" deck)
