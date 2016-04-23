@@ -31,16 +31,16 @@
 ;(print (swap-index 2 4 t))
 
 ; Inside-out Fisher-Yates
-(define (fill-deck d)
-	(let ([i (length d)])
-		(if (= 52 i)
-			d
-			(fill-deck
-				(let ([j (arc4random_uniform (+ i 1))])
-					(if (= i j)
-						(cons i d)
-						(swap-index 0 (- i j) (cons i d))))))))
+(define (fill-deck d i)
+	(if (= 52 i)
+		d
+		(fill-deck
+			(let ([j (arc4random_uniform (+ i 1))])
+				(if (= i j)
+					(cons i d)
+					(swap-index 0 (- i j) (cons i d))))
+			(+ i 1))))
 
-(define deck (fill-deck '()))
+(define deck (fill-deck '() 0))
 (print (length deck))
 (print deck)
