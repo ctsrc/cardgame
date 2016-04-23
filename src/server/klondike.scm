@@ -24,10 +24,6 @@
 		[C (list-tail l (+ b 1))])
 		(append A (cons (list-ref l b) B) (cons (list-ref l a) C))))
 
-;(define t '('a 'b 'c 'd 'e 'f))
-;(print t)
-;(print (swap-index 2 4 t))
-
 ; Inside-out Fisher-Yates
 (define (shuffled-deck)
 	((define (fill-deck d i)
