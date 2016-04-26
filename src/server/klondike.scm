@@ -16,6 +16,8 @@
 
 (require-extension bind srfi-1)
 
+(define-constant DEBUG (get-environment-variable "DEBUG"))
+
 (bind "uint32_t arc4random_uniform (uint32_t upper_bound)")
 
 (define (swap-index a b l)
@@ -49,12 +51,20 @@
 				(+ i 1))))
 		'() 0))
 
-(define (unshuffled-deck)
-	((define (fill-deck d i)
-		(if (= 52 i)
-			d
-			(fill-deck (cons (n-to-card i) d) (+ i 1))))
-		'() 0))
+(if DEBUG (print "Running DEBUG build."))
 
-(define deck (unshuffled-deck))
-(print (length deck) "\n" deck)
+(if DEBUG (define no-shuffle-deck #t))
+
+(if (and DEBUG no-shuffle-deck)
+	(print "No shuffle deck. (Available to DEBUG build only.)"))
+
+(define deck
+	(if (and DEBUG no-shuffle-deck)
+		((define (fill-deck d i)
+			(if (= 52 i)
+				d
+				(fill-deck (cons (n-to-card i) d) (+ i 1))))
+			'() 0)
+		(shuffled-deck)))
+
+(if DEBUG (print (length deck) "\n" deck))
