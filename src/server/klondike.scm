@@ -16,7 +16,7 @@
 
 (require-extension bind srfi-1)
 
-(bind "uint32_t arc4random_uniform(uint32_t upper_bound)")
+(bind "uint32_t arc4random_uniform (uint32_t upper_bound)")
 
 (define (swap-index a b l)
 	(let ((A (take l a))
