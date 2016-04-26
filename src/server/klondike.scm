@@ -25,15 +25,15 @@
 		(append A (cons (list-ref l b) B) (cons (list-ref l a) C))))
 
 (define (n-to-card n)
-	(let ((rank (modulo n 13)))
-		(let ((color (modulo (- n rank) 4)))
-			(list
-				(cond ((= color 0) 'hearts)
-					((= color 1) 'spades)
-					((= color 2) 'diamonds)
-					((= color 3) 'clubs))
-				(+ rank 1)
-				#f))))
+	(let* ((rank (modulo n 13))
+		(color (modulo (- n rank) 4)))
+		(list
+			(cond ((= color 0) 'hearts)
+				((= color 1) 'spades)
+				((= color 2) 'diamonds)
+				((= color 3) 'clubs))
+			(+ rank 1)
+			#f)))
 
 ; Inside-out Fisher-Yates
 (define (shuffled-deck)
