@@ -1,16 +1,17 @@
-TRIPLET != cc -dumpmachine
+TRIPLET != ${CC} -dumpmachine
 
 .PHONY: all
 
 all: debug release
 
-build/${TRIPLET}/debug/klondike:	src/server/klondike.c src/server/klondike.h
+build/${TRIPLET}/debug/klondike:	src/server/klondike.scm
 	mkdir -p build/${TRIPLET}/debug
-	cc -std=c11 -g -O0 -Wall -DDEBUG -D_BSD_SOURCE src/server/klondike.c -o build/${TRIPLET}/debug/klondike -lm
+	export DEBUG = ''
+	csc -o build/${TRIPLET}/debug/klondike $<
 
-build/${TRIPLET}/release/klondike:	src/server/klondike.c src/server/klondike.h
+build/${TRIPLET}/release/klondike:	src/server/klondike.scm
 	mkdir -p build/${TRIPLET}/release
-	cc -std=c11 -Ofast -D_BSD_SOURCE src/server/klondike.c -o build/${TRIPLET}/release/klondike -lm
+	csc -o build/${TRIPLET}/release/klondike $<
 	strip build/${TRIPLET}/release/klondike
 
 .PHONY: debug release clean distclean
