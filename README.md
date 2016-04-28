@@ -382,7 +382,7 @@ mkdir -p /tmp/wut/{bin,lib,libexec,tmp,usr/{bin,include/{,sys,machine,x86}}}
 cp /bin/{ln,sh} /tmp/wut/bin/
 cp /lib/{libedit.so.7,libncurses.so.8,libc.so.7} /tmp/wut/lib/
 cp /libexec/ld-elf.so.1 /tmp/wut/libexec/
-cp /usr/bin/{cc,tee} /tmp/wut/usr/bin/
+cp /usr/bin/cc /tmp/wut/usr/bin/
 cp /usr/include/stdio.h /tmp/wut/usr/include/
 cp /usr/include/sys/{cdefs.h,_null.h,_types.h} /tmp/wut/usr/include/sys/
 cp /usr/include/machine/_types.h /tmp/wut/usr/include/machine/
