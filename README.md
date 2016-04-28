@@ -24,7 +24,7 @@ https://www.nordstroem.no/en-US/games/klondike/
   - [`autothing.bash`](#autothingbash)
 * [Security](#security)
 * [Appendix](#appendix)
-  - [Appendix A: Check Whether C Compiler Needs `as(1)` and `ld(1)](#appendix-a-check-whether-c-compiler-needs-as1-and-ld1)
+  - [Appendix A: Check Whether C Compiler Needs `as(1)` and `ld(1)`](#appendix-a-check-whether-c-compiler-needs-as1-and-ld1)
 * [Copyright and License](#copyright-and-license)
 
 ## Supported Server Platforms
