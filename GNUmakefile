@@ -1,3 +1,5 @@
+unexport DEBUG
+
 TRIPLET=$(shell ${CC} -dumpmachine)
 
 .PHONY: all

@@ -10,7 +10,7 @@ build/${TRIPLET}/debug/klondike:	src/server/klondike.scm
 
 build/${TRIPLET}/release/klondike:	src/server/klondike.scm
 	mkdir -p build/${TRIPLET}/release
-	csc -o build/${TRIPLET}/release/klondike src/server/klondike.scm
+	env -i PATH=${PATH} csc -o build/${TRIPLET}/release/klondike src/server/klondike.scm
 	strip build/${TRIPLET}/release/klondike
 
 .PHONY: debug release clean distclean
