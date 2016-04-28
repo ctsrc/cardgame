@@ -6,12 +6,11 @@ all: debug release
 
 build/${TRIPLET}/debug/klondike:	src/server/klondike.scm
 	mkdir -p build/${TRIPLET}/debug
-	export DEBUG = ''
-	csc -o build/${TRIPLET}/debug/klondike $<
+	DEBUG= csc -o build/${TRIPLET}/debug/klondike $(.ALLSRC)
 
 build/${TRIPLET}/release/klondike:	src/server/klondike.scm
 	mkdir -p build/${TRIPLET}/release
-	csc -o build/${TRIPLET}/release/klondike $<
+	csc -o build/${TRIPLET}/release/klondike $(.ALLSRC)
 	strip build/${TRIPLET}/release/klondike
 
 .PHONY: debug release clean distclean
