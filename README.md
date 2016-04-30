@@ -20,7 +20,7 @@ https://www.nordstroem.no/en-US/games/klondike/
 * [Run](#run)
 * [Debug](#debug)
 * [Hack](#hack)
-  - [Development workspace](#development-workspace)
+  - [Development Workspace](#development-workspace)
   - [`autothing.bash`](#autothingbash)
 * [Security](#security)
 * [Appendix](#appendix)
@@ -173,7 +173,7 @@ make
 
 Jokes aside, this section is not about [security](#security).
 
-### Development workspace
+### Development Workspace
 
 ![Screenshot of klondike workspace](/../screenshots/workspace.png?raw=true)
 
@@ -186,8 +186,8 @@ which will run the aforementioned script.
 
 The tasks assigned to each of the four terminals are as follows:
 
-* Top left terminal opens `src/server/klondike.c` in `$EDITOR`.
-* Top right terminal opens `src/server/klondike.h` in `$EDITOR`.
+* Top left terminal opens `src/server/klondike.scm` in `$EDITOR`.
+* Top right terminal opens `src/client/html/klondike.htm` in `$EDITOR`.
 * Bottom left terminal runs your shell in the root of the klondike repository.
 * Bottom right terminal runs `autothing.bash` which we'll get back to.
 
