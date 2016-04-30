@@ -26,10 +26,26 @@
 		(C (list-tail l (+ b 1))))
 		(append A (cons (list-ref l b) B) (cons (list-ref l a) C))))
 
+(define (card color rank facing-up)
+	(list 'card color rank facing-up))
+
+(define (card? l)
+	(eq? (car l) 'card))
+
+(define (card-color card)
+	(cadr card))
+
+(define (card-rank card)
+	(caddr card))
+
+(define (card-facing-up? card)
+	(cadddr card))
+
 (define (n-to-card n)
 	(let* ((rank (modulo n 13))
 		(color (modulo (- n rank) 4)))
 		(list
+			'card
 			(cond ((= color 0) 'hearts)
 				((= color 1) 'spades)
 				((= color 2) 'diamonds)
@@ -37,19 +53,26 @@
 			(+ rank 1)
 			#f)))
 
+(define (insert-no-shuffle i deck)
+	(cons (n-to-card i) deck))
+
 ; Inside-out Fisher-Yates
-(define (shuffled-deck)
-	((define (fill-deck d i)
-		(if (= 52 i)
-			d
-			(fill-deck
-				(let ((j (arc4random_uniform (+ i 1))))
-					(if (= i j)
-						(cons (n-to-card i) d)
-						(swap-index 0 (- i j)
-							(cons (n-to-card i) d))))
-				(+ i 1))))
-		'() 0))
+(define (insert-shuffle i deck)
+	(let ((j (arc4random_uniform (+ i 1))))
+		(if (= i j)
+			(cons (n-to-card i) deck)
+			(swap-index 0 (- i j) (cons (n-to-card i) deck)))))
+
+(define (deck deck-inserter)
+	(cons 'deck
+		((define (fill-deck deck i)
+			(if (= 52 i)
+				deck
+				(fill-deck (deck-inserter i deck) (+ i 1))))
+		'() 0)))
+
+(define (deck? l)
+	(eq? (car deck) 'deck))
 
 (if DEBUG (print "Running DEBUG build."))
 
@@ -60,11 +83,11 @@
 
 (define deck
 	(if (and DEBUG no-shuffle-deck)
-		((define (fill-deck d i)
-			(if (= 52 i)
-				d
-				(fill-deck (cons (n-to-card i) d) (+ i 1))))
-			'() 0)
-		(shuffled-deck)))
+		(deck insert-no-shuffle)
+		(deck insert-shuffle)))
 
-(if DEBUG (print (length deck) "\n" deck))
+(if DEBUG
+	(begin (print (deck? deck) " " (length deck) "\n" deck)
+		(let ((top (cadr deck)))
+			(print (card? top) " " (card-color top) " "
+				(card-rank top) " " (card-facing-up? top)))))
