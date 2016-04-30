@@ -120,11 +120,11 @@
         (and (or (and (or (eq? (card-color fch) 'hearts)
                           (eq? (card-color fch) 'diamonds))
                       (or (eq? (card-color fct) 'hearts)
-                          (eq? card-color fct) 'diamonds))
+                          (eq? (card-color fct) 'diamonds)))
                  (and (or (eq? (card-color fch) 'spades)
                           (eq? (card-color fch) 'clubs))
                       (or (eq? (card-color fct) 'spades)
-                          (eq? card-color fct) 'clubs)))
+                          (eq? (card-color fct) 'clubs))))
              (= (card-rank fch) (+ (card-rank fct) 1))))))
 
 (define (accept-hand? target hand)
