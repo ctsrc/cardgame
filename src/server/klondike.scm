@@ -97,6 +97,43 @@
 (define (tableau? l)
 	(eq? (car l) 'tableau))
 
+(define (hand origin held)
+	(list 'hand origin held))
+
+(define (hand-origin hand)
+	(cadr hand))
+
+(define (hand-held hand)
+	(caddr hand))
+
+(define (foundation-accept-hand? target hand)
+	(and (eq? (cdr (hand-held hand)) '())
+		(or (eq? (cards target) '())
+			(let ((fct (car (cards target)))
+				(fch (car (hand-held hand))))
+				(and (= (card-color fch) (card-color fct))
+					(= (card-rank fch)
+						(+ (card-rank fct) 1)))))))
+
+(define (tableau-accept-hand? target hand)
+	(or (eq? (cards target) '())
+		(let ((fct (car (cards target)))
+			(fch (car (hand-held hand))))
+			(and (or (and (or (= (card-color fch) 'hearts)
+					(= (card-color fch) 'diamonds))
+				(or (= (card-color fct) 'hearts)
+					(= card-color fch) 'diamonds))
+				(and (or (= (card-color fch) 'spades)
+						(= (card-color fch) 'clubs))
+					(or (= (card-color fct) 'spades)
+						(= card-color fch) 'clubs)))
+				(= (card-rank fch) (+ (card-rank fct) 1))))))
+
+(define (accept-hand? target hand)
+	(cond ((waste? target) (deck? (hand-origin hand)))
+		((foundation? target) (foundation-accept-hand? target hand))
+		((tableau? target) (tableau-accept-hand? target hand))))
+
 (if DEBUG (print "Running DEBUG build."))
 
 (if DEBUG (define no-shuffle-deck #t))
