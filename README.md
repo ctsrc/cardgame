@@ -265,22 +265,22 @@ Sorry about how long this section of the README became.
 
 ### `autothing.bash`
 
-The `autothing.bash` script rebuilds klondike and runs it under valgrind
-each time a source file is modified. In contrast to the workspace script,
+The `autothing.bash` script rebuilds klondike and runs it each time
+a source file is modified. In contrast to the workspace script,
 this script works fine on all of the supported platforms of klondike.
 
 To install the additional dependencies for `autothing.bash`, I do
 
 ```bash
-sudo pkg install inotify-tools valgrind # on FreeBSD 10.2
+sudo pkg install inotify-tools # on FreeBSD 10.2
 ```
 
 ```bash
-sudo dnf install inotify-tools valgrind # on Fedora 23
+sudo dnf install inotify-tools # on Fedora 23
 ```
 
 ```bash
-sudo apt-get install inotify-tools valgrind # on Debian GNU/Linux 8
+sudo apt-get install inotify-tools # on Debian GNU/Linux 8
 ```
 
 ## Security
