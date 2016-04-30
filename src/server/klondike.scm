@@ -53,6 +53,15 @@
 			(+ rank 1)
 			#f)))
 
+(define (cards l)
+	(cdr l))
+
+(define (deck cards)
+	(cons 'deck cards))
+
+(define (deck? l)
+	(eq? (car l) 'deck))
+
 (define (insert-no-shuffle i deck)
 	(cons (n-to-card i) deck))
 
@@ -63,16 +72,12 @@
 			(insert-no-shuffle i deck)
 			(swap-index 0 (- i j) (insert-no-shuffle i deck)))))
 
-(define (deck deck-inserter)
-	(cons 'deck
-		((define (fill-deck deck i)
-			(if (= 52 i)
-				deck
-				(fill-deck (deck-inserter i deck) (+ i 1))))
+(define (init-deck deck-inserter)
+	(deck ((define (fill-deck deck i)
+		(if (= 52 i)
+			deck
+			(fill-deck (deck-inserter i deck) (+ i 1))))
 		'() 0)))
-
-(define (deck? l)
-	(eq? (car deck) 'deck))
 
 (if DEBUG (print "Running DEBUG build."))
 
@@ -81,13 +86,14 @@
 (if (and DEBUG no-shuffle-deck)
 	(print "No shuffle deck. (Available to DEBUG build only.)"))
 
-(define deck
+(define current-deck
 	(if (and DEBUG no-shuffle-deck)
-		(deck insert-no-shuffle)
-		(deck insert-shuffle)))
+		(init-deck insert-no-shuffle)
+		(init-deck insert-shuffle)))
 
 (if DEBUG
-	(begin (print (deck? deck) " " (length deck) "\n" deck)
-		(let ((top (cadr deck)))
+	(begin (print (deck? current-deck) " "
+		(length (cards current-deck)) "\n" current-deck)
+		(let ((top (cadr current-deck)))
 			(print (card? top) " " (card-color top) " "
 				(card-rank top) " " (card-facing-up? top)))))
