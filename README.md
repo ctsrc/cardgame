@@ -164,7 +164,7 @@ make
 ## Debug
 
 ```bash
-./build/$( cc -dumpmachine )/debug/klondike -d 3
+./build/$( cc -dumpmachine )/debug/klondike
 ```
 
 ## Hack
