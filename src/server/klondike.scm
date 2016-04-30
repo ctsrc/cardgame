@@ -79,6 +79,24 @@
 			(fill-deck (deck-inserter i deck) (+ i 1))))
 		'() 0)))
 
+(define (waste cards)
+	(cons 'waste cards))
+
+(define (waste? l)
+	(eq? (car l) 'waste))
+
+(define (foundation cards)
+	(cons 'foundation cards))
+
+(define (foundation? l)
+	(eq? (car l) 'foundation))
+
+(define (tableau cards)
+	(cons 'tableau cards))
+
+(define (tableau? l)
+	(eq? (car l) 'tableau))
+
 (if DEBUG (print "Running DEBUG build."))
 
 (if DEBUG (define no-shuffle-deck #t))
