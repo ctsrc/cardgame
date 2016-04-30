@@ -60,8 +60,8 @@
 (define (insert-shuffle i deck)
 	(let ((j (arc4random_uniform (+ i 1))))
 		(if (= i j)
-			(cons (n-to-card i) deck)
-			(swap-index 0 (- i j) (cons (n-to-card i) deck)))))
+			(insert-no-shuffle i deck)
+			(swap-index 0 (- i j) (insert-no-shuffle i deck)))))
 
 (define (deck deck-inserter)
 	(cons 'deck
