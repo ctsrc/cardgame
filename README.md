@@ -192,7 +192,7 @@ The tasks assigned to each of the four terminals are as follows:
 * Bottom right terminal runs `autothing.bash` which we'll get back to.
 
 Additionally, for the workspace script and desktop entry file to work,
-the repository root must be at `$HOME/src/github.com/en90/klondike/`.
+the repository root must be at `$HOME/src/github.com/eriknstr/klondike/`.
 If you choose to put the repository elsewhere, you must remember to
 edit those two files if you want to make use of them.
 

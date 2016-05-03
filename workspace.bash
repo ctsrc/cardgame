@@ -39,7 +39,7 @@ function get_wid_by_pid ()
     | egrep " $1$" | cut -d' ' -f1
 }
 
-cd ~/src/github.com/en90/klondike/ || exit 1
+cd ~/src/github.com/eriknstr/klondike/ || exit 1
 
 # Launch terminals
 urxvt256c-ml -e $EDITOR "src/server/klondike.scm" 2>/dev/null &
