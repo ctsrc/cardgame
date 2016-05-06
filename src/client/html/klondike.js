@@ -482,13 +482,13 @@ class StackOfCards extends Array
 
 	splice (idx)
 	{
-		const RET = super.splice(idx);
+		var ret = super.splice(idx);
 
 		this.rl_visible.refresh();
 		this.rl_pickable.refresh();
 		this.rl_putable.refresh();
 
-		return RET;
+		return ret;
 	}
 
 	getLocalCoordXCardByIdx (idx)
