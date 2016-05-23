@@ -90,8 +90,21 @@ const PTTX = PT.getContext('2d');
 const GF = document.createElement('canvas');
 const GFTX = GF.getContext('2d');
 
-const SPRT = document.createElement('canvas');
-const SPRTTX = SPRT.getContext('2d');
+var sprt_tmp = Array(54);
+for (var i = 0 ; i < 54 ; i++)
+{
+	sprt_tmp[i] = document.createElement('canvas');
+}
+const SPRT = sprt_tmp;
+sprt_tmp = [];
+
+var sprttx_tmp = Array(54);
+for (var i = 0 ; i < 54 ; i++)
+{
+	sprttx_tmp[i] = SPRT[i].getContext('2d');
+}
+const SPRTTX = sprttx_tmp;
+sprttx_tmp = [];
 
 if (DEBUG)
 {
@@ -113,9 +126,15 @@ if (DEBUG)
 	document.body.insertBefore(GF, KS);
 	document.body.insertBefore(document.createTextNode('\n'), KS);
 
-	SPRT.setAttribute('id', 'sprt');
-	document.body.insertBefore(SPRT, KS);
+	const SPRTC = document.createElement('div');
+	SPRTC.setAttribute('id', 'sprtc');
+	document.body.insertBefore(SPRTC, KS);
 	document.body.insertBefore(document.createTextNode('\n'), KS);
+	for (var i = 0 ; i < 54 ; i++)
+	{
+		SPRT[i].setAttribute('id', 'sprt' + i);
+		SPRTC.appendChild(SPRT[i]);
+	}
 }
 
 // Returns the new width of rectangle that will make it fit within dw x dh.
@@ -171,157 +190,85 @@ if (LOWRES)
 const DRAWSCALE_MAX = drawscale;
 console.log('DRAWSCALE_MAX: ' + DRAWSCALE_MAX);
 
+const enum_color =
+{
+	NO_COLOR : 0,
+	HEARTS : 1,
+	SPADES : 2,
+	DIAMONDS : 3,
+	CLUBS : 4,
+	UNKNOWN_COLOR : 5
+};
+
+const enum_rank =
+{
+	NO_RANK : 0,
+	ACE : 1,
+	TWO : 2,
+	THREE : 3,
+	FOUR : 4,
+	FIVE : 5,
+	SIX : 6,
+	SEVEN : 7,
+	EIGHT : 8,
+	NINE : 9,
+	TEN : 10,
+	JACK : 11,
+	QUEEN : 12,
+	KING : 13,
+	UNKNOWN_RANK : 14
+};
+
 function renderSprites ()
 {
-	const _enum_color =
-	{
-		NO_COLOR : 0,
-		HEARTS : 1,
-		SPADES : 2,
-		DIAMONDS : 3,
-		CLUBS : 4,
-		UNKNOWN_COLOR : 5
-	};
-
-	const _enum_rank =
-	{
-		NO_RANK : 0,
-		ACE : 1,
-		TWO : 2,
-		THREE : 3,
-		FOUR : 4,
-		FIVE : 5,
-		SIX : 6,
-		SEVEN : 7,
-		EIGHT : 8,
-		NINE : 9,
-		TEN : 10,
-		JACK : 11,
-		QUEEN : 12,
-		KING : 13,
-		UNKNOWN_RANK : 14
-	};
-
 	const _symb_color = ['', '♥', '♠', '♦', '♣', ''];
 
 	const _symb_rank = ['', 'A', '2', '3', '4', '5', '6',
 		'7', '8', '9', '10', 'J', 'Q', 'K', ''];
 
-	SPRTTX.fillStyle = 'rgb(0,0,0)';
-	SPRTTX.fillRect(0, 0, SPRT.width, SPRT.height);
-
-	SPRTTX.fillStyle = 'rgb(128,128,128)';
-	SPRTTX.fillRect(_enum_rank.NO_RANK * ps.card.width,
-		_enum_color.NO_COLOR * ps.card.height,
-		ps.card.width, ps.card.height);
-
-	SPRTTX.textBaseline = 'top';
-	SPRTTX.font = ((ps.card.width - (ps.card.width % 3))/3) + 'px serif';
-	for (var i = _enum_color.HEARTS ; i <= _enum_color.CLUBS ; i++)
+	for (var i = 0 ; i < 54 ; i++)
 	{
-		for (var j = _enum_rank.ACE ; j <= _enum_rank.KING ; j++)
+		SPRTTX[i].fillStyle = 'rgb(0,0,0)';
+		SPRTTX[i].fillRect(0, 0, SPRT[i].width, SPRT[i].height);
+	}
+
+	SPRTTX[0].fillStyle = 'rgb(128,128,128)';
+	SPRTTX[0].fillRect(
+		ps.card.border,
+		ps.card.border,
+		ps.card.width - 2 * ps.card.border,
+		ps.card.height - 2 * ps.card.border);
+
+	for (var i = enum_color.HEARTS ; i <= enum_color.CLUBS ; i++)
+	{
+		for (var j = enum_rank.ACE ; j <= enum_rank.KING ; j++)
 		{
-			SPRTTX.fillStyle = 'rgb(255,255,255)';
-			SPRTTX.fillRect((j * ps.card.width) + ps.card.border,
-				(i * ps.card.height) + ps.card.border,
-					ps.card.width - 2 * ps.card.border,
-					ps.card.height - 2 * ps.card.border);
-			SPRTTX.fillStyle = 'rgb(' + (i & 1) * 255 + ',0,0)';
-			SPRTTX.fillText(_symb_rank[j] + _symb_color[i],
-				(j * ps.card.width) + ps.card.border + 3,
-				(i * ps.card.height) + ps.card.border + 4);
+			const C = (i - 1) * 13 + j;
+			SPRTTX[C].textBaseline = 'top';
+			SPRTTX[C].font = ((ps.card.width
+				- (ps.card.width % 3))/3) + 'px serif';
+			SPRTTX[C].fillStyle = 'rgb(255,255,255)';
+			SPRTTX[C].fillRect(
+				ps.card.border,
+				ps.card.border,
+				ps.card.width - 2 * ps.card.border,
+				ps.card.height - 2 * ps.card.border);
+			SPRTTX[C].fillStyle = 'rgb(' + (i & 1) * 255 + ',0,0)';
+			SPRTTX[C].fillText(_symb_rank[j] + _symb_color[i],
+				ps.card.border + 3,
+				ps.card.border + 4);
 		}
 	}
 
-	SPRTTX.fillStyle = 'rgb(0,0,255)';
-	SPRTTX.fillRect((_enum_rank.UNKNOWN_RANK * ps.card.width)
-		+ ps.card.border, (_enum_color.UNKNOWN_COLOR * ps.card.height)
-		+ ps.card.border, ps.card.width - 2 * ps.card.border,
+	SPRTTX[53].fillStyle = 'rgb(0,0,255)';
+	SPRTTX[53].fillRect(
+		ps.card.border,
+		ps.card.border,
+		ps.card.width - 2 * ps.card.border,
 		ps.card.height - 2 * ps.card.border);
 }
 
-function adaptToDimsAndRes ()
-{
-	const AW = fitRectNearEightToDims(AREABU.g.width, AREABU.g.height,
-		window.innerWidth, window.innerHeight);
-
-	drawscale = Math.min(DRAWSCALE_MAX, 2 * AW / AREABU.g.width);
-	console.log('drawscale: ' + drawscale);
-
-	ps.card.width = Math.floor(BU.card.width * drawscale);
-	ps.card.height = Math.floor(BU.card.height * drawscale);
-	ps.card.border = Math.floor(1 + BU.card.border * drawscale);
-	ps.card.thickness = Math.floor(BU.card.thickness * drawscale);
-
-	ps.margin.elem_vert = Math.floor(BU.margin.elem_vert * drawscale);
-	ps.margin.elem_horz = Math.floor(BU.margin.elem_horz * drawscale);
-	ps.margin.top = Math.floor(BU.margin.top * drawscale);
-	ps.margin.right = Math.floor(BU.margin.right * drawscale);
-	ps.margin.bottom = Math.floor(BU.margin.bottom * drawscale);
-	ps.margin.left = Math.floor(BU.margin.left * drawscale);
-
-	G.width = ps.margin.left + 7 * ps.card.width
-		+ 6 * ps.margin.elem_horz + ps.margin.right;
-	G.height = ps.margin.top + 2 * ps.card.height
-		+ 25 * ps.margin.elem_vert + ps.margin.bottom;
-
-	T.width = G.width;
-	T.height = G.height
-
-	PK.width = G.width;
-	PK.height = G.height
-
-	PT.width = G.width;
-	PT.height = G.height
-
-	GF.width = ps.card.width;
-	GF.height = ps.card.height + 12 * ps.margin.elem_horz;
-
-	SPRT.width = 15 * ps.card.width;
-	SPRT.height = 6 * ps.card.height;
-
-	if (!NORESIZE)
-	{
-		const STYLESCALE = AW / G.width;
-		console.log('STYLESCALE: ' + STYLESCALE);
-
-		G.style.width = AW + 'px';
-		G.style.height = Math.floor(G.height * STYLESCALE) + 'px';
-
-		if (DEBUG)
-		{
-			T.style.width = G.style.width;
-			T.style.height = G.style.height;
-
-			PK.style.width = G.style.width;
-			PK.style.height = G.style.height;
-
-			PT.style.width = G.style.width;
-			PT.style.height = G.style.height;
-
-			GF.style.width = Math.floor(GF.width
-				* STYLESCALE) + 'px';
-			GF.style.height = Math.floor(GF.height
-				* STYLESCALE) + 'px';
-
-			SPRT.style.width = Math.floor(SPRT.width
-				* STYLESCALE) + 'px';
-			SPRT.style.height = Math.floor(SPRT.height
-				* STYLESCALE) + 'px';
-		}
-	}
-
-	renderSprites();
-}
-
-adaptToDimsAndRes();
-
-var id_ra;
-window.onresize = function ()
-{
-	clearTimeout(id_ra);
-	id_ra = setTimeout(adaptToDimsAndRes, 64);
-};
+var stylescale = 1;
 
 const enum_lc =
 {
@@ -344,12 +291,34 @@ function isFacingUp (card)
 
 function getColor (card)
 {
-	return (card & MASK_COLOR) >> 4;
+	if (card == NULLCARD)
+	{
+		return enum_color.NO_COLOR;
+	}
+	else if (isFacingUp(card))
+	{
+		return (card & MASK_COLOR) >> 4;
+	}
+	else
+	{
+		return enum_color.UNKNOWN_COLOR;
+	}
 }
 
 function getRank (card)
 {
-	return card & MASK_RANK;
+	if (card == NULLCARD)
+	{
+		return enum_rank.NO_RANK;
+	}
+	else if (isFacingUp(card))
+	{
+		return card & MASK_RANK;
+	}
+	else
+	{
+		return enum_rank.UNKNOWN_RANK;
+	}
 }
 
 class RenderableCard
@@ -358,9 +327,9 @@ class RenderableCard
 	{
 		this.card = card;
 		this.cur = cur;
-		this.x = cur.getLocalCoordXCardByIdx(oidx);
-		this.y = cur.getLocalCoordYCardByIdx(oidx);
-		this.z = cur.getLocalCoordZCardByIdx(oidx);
+		this.x = cur.getLocalCoordXCardByIdx(oidx) + cur.x;
+		this.y = cur.getLocalCoordYCardByIdx(oidx) + cur.y;
+		this.z = cur.getLocalCoordZCardByIdx(oidx) + cur.z;
 		this.origin = soc;
 		this.oidx = oidx;
 	}
@@ -644,7 +613,7 @@ table.initialize = function ()
 	{
 		this.tableau.push(new TableauStackOfCards([],
 			table.x + BU.margin.left
-				+ i * (BU.card.height + BU.margin.elem_horz),
+				+ i * (BU.card.width + BU.margin.elem_horz),
 			table.y + BU.margin.top + BU.card.height
 				+ BU.margin.elem_vert,
 			table.z));
@@ -690,103 +659,67 @@ table.initialize = function ()
 
 table.initialize();
 
-/*
-function cardRenderer (c, ctx, ulc)
+function cardRenderer (ctx)
 {
 	return function (rc, idx)
 	{
-		var sx = Math.floor(((ulc ? 0 : rc.cur.x)
-			+ rc.x) * (c.width / CANVASWIDTH));
-		var sy = Math.floor(((ulc ? 0 : rc.cur.y)
-			+ rc.y) * (c.height / CANVASHEIGHT));
-		var sw = Math.floor(CARDWIDTH * (c.width / CANVASWIDTH));
-		var sh = Math.floor(CARDHEIGHT * (c.height / CANVASHEIGHT));
-		if (rc.card)
-		{
-			ctx.fillStyle = 'rgb(0,0,0)';
-			ctx.fillRect(sx, sy, sw, sh);
-			if (isFacingUp(rc.card))
-			{
-				ctx.fillStyle = 'rgb(255,255,255)';
-				ctx.fillRect(sx + 1, sy + 1, sw - 2, sh - 2);
-				ctx.fillStyle = 'rgb('
-					+ (getColor(rc.card) & 1) * 255
-					+ ',0,0)';
-				ctx.textBaseline = 'top';
-				ctx.fillText(symb_rank[getRank(rc.card)]
-					+ symb_color[getColor(rc.card)],
-					sx + 3, sy + 4);
-			}
-			else
-			{
-				ctx.fillStyle = 'rgb(0,0,255)';
-				ctx.fillRect(sx + 1, sy + 1, sw - 2, sh - 2);
-			}
-		}
-		else
-		{
-			ctx.fillStyle = 'rgb(128,128,128)';
-			ctx.fillRect(sx, sy, sw, sh);
-		}
+		ctx.drawImage(SPRT[Math.max(0, Math.min(53,
+				(getColor(rc.card) - 1) * 13
+				+ getRank(rc.card)))],
+			Math.floor(rc.x * drawscale),
+			Math.floor(rc.y * drawscale));
 	}
 }
 
-function cardIdxRenderer (c, ctx, ulc)
+function cardIdxRenderer (ctx)
 {
 	return function (rc, idx)
 	{
 		ctx.fillStyle = 'rgb(' + (4 * idx + 1) + ',0,0)';
 		ctx.fillRect(
-			Math.floor(((ulc ? 0 : rc.cur.x) + rc.x)
-				* (c.width / CANVASWIDTH)),
-			Math.floor(((ulc ? 0 : rc.cur.y) + rc.y)
-				* (c.height / CANVASHEIGHT)),
-			Math.floor(CARDWIDTH * (c.width / CANVASWIDTH)),
-			Math.floor(CARDHEIGHT * (c.height / CANVASHEIGHT)));
+			Math.floor(rc.x * drawscale),
+			Math.floor(rc.y * drawscale),
+			ps.card.width,
+			ps.card.height);
 	}
 }
-*/
 
 var hand = new StackOfCards([], 0, 0, 0);
 hand.x = 0;
 hand.y = 0;
-hand.offs_x = 0;
+hand.offs_x = 0; // TODO: use offset as before
 hand.offs_y = 0;
 hand.getLocalCoordYCardByIdx = function (idx)
 {
-	return DISTVERT * idx;
+	return BU.margin.elem_vert * idx;
 };
 
-//var renderRenderableCardToTable = cardRenderer(T, TTX,
-//	enum_lc.NO_USE_LOCAL_COORDS);
+var renderRenderableCardToTable = cardRenderer(TTX);
 function renderTable ()
 {
 	TTX.clearRect(0, 0, T.width, T.height);
 	table.getRLVisible().forEach(renderRenderableCardToTable);
 }
 
-//var renderRenderableCardToPickable = cardIdxRenderer(PK, PKTX);
+var renderRenderableCardToPickable = cardIdxRenderer(PKTX);
 function renderPickable ()
 {
 	PKTX.clearRect(0, 0, PK.width, PK.height);
-	//table.getRLPickable().forEach(renderRenderableCardToPickable);
+	table.getRLPickable().forEach(renderRenderableCardToPickable);
 }
 
-//var renderRenderableCardToPutable = cardIdxRenderer(PT, PTTX);
+var renderRenderableCardToPutable = cardIdxRenderer(PTTX);
 function renderPutable ()
 {
 	PTTX.clearRect(0, 0, PT.width, PT.height);
-	//table.getRLPutable().forEach(renderRenderableCardToPutable);
+	table.getRLPutable().forEach(renderRenderableCardToPutable);
 }
 
-// XXX: We pass G instead of GF since card size is calculated from canvas size.
-// TODO: Rework probably
-//var renderRenderableCardToHand = cardRenderer(G, GFTX,
-//	enum_lc.USE_LOCAL_COORDS);
+var renderRenderableCardToHand = cardRenderer(GFTX);
 function renderHand ()
 {
 	GFTX.clearRect(0, 0, GF.width, GF.height);
-	//hand.forEach(renderRenderableCardToHand);
+	hand.forEach(renderRenderableCardToHand);
 }
 
 function updateHandPos (e)
@@ -794,30 +727,25 @@ function updateHandPos (e)
 	var x, y;
 	if (window.TouchEvent && e instanceof TouchEvent)
 	{
-		x = e.touches[0].pageX - g.offsetLeft;
-		y = e.touches[0].pageY - g.offsetTop;
+		x = e.touches[0].pageX - G.offsetLeft;
+		y = e.touches[0].pageY - G.offsetTop;
 	}
 	else
 	{
-		x = e.layerX;
-		y = e.layerY;
+		// TODO: Figure out how to make work in both FF and Chromium
+		x = e.layerX - G.offsetLeft;
+		console.log(e.layerX, G.offsetLeft);
+		y = e.layerY - G.offsetTop;
+		console.log(e.layerY, G.offsetTop);
 	}
+	x /= stylescale * drawscale;
+	y /= stylescale * drawscale;
 	// XXX: Limit x to margins
-	hand.x = Math.max(0.1 * g.width
-			- CARDWIDTH * (g.width / CANVASWIDTH),
-		Math.min(x, 0.9 * g.width));
+	hand.x = Math.max(BU.margin.left,
+		Math.min(x, AREABU.g.width - BU.margin.right));
 	// XXX: Limit y to margins
-	hand.y = Math.max(0.1 * g.height
-			- CARDHEIGHT * (g.height / CANVASHEIGHT),
-		Math.min(y, 0.9 * g.height));
-}
-
-//var renderRenderableCardToTable = cardRenderer(T, TTX);
-function renderTable ()
-{
-	TTX.clearRect(0, 0, T.width, T.height);
-
-	//table.getRLVisible().forEach(renderRenderableCardToTable);
+	hand.y = Math.max(BU.margin.top,
+		Math.min(y, AREABU.g.height - BU.margin.bottom));
 }
 
 function renderGame ()
@@ -828,7 +756,7 @@ function renderGame ()
 
 	if (hand.length > 0)
 	{
-		GTX.drawImage(GF, hand.x - hand.offs_x, hand.y - hand.offs_y);
+		GTX.drawImage(GF, hand.x * drawscale, hand.y * drawscale);
 		window.requestAnimationFrame(renderGame);
 	}
 }
@@ -836,32 +764,30 @@ function renderGame ()
 function pick (e)
 {
 	updateHandPos(e);
-	var pixel = pktx.getImageData(hand.x, hand.y, 1, 1);
-	var val = pixel.data[0];
-	if (val)
+	const PIXEL = PKTX.getImageData(
+		hand.x * drawscale, hand.y * drawscale, 1, 1);
+	const VAL = PIXEL.data[0];
+	if (VAL)
 	{
-		var card = table.getRLPickable()[(val - 1) / 4];
-		var cards = card.origin.splice(card.oidx);
-		hand.offs_x = hand.x -
-			Math.floor((card.origin.x + card.x)
-				* (g.width / CANVASWIDTH));
-		hand.offs_y = hand.y -
-			Math.floor((card.origin.y + card.y)
-				* (g.height / CANVASHEIGHT));
-		for (var i = 0 ; i < cards.length ; i++)
+		var card = table.getRLPickable()[(VAL - 1) / 4];
+		const CARDS = card.origin.splice(card.oidx);
+		const X = hand.x;
+		const Y = hand.y;
+		hand.x = 0;
+		hand.y = 0;
+		for (var i = 0 ; i < CARDS.length ; i++)
 		{
-			hand.push(new RenderableCard(cards[i],
-				hand, card.origin, card.oidx));
+			hand.push(new RenderableCard(CARDS[i],
+				hand, card.origin, i));
 		}
+		hand.x = X;
+		hand.y = Y;
 		renderHand();
 		renderPutable();
 		renderTable();
 		window.requestAnimationFrame(renderGame);
 	}
 }
-
-G.addEventListener('mousedown', pick);
-G.addEventListener('touchstart', pick);
 
 function transpose (e)
 {
@@ -871,19 +797,17 @@ function transpose (e)
 	}
 }
 
-G.addEventListener('mousemove', transpose);
-G.addEventListener('touchmove', transpose);
-
 function place (e)
 {
 	if (hand.length > 0)
 	{
-		var pixel = pttx.getImageData(hand.x, hand.y, 1, 1);
-		var val = pixel.data[0];
+		const PIXEL = PTTX.getImageData(
+			hand.x * drawscale, hand.y * drawscale, 1, 1);
+		const VAL = PIXEL.data[0];
 		var tgt;
-		if (val)
+		if (VAL)
 		{
-			tgt = table.getRLPutable()[(val - 1) / 4];
+			tgt = table.getRLPutable()[(VAL - 1) / 4];
 		}
 		else
 		{
@@ -899,10 +823,105 @@ function place (e)
 	}
 }
 
+function adaptToDimsAndRes ()
+{
+	const AW = fitRectNearEightToDims(AREABU.g.width, AREABU.g.height,
+		window.innerWidth, window.innerHeight);
+
+	drawscale = Math.min(DRAWSCALE_MAX, 2 * AW / AREABU.g.width);
+	console.log('drawscale: ' + drawscale);
+
+	ps.card.width = Math.floor(BU.card.width * drawscale);
+	ps.card.height = Math.floor(BU.card.height * drawscale);
+	ps.card.border = Math.floor(1 + BU.card.border * drawscale);
+	ps.card.thickness = Math.floor(BU.card.thickness * drawscale);
+
+	ps.margin.elem_vert = Math.floor(BU.margin.elem_vert * drawscale);
+	ps.margin.elem_horz = Math.floor(BU.margin.elem_horz * drawscale);
+	ps.margin.top = Math.floor(BU.margin.top * drawscale);
+	ps.margin.right = Math.floor(BU.margin.right * drawscale);
+	ps.margin.bottom = Math.floor(BU.margin.bottom * drawscale);
+	ps.margin.left = Math.floor(BU.margin.left * drawscale);
+
+	G.width = ps.margin.left + 7 * ps.card.width
+		+ 6 * ps.margin.elem_horz + ps.margin.right;
+	G.height = ps.margin.top + 2 * ps.card.height
+		+ 25 * ps.margin.elem_vert + ps.margin.bottom;
+
+	T.width = G.width;
+	T.height = G.height
+
+	PK.width = G.width;
+	PK.height = G.height
+
+	PT.width = G.width;
+	PT.height = G.height
+
+	GF.width = ps.card.width;
+	GF.height = ps.card.height + 12 * ps.margin.elem_horz;
+
+	for (var i = 0 ; i < 54 ; i++)
+	{
+		SPRT[i].width = ps.card.width;
+		SPRT[i].height = ps.card.height;
+	}
+
+	if (!NORESIZE)
+	{
+		stylescale = AW / G.width;
+		console.log('stylescale: ' + stylescale);
+
+		G.style.width = AW + 'px';
+		G.style.height = Math.floor(G.height * stylescale) + 'px';
+
+		if (DEBUG)
+		{
+			T.style.width = G.style.width;
+			T.style.height = G.style.height;
+
+			PK.style.width = G.style.width;
+			PK.style.height = G.style.height;
+
+			PT.style.width = G.style.width;
+			PT.style.height = G.style.height;
+
+			GF.style.width = Math.floor(GF.width
+				* stylescale) + 'px';
+			GF.style.height = Math.floor(GF.height
+				* stylescale) + 'px';
+
+			for (var i = 0 ; i < 54 ; i++)
+			{
+				SPRT[i].style.width = Math.floor(SPRT[i].width
+					* stylescale) + 'px';
+				SPRT[i].style.height =
+					Math.floor(SPRT[i].height
+					* stylescale) + 'px';
+			}
+		}
+	}
+
+	renderSprites();
+	renderTable();
+	renderPickable();
+	renderGame();
+}
+
+adaptToDimsAndRes();
+
+var id_ra;
+window.onresize = function ()
+{
+	clearTimeout(id_ra);
+	id_ra = setTimeout(adaptToDimsAndRes, 64);
+};
+
+G.addEventListener('mousedown', pick);
+G.addEventListener('touchstart', pick);
+
+G.addEventListener('mousemove', transpose);
+G.addEventListener('touchmove', transpose);
+
 G.addEventListener('mouseup', place);
 G.addEventListener('mouseout', place);
 G.addEventListener('touchend', place);
-
-renderTable();
-renderPickable();
-renderGame();
