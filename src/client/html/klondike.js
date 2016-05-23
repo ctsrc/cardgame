@@ -687,7 +687,7 @@ function cardIdxRenderer (ctx)
 var hand = new StackOfCards([], 0, 0, 0);
 hand.x = 0;
 hand.y = 0;
-hand.offs_x = 0; // TODO: use offset as before
+hand.offs_x = 0;
 hand.offs_y = 0;
 hand.getLocalCoordYCardByIdx = function (idx)
 {
@@ -756,7 +756,8 @@ function renderGame ()
 
 	if (hand.length > 0)
 	{
-		GTX.drawImage(GF, hand.x * drawscale, hand.y * drawscale);
+		GTX.drawImage(GF, (hand.x - hand.offs_x) * drawscale,
+			(hand.y - hand.offs_y) * drawscale);
 		window.requestAnimationFrame(renderGame);
 	}
 }
@@ -770,6 +771,8 @@ function pick (e)
 	if (VAL)
 	{
 		var card = table.getRLPickable()[(VAL - 1) / 4];
+		hand.offs_x = hand.x - card.x;
+		hand.offs_y = hand.y - card.y;
 		const CARDS = card.origin.splice(card.oidx);
 		const X = hand.x;
 		const Y = hand.y;
