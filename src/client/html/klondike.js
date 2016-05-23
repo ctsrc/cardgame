@@ -732,11 +732,8 @@ function updateHandPos (e)
 	}
 	else
 	{
-		// TODO: Figure out how to make work in both FF and Chromium
-		x = e.layerX - G.offsetLeft;
-		console.log(e.layerX, G.offsetLeft);
-		y = e.layerY - G.offsetTop;
-		console.log(e.layerY, G.offsetTop);
+		x = e.pageX - G.offsetLeft;
+		y = e.pageY - G.offsetTop;
 	}
 	x /= stylescale * drawscale;
 	y /= stylescale * drawscale;
