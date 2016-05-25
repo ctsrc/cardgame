@@ -33,18 +33,13 @@ canvas {
   -ms-interpolation-mode: nearest-neighbor; /* IE */
   background: #063;
 }
-body > canvas, #sprtc {
+body > canvas {
   display: block;
   margin: 0 auto;
 }
-body > canvas + canvas, #sprtc {
+body > canvas + canvas {
   line-height: 0;
   margin-top: 1em;
-}
-#sprtc {
-  width: 80%;
-}
-#sprtc > canvas {
 }
 </style>
 <canvas id=game width=256 height=256></canvas>
