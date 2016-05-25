@@ -24,7 +24,7 @@
 <style>
 * { margin: 0; padding: 0; }
 body { background: #066; }
-canvas {
+#game {
   image-rendering: optimizeSpeed; /* Older versions of FF */
   image-rendering: -moz-crisp-edges; /* FF 6.0+ */
   image-rendering: -webkit-optimize-contrast; /* Safari */
@@ -32,14 +32,8 @@ canvas {
   image-rendering: pixelated; /* Awesome future-browsers */
   -ms-interpolation-mode: nearest-neighbor; /* IE */
   background: #063;
-}
-body > canvas {
   display: block;
   margin: 0 auto;
-}
-body > canvas + canvas {
-  line-height: 0;
-  margin-top: 1em;
 }
 </style>
 <canvas id=game width=256 height=256></canvas>

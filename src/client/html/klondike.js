@@ -90,27 +90,6 @@ const PTTX = PT.getContext('2d');
 const GF = document.createElement('canvas');
 const GFTX = GF.getContext('2d');
 
-if (DEBUG)
-{
-	const KS = document.getElementById('ks');
-
-	T.setAttribute('id', 'table');
-	document.body.insertBefore(T, KS);
-	document.body.insertBefore(document.createTextNode('\n'), KS);
-
-	PT.setAttribute('id', 'putable');
-	document.body.insertBefore(PT, KS);
-	document.body.insertBefore(document.createTextNode('\n'), KS);
-
-	PK.setAttribute('id', 'pickable');
-	document.body.insertBefore(PK, KS);
-	document.body.insertBefore(document.createTextNode('\n'), KS);
-
-	GF.setAttribute('id', 'hand');
-	document.body.insertBefore(GF, KS);
-	document.body.insertBefore(document.createTextNode('\n'), KS);
-}
-
 // Returns the new width of rectangle that will make it fit within dw x dh.
 function fitRectNearEightToDims (cw, ch, dw, dh)
 {
@@ -685,6 +664,42 @@ function renderGame ()
 		GTX.drawImage(GF, (hand.x - hand.offs_x) * drawscale,
 			(hand.y - hand.offs_y) * drawscale);
 		window.requestAnimationFrame(renderGame);
+	}
+
+	if (DEBUG)
+	{
+		const MINIW = Math.floor(G.height / 8);
+		const MINIH = Math.floor(G.width / 8);
+		GTX.strokeStyle = '#808';
+		GTX.lineWidth = 2;
+		GTX.strokeRect(
+			ps.margin.left,
+			G.height - (MINIH + ps.margin.bottom),
+			MINIW,
+			MINIH);
+		GTX.strokeRect(
+			2 * ps.margin.left + MINIW,
+			G.height - (MINIH + ps.margin.bottom),
+			MINIW,
+			MINIH);
+		if (hand.length == 0)
+		{
+			GTX.drawImage(
+				PK,
+				ps.margin.left,
+				G.height - (MINIH + ps.margin.bottom),
+				MINIW,
+				MINIH);
+		}
+		else
+		{
+			GTX.drawImage(
+				PT,
+				2 * ps.margin.left + MINIW,
+				G.height - (MINIH + ps.margin.bottom),
+				MINIW,
+				MINIH);
+		}
 	}
 }
 
