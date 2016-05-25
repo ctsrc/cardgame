@@ -674,29 +674,6 @@ function renderHand ()
 	hand.forEach(renderRenderableCardToHand);
 }
 
-function updateHandPos (e)
-{
-	var x, y;
-	if (window.TouchEvent && e instanceof TouchEvent)
-	{
-		x = e.touches[0].pageX - G.offsetLeft;
-		y = e.touches[0].pageY - G.offsetTop;
-	}
-	else
-	{
-		x = e.pageX - G.offsetLeft;
-		y = e.pageY - G.offsetTop;
-	}
-	x /= stylescale * drawscale;
-	y /= stylescale * drawscale;
-	// XXX: Limit x to margins
-	hand.x = Math.max(BU.margin.left,
-		Math.min(x, AREABU.g.width - BU.margin.right));
-	// XXX: Limit y to margins
-	hand.y = Math.max(BU.margin.top,
-		Math.min(y, AREABU.g.height - BU.margin.bottom));
-}
-
 function renderGame ()
 {
 	GTX.clearRect(0, 0, G.width, G.height);
@@ -708,70 +685,6 @@ function renderGame ()
 		GTX.drawImage(GF, (hand.x - hand.offs_x) * drawscale,
 			(hand.y - hand.offs_y) * drawscale);
 		window.requestAnimationFrame(renderGame);
-	}
-}
-
-function pick (e)
-{
-	updateHandPos(e);
-	const PIXEL = PKTX.getImageData(
-		hand.x * drawscale, hand.y * drawscale, 1, 1);
-	const VAL = PIXEL.data[0];
-	if (VAL)
-	{
-		var card = table.getRLPickable()[(VAL - 1) / 4];
-		hand.offs_x = hand.x - card.x;
-		hand.offs_y = hand.y - card.y;
-		const CARDS = card.origin.splice(card.oidx);
-		const X = hand.x;
-		const Y = hand.y;
-		hand.x = 0;
-		hand.y = 0;
-		for (var i = 0 ; i < CARDS.length ; i++)
-		{
-			hand.push(new RenderableCard(CARDS[i],
-				hand, card.origin, i));
-		}
-		hand.x = X;
-		hand.y = Y;
-		renderHand();
-		renderPutable();
-		renderTable();
-		window.requestAnimationFrame(renderGame);
-	}
-}
-
-function transpose (e)
-{
-	if (hand.length > 0)
-	{
-		updateHandPos(e);
-	}
-}
-
-function place (e)
-{
-	if (hand.length > 0)
-	{
-		const PIXEL = PTTX.getImageData(
-			hand.x * drawscale, hand.y * drawscale, 1, 1);
-		const VAL = PIXEL.data[0];
-		var tgt;
-		if (VAL)
-		{
-			tgt = table.getRLPutable()[(VAL - 1) / 4];
-		}
-		else
-		{
-			tgt = hand[0];
-		}
-		var cards = hand.splice(0).map(function (e)
-		{
-			return e.card;
-		});
-		StackOfCards.prototype.push.apply(tgt.origin, cards);
-		renderTable();
-		renderPickable();
 	}
 }
 
@@ -852,11 +765,116 @@ window.onresize = function ()
 	id_ra = setTimeout(adaptToDimsAndRes, 64);
 };
 
-G.addEventListener('mousedown', pick);
-G.addEventListener('touchstart', pick);
+function updateHandPosMouse (e)
+{
+	const X = (e.pageX - G.offsetLeft) / (stylescale * drawscale);
+	const Y = (e.pageY - G.offsetTop) / (stylescale * drawscale);
 
-G.addEventListener('mousemove', transpose);
-G.addEventListener('touchmove', transpose);
+	// XXX: Limit x to margins
+	hand.x = Math.max(BU.margin.left,
+		Math.min(X, AREABU.g.width - BU.margin.right));
+	// XXX: Limit y to margins
+	hand.y = Math.max(BU.margin.top,
+		Math.min(Y, AREABU.g.height - BU.margin.bottom));
+}
+
+G.addEventListener('mousemove', function (e)
+{
+	if (hand.length > 0)
+	{
+		updateHandPosMouse(e);
+	}
+});
+
+function updateHandPosTouch (e)
+{
+	const X = (e.touches[0].pageX - G.offsetLeft)
+		/ (stylescale * drawscale);
+	const Y = (e.touches[0].pageY - G.offsetTop)
+		/ (stylescale * drawscale);
+
+	// XXX: Limit x to margins
+	hand.x = Math.max(BU.margin.left,
+		Math.min(X, AREABU.g.width - BU.margin.right));
+	// XXX: Limit y to margins
+	hand.y = Math.max(BU.margin.top,
+		Math.min(Y, AREABU.g.height - BU.margin.bottom));
+}
+
+G.addEventListener('touchmove', function (e)
+{
+	if (hand.length > 0)
+	{
+		updateHandPosTouch(e);
+	}
+});
+
+function pick (e)
+{
+	const PIXEL = PKTX.getImageData(
+		hand.x * drawscale, hand.y * drawscale, 1, 1);
+	const VAL = PIXEL.data[0];
+	if (VAL)
+	{
+		var card = table.getRLPickable()[(VAL - 1) / 4];
+		hand.offs_x = hand.x - card.x;
+		hand.offs_y = hand.y - card.y;
+		const CARDS = card.origin.splice(card.oidx);
+		const X = hand.x;
+		const Y = hand.y;
+		hand.x = 0;
+		hand.y = 0;
+		for (var i = 0 ; i < CARDS.length ; i++)
+		{
+			hand.push(new RenderableCard(CARDS[i],
+				hand, card.origin, i));
+		}
+		hand.x = X;
+		hand.y = Y;
+		renderHand();
+		renderPutable();
+		renderTable();
+		window.requestAnimationFrame(renderGame);
+	}
+}
+
+G.addEventListener('mousedown', function (e)
+{
+	updateHandPosMouse(e);
+	pick(e);
+});
+
+G.addEventListener('touchstart', function (e)
+{
+	updateHandPosTouch(e);
+	pick(e);
+});
+
+function place (e)
+{
+	if (hand.length > 0)
+	{
+		const PIXEL = PTTX.getImageData(
+			hand.x * drawscale, hand.y * drawscale, 1, 1);
+		const VAL = PIXEL.data[0];
+		var tgt;
+		if (VAL)
+		{
+			tgt = table.getRLPutable()[(VAL - 1) / 4];
+		}
+		else
+		{
+			tgt = hand[0];
+		}
+		var cards = hand.splice(0).map(function (e)
+		{
+			return e.card;
+		});
+		StackOfCards.prototype.push.apply(tgt.origin, cards);
+		renderTable();
+		renderPickable();
+	}
+}
 
 G.addEventListener('mouseup', place);
 G.addEventListener('mouseout', place);
