@@ -35,9 +35,9 @@ https://www.nordstroem.no/en-US/games/klondike/
 
 ## Supported Server Platforms
 
-  * FreeBSD 10.2
-  * Fedora 23
-  * Debian GNU/Linux 8
+* FreeBSD 10.2
+* Fedora 23
+* Debian GNU/Linux 8
 
 ## Server Build Dependencies
 
