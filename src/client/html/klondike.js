@@ -386,20 +386,20 @@ table.initialize = function ()
 	for (var i = 0 ; i < 4 ; i++)
 	{
 		this.foundation.push(new FoundationStackOfCards([],
-			table.x + BU.margin.left
+			this.x + BU.margin.left
 				+ (3 + i) * (BU.card.width
 					+ BU.margin.elem_horz),
-			table.y + BU.margin.top, table.z));
+			this.y + BU.margin.top, this.z));
 	}
 
 	for (var i = 0 ; i < 7 ; i++)
 	{
 		this.tableau.push(new TableauStackOfCards([],
-			table.x + BU.margin.left
+			this.x + BU.margin.left
 				+ i * (BU.card.width + BU.margin.elem_horz),
-			table.y + BU.margin.top + BU.card.height
+			this.y + BU.margin.top + BU.card.height
 				+ BU.margin.elem_vert,
-			table.z));
+			this.z));
 	}
 
 	// TODO: Get initial state from server.
