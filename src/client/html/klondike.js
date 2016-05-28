@@ -217,94 +217,6 @@ class RenderableCard
 	}
 }
 
-class RenderList extends Array
-{
-	constructor (soc)
-	{
-		super();
-		this.soc = soc;
-		this.refresh();
-	}
-}
-
-class RLVisible extends RenderList
-{
-	refresh ()
-	{
-		this.splice(0);
-		for (var i = 0 ; i < this.soc.length ; i++)
-		{
-			this.push(new RenderableCard(this.soc[i],
-				this.soc, this.soc, i));
-		}
-		if (this.soc.length == 0)
-		{
-			this.push(new RenderableCard(NULLCARD,
-				this.soc, this.soc, 0));
-		}
-	}
-}
-
-class RLPickable extends RenderList
-{
-	refresh ()
-	{
-		this.splice(0);
-	}
-}
-
-class RLTopmostPickable extends RLPickable
-{
-	refresh ()
-	{
-		this.splice(0);
-		if (this.soc.length > 0)
-		{
-			this.push(new RenderableCard(
-				this.soc[this.soc.length - 1],
-				this.soc, this.soc, this.soc.length - 1));
-		}
-	}
-}
-
-class RLFacingUpPickable extends RLPickable
-{
-	refresh ()
-	{
-		this.splice(0);
-		for (var i = 0 ; i < this.soc.length ; i++)
-		{
-			if (isFacingUp(this.soc[i]))
-			{
-				this.push(new RenderableCard(this.soc[i],
-					this.soc, this.soc, i));
-			}
-		}
-	}
-}
-
-class RLPutable extends RenderList
-{
-	refresh ()
-	{
-		this.splice(0);
-	}
-}
-
-class RLTopmostPutable extends RLPutable
-{
-	refresh ()
-	{
-		this.splice(0);
-		if (this.soc.putable())
-		{
-			this.push(new RenderableCard(
-				this.soc[this.soc.length - 1],
-				this.soc, this.soc, this.soc.length - 1));
-		}
-	}
-}
-
 class StackOfCards extends Array
 {
 	constructor (cards, x, y, z)
@@ -315,29 +227,21 @@ class StackOfCards extends Array
 		this.y = y;
 		this.z = z;
 
-		this.rl_visible = new RLVisible(this);
-		this.rl_pickable = new RLPickable(this);
-		this.rl_putable = new RLPutable(this);
-
 		StackOfCards.prototype.push.apply(this, cards);
 	}
 
 	push (card)
 	{
 		super.push(card);
-
-		this.rl_visible.refresh();
-		this.rl_pickable.refresh();
-		this.rl_putable.refresh();
 	}
 
 	splice (idx)
 	{
 		var ret = super.splice(idx);
 
-		this.rl_visible.refresh();
-		this.rl_pickable.refresh();
-		this.rl_putable.refresh();
+		ret.x = this.x;
+		ret.y = this.y;
+		ret.z = this.z;
 
 		return ret;
 	}
@@ -356,6 +260,56 @@ class StackOfCards extends Array
 	{
 		return BU.card.thickness * idx;
 	}
+
+	getRLVisible ()
+	{
+		var ret = Array(this.length);
+
+		for (var i = 0 ; i < this.length ; i++)
+		{
+			ret.push(new RenderableCard(this[i], this, this, i));
+		}
+		if (this.length == 0)
+		{
+			ret.push(new RenderableCard(NULLCARD, this, this, 0));
+		}
+
+		return ret;
+	}
+
+	// Topmost pickable by default
+	getRLPickable ()
+	{
+		if (this.length > 0)
+		{
+			return [new RenderableCard(
+				this[this.length - 1],
+				this,
+				this,
+				this.length - 1)];
+		}
+		else
+		{
+			return [];
+		}
+	}
+
+	putable ()
+	{
+		return false;
+	}
+
+	getRLPutable ()
+	{
+		if (this.putable())
+		{
+			return [new RenderableCard(
+				this[this.length - 1],
+				this,
+				this,
+				this.length - 1)];
+		}
+	}
 }
 
 class FoundationStackOfCards extends StackOfCards
@@ -363,9 +317,6 @@ class FoundationStackOfCards extends StackOfCards
 	constructor (cards, x, y, z)
 	{
 		super(cards, x, y, z);
-
-		this.rl_pickable = new RLTopmostPickable(this);
-		this.rl_putable = new RLTopmostPutable(this);
 	}
 
 	putable ()
@@ -379,9 +330,6 @@ class TableauStackOfCards extends StackOfCards
 	constructor (cards, x, y, z)
 	{
 		super(cards, x, y, z);
-
-		this.rl_pickable = new RLFacingUpPickable(this);
-		this.rl_putable = new RLTopmostPutable(this);
 	}
 
 	getLocalCoordYCardByIdx (idx)
@@ -398,75 +346,14 @@ class TableauStackOfCards extends StackOfCards
 StackOfCards.prototype.push.apply = function (obj, cards)
 {
 	Array.prototype.push.apply(obj, cards);
-
-	obj.rl_visible.refresh();
-	obj.rl_pickable.refresh();
-	obj.rl_putable.refresh();
 }
 
 var table = {};
 table.x = 0;
 table.y = 0;
 table.z = 0;
-table.deck = {};
-table.waste = {};
 table.foundation = [];
 table.tableau = [];
-//table.rl_visible = new RLVisible(); // TODO
-table.getRLVisible = function ()
-{
-	/*
-	 * XXX: I prefer prototype call. I find it
-	 *      to be more readable than calling
-	 *      concat on first array with
-	 *      the others as arguments.
-	 */
-	return Array.prototype.concat.call(
-		this.deck.rl_visible,
-		this.waste.rl_visible,
-		this.foundation[0].rl_visible,
-		this.foundation[1].rl_visible,
-		this.foundation[2].rl_visible,
-		this.foundation[3].rl_visible,
-		this.tableau[0].rl_visible,
-		this.tableau[1].rl_visible,
-		this.tableau[2].rl_visible,
-		this.tableau[3].rl_visible,
-		this.tableau[4].rl_visible,
-		this.tableau[5].rl_visible,
-		this.tableau[6].rl_visible);
-};
-table.getRLPickable = function ()
-{
-	return Array.prototype.concat.call(
-		this.waste.rl_pickable,
-		this.foundation[0].rl_pickable,
-		this.foundation[1].rl_pickable,
-		this.foundation[2].rl_pickable,
-		this.foundation[3].rl_pickable,
-		this.tableau[0].rl_pickable,
-		this.tableau[1].rl_pickable,
-		this.tableau[2].rl_pickable,
-		this.tableau[3].rl_pickable,
-		this.tableau[4].rl_pickable,
-		this.tableau[5].rl_pickable,
-		this.tableau[6].rl_pickable);
-};
-table.getRLPutable = function ()
-{
-	return Array.prototype.concat.call(
-		this.foundation[0].rl_putable,
-		this.foundation[1].rl_putable,
-		this.foundation[2].rl_putable,
-		this.foundation[3].rl_putable,
-		this.tableau[0].rl_putable,
-		this.tableau[1].rl_putable,
-		this.tableau[2].rl_putable,
-		this.tableau[3].rl_putable,
-		this.tableau[4].rl_putable,
-		this.tableau[5].rl_putable,
-		this.tableau[6].rl_putable);
-};
 table.initialize = function ()
 {
 	this.deck = new StackOfCards([],
@@ -475,8 +362,6 @@ table.initialize = function ()
 	this.waste = new StackOfCards([],
 		this.x + BU.margin.left + BU.card.width + BU.margin.elem_horz,
 		this.y + BU.margin.top, this.z);
-	this.waste.rl_visible = new RLVisible(this.waste); // TODO: Replace
-	this.waste.rl_pickable = new RLTopmostPickable(this.waste);
 	this.waste.getLocalCoordXCardByIdx = function (idx)
 	{
 		return BU.margin.elem_horz * (idx % 3);
@@ -537,6 +422,63 @@ table.initialize = function ()
 	this.tableau[4].push(52 | FACE_UP);
 	this.tableau[5].push(49 | FACE_UP);
 	this.tableau[6].push(44 | FACE_UP);
+
+	this.getRLVisible = function ()
+	{
+		/*
+		 * XXX: I prefer prototype call. I find it
+		 *      to be more readable than calling
+		 *      concat on first array with
+		 *      the others as arguments.
+		 */
+		return Array.prototype.concat.call(
+			this.deck.getRLVisible(),
+			this.waste.getRLVisible(),
+			this.foundation[0].getRLVisible(),
+			this.foundation[1].getRLVisible(),
+			this.foundation[2].getRLVisible(),
+			this.foundation[3].getRLVisible(),
+			this.tableau[0].getRLVisible(),
+			this.tableau[1].getRLVisible(),
+			this.tableau[2].getRLVisible(),
+			this.tableau[3].getRLVisible(),
+			this.tableau[4].getRLVisible(),
+			this.tableau[5].getRLVisible(),
+			this.tableau[6].getRLVisible());
+	};
+
+	this.getRLPickable = function ()
+	{
+		return Array.prototype.concat.call(
+			this.waste.getRLPickable(),
+			this.foundation[0].getRLPickable(),
+			this.foundation[1].getRLPickable(),
+			this.foundation[2].getRLPickable(),
+			this.foundation[3].getRLPickable(),
+			this.tableau[0].getRLPickable(),
+			this.tableau[1].getRLPickable(),
+			this.tableau[2].getRLPickable(),
+			this.tableau[3].getRLPickable(),
+			this.tableau[4].getRLPickable(),
+			this.tableau[5].getRLPickable(),
+			this.tableau[6].getRLPickable());
+	};
+
+	this.getRLPutable = function ()
+	{
+		return Array.prototype.concat.call(
+			this.foundation[0].getRLPutable(),
+			this.foundation[1].getRLPutable(),
+			this.foundation[2].getRLPutable(),
+			this.foundation[3].getRLPutable(),
+			this.tableau[0].getRLPutable(),
+			this.tableau[1].getRLPutable(),
+			this.tableau[2].getRLPutable(),
+			this.tableau[3].getRLPutable(),
+			this.tableau[4].getRLPutable(),
+			this.tableau[5].getRLPutable(),
+			this.tableau[6].getRLPutable());
+	};
 };
 
 table.initialize();
