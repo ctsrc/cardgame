@@ -341,6 +341,22 @@ class TableauStackOfCards extends StackOfCards
 	{
 		return true; // TODO
 	}
+
+	getRLPickable ()
+	{
+		var ret = [];
+
+		for (var i = 0 ; i < this.length ; i++)
+		{
+			if (isFacingUp(this[i]))
+			{
+				ret.push(new RenderableCard(
+					this[i], this, this, i));
+			}
+		}
+
+		return ret;
+	}
 }
 
 StackOfCards.prototype.push.apply = function (obj, cards)
