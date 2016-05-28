@@ -32,6 +32,7 @@ https://www.nordstroem.no/en-US/games/klondike/
 
 * Mozilla bug tracker: [Bug #1275421](https://bugzilla.mozilla.org/show_bug.cgi?id=1275421)
 * WebKit bug tracker: [Bug #158106](https://bugs.webkit.org/show_bug.cgi?id=158106)
+* Chromium bug tracker: [Bug #615638](https://bugs.chromium.org/p/chromium/issues/detail?id=615638)
 
 ## Supported Server Platforms
 
