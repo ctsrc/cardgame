@@ -83,7 +83,7 @@ sudo chicken-install bind
 ### Install Server Build Dependencies on Debian and Derivatives
 
 ```bash
-sudo apt-get install libbsd-dev binutils gcc chicken make
+sudo apt install libbsd-dev binutils gcc chicken make
 sudo chicken-install bind
 ```
 
@@ -132,7 +132,7 @@ In this way, every run-time dependency available via the system package manager
 is provided by it and everything else is provided alongside of klondike.
 This should make building packages for distribution as painless as possible.
 If CHICKEN Scheme eggs were available in FreeBSD pkg, Fedora dnf and
-Debian apt-get officiial and default repositories, I would use those.
+Debian apt official and default repositories, I would use those.
 
 ### Install Server Run-Time Dependencies on FreeBSD
 
@@ -153,7 +153,7 @@ sudo dnf install libbsd chicken-libs
 ### Install Server Run-Time Dependencies on Debian and Derivatives
 
 ```bash
-sudo apt-get install libbsd libchicken7
+sudo apt install libbsd libchicken7
 ```
 
 ## Build
@@ -287,7 +287,7 @@ sudo dnf install inotify-tools # on Fedora 23
 ```
 
 ```bash
-sudo apt-get install inotify-tools # on Debian GNU/Linux 8
+sudo apt install inotify-tools # on Debian GNU/Linux 8
 ```
 
 ## Security
