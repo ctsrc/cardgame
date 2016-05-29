@@ -52,6 +52,8 @@ class UserIDValidation:
 
 class RequireJSON:
 
+    # https://falcon.readthedocs.io/en/stable/user/quickstart.html
+
     def process_request (self, req, resp):
 
         if not req.client_accepts_json:
@@ -66,6 +68,8 @@ class RequireJSON:
                     href='/docs/api/json/request-body-json.htm')
 
 class JSONTranslator:
+
+    # https://falcon.readthedocs.io/en/stable/user/quickstart.html
 
     def process_request (self, req, resp):
 
