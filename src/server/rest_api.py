@@ -32,7 +32,7 @@ def init_game (user_id):
 
     return { 'game_id': game_id }
 
-class UserIDValidation:
+class UserIDValidator:
 
     def process_request (self, req, resp):
 
@@ -131,7 +131,7 @@ class PlayGame:
         pass
 
 app = falcon.API(middleware=[
-    UserIDValidation(), RequireJSON(), JSONTranslator()])
+    UserIDValidator(), RequireJSON(), JSONTranslator()])
 
 create_game = CreateGame()
 app.add_route('/', create_game)
