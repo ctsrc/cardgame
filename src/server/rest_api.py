@@ -44,11 +44,11 @@ class UserIDValidation:
             except (ValueError, AssertionError):
                 raise falcon.HTTPBadRequest('User ID invalid',
                     'Cookie \'user_id\' must hold a Version 4 UUID.',
-                    href='/docs/api/request-headers.htm')
+                    href='/docs/rest-api/request-headers.htm')
         else:
             raise falcon.HTTPBadRequest('User ID not provided',
                 'Cookie \'user_id\' must be set.',
-                href='/docs/api/request-headers.htm')
+                href='/docs/rest-api/request-headers.htm')
 
 class RequireJSON:
 
@@ -59,13 +59,13 @@ class RequireJSON:
         if not req.client_accepts_json:
             raise falcon.HTTPNotAcceptable(
                 'This API only supports responses encoded as JSON.',
-                href='/docs/api/response-body-json.htm')
+                href='/docs/rest-api/response-body-json.htm')
 
         if req.method in ('POST', 'PUT'):
             if 'application/json' not in req.content_type:
                 raise falcon.HTTPUnsupportedMediaType(
                     'This API only supports requests encoded as JSON.',
-                    href='/docs/api/json/request-body-json.htm')
+                    href='/docs/rest-api/json/request-body-json.htm')
 
 class JSONTranslator:
 
@@ -80,7 +80,7 @@ class JSONTranslator:
         if not body:
             raise falcon.HTTPBadRequest('Empty request body',
                 'A valid JSON document is required.',
-                href='/docs/api/json/request-body-json.htm')
+                href='/docs/rest-api/json/request-body-json.htm')
 
         try:
             req.context['doc'] = json.loads(body.decode('utf-8'))
@@ -90,7 +90,7 @@ class JSONTranslator:
                 'Malformed JSON',
                 'Could not decode the request body. '
                     'The JSON was incorrect or not encoded as UTF-8.',
-                href='/docs/api/json/request-body-json.htm')
+                href='/docs/rest-api/json/request-body-json.htm')
 
     def process_response (self, req, resp, resource):
 
