@@ -99,6 +99,10 @@ and no further action is required so you may skip this section.
 
 * The [CHICKEN Scheme](https://www.call-cc.org/) runtime library.
 
+* Python 3
+
+  - Falcon 1.0.0
+
 On the topic of deployment, the CHICKEN Scheme manual
 [says](http://wiki.call-cc.org/man/4/Deployment#self-contained-applications),
 among other things:
@@ -141,19 +145,22 @@ just the runtime library of CHICKEN Scheme, so the whole package
 with all of CHICKEN Scheme will need to be installed.
 
 ```bash
-sudo pkg install chicken
+sudo pkg install chicken python3
+sudo pip3 install -r requirements.txt
 ```
 
 ### Install Server Run-Time Dependencies on Fedora and Derivatives
 
 ```bash
-sudo dnf install libbsd chicken-libs
+sudo dnf install libbsd chicken-libs python3
+sudo pip3 install -r requirements.txt
 ```
 
 ### Install Server Run-Time Dependencies on Debian and Derivatives
 
 ```bash
-sudo apt install libbsd libchicken7
+sudo apt install libbsd libchicken7 python3
+sudo pip3 install -r requirements.txt
 ```
 
 ## Build
