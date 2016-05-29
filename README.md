@@ -99,7 +99,7 @@ and no further action is required so you may skip this section.
 
 * The [CHICKEN Scheme](https://www.call-cc.org/) runtime library.
 
-* Python 3
+* Python 3.4 or greater
 
   - Falcon 1.0.0
 
