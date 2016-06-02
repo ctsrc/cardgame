@@ -16,6 +16,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
+import re
 import uuid
 import json
 import falcon
@@ -25,30 +26,49 @@ def init_game (user_id):
 
     game_id = str(uuid.uuid4())
 
-    # TODO: Create game, store in memory.
+    # TODO: Create game, store in memory along with
+    #       game_id and owner_id (user_id).
     #       Redis? Ring buffer?
 
-    # TODO: Include state and encrypted shadow state.
+    # TODO: Return state of revision 0.
 
-    return { 'game_id': game_id }
+    return { 'game_id': game_id, 'rev': 0 }
 
 class UserIDValidator:
 
     def process_request (self, req, resp):
 
-        if 'user_id' in req.cookies:
+        if 'uid' in req.cookies:
             try:
-                u = uuid.UUID(req.cookies['user_id'])
-                assert(u.variant == uuid.RFC_4122)
-                assert(u.version == 4)
-            except (ValueError, AssertionError):
+                u = req.cookies['uid']
+                assert(u[0] == 'a') # Anonymous user. The only kind for now.
+                assert(not re.match('^[1-9][0-9]*$', u[1:]) is None)
+                assert(type(int(u[1:])) == int) # Want plain, not long int.
+            except AssertionError:
                 raise falcon.HTTPBadRequest('User ID invalid',
-                    'Cookie \'user_id\' must hold a Version 4 UUID.',
-                    href='/docs/rest-api/request-headers.htm')
+                    'Cookie \'uid\' must hold the letter \'a\' '
+                        'followed by a plain integer.',
+                    href='/docs/restlike-api/request-headers.htm#cookie-uid')
         else:
             raise falcon.HTTPBadRequest('User ID not provided',
-                'Cookie \'user_id\' must be set.',
-                href='/docs/rest-api/request-headers.htm')
+                'Cookie \'uid\' must be set.',
+                href='/docs/restlike-api/request-headers.htm#cookie-uid')
+
+        if 'token' in req.cookies:
+            try:
+                t = uuid.UUID(req.cookies['token'])
+                assert(t.variant == uuid.RFC_4122)
+                assert(t.version == 4)
+            except (ValueError, AssertionError):
+                raise falcon.HTTPBadRequest('Access token invalid',
+                    'Cookie \'token\' must hold a Version 4 UUID.',
+                    href='/docs/restlike-api/request-headers.htm#cookie-token')
+        else:
+            raise falcon.HTTPBadRequest('Access token not provided',
+                'Cookie \'token\' must be set.',
+                href='/docs/restlike-api/request-headers.htm#cookie-token')
+
+        # TODO: Validate (user id, token)-pair.
 
 class RequireJSON:
 
@@ -59,13 +79,13 @@ class RequireJSON:
         if not req.client_accepts_json:
             raise falcon.HTTPNotAcceptable(
                 'This API only supports responses encoded as JSON.',
-                href='/docs/rest-api/response-body-json.htm')
+                href='/docs/restlike-api/response-body-json.htm')
 
         if req.method in ('POST', 'PUT'):
             if 'application/json' not in req.content_type:
                 raise falcon.HTTPUnsupportedMediaType(
                     'This API only supports requests encoded as JSON.',
-                    href='/docs/rest-api/json/request-body-json.htm')
+                    href='/docs/restlike-api/json/request-body-json.htm')
 
 class JSONTranslator:
 
@@ -80,7 +100,7 @@ class JSONTranslator:
         if not body:
             raise falcon.HTTPBadRequest('Empty request body',
                 'A valid JSON document is required.',
-                href='/docs/rest-api/json/request-body-json.htm')
+                href='/docs/restlike-api/json/request-body-json.htm')
 
         try:
             req.context['doc'] = json.loads(body.decode('utf-8'))
@@ -90,7 +110,7 @@ class JSONTranslator:
                 'Malformed JSON',
                 'Could not decode the request body. '
                     'The JSON was incorrect or not encoded as UTF-8.',
-                href='/docs/rest-api/json/request-body-json.htm')
+                href='/docs/restlike-api/json/request-body-json.htm')
 
     def process_response (self, req, resp, resource):
 
@@ -99,45 +119,75 @@ class JSONTranslator:
 
         resp.body = json.dumps(req.context['result'])
 
-class CreateGame:
+class Games:
 
     def on_post (self, req, resp):
 
-        game = init_game(req.cookies['user_id'])
-        req.context['result'] = game
+        gamerev = init_game(req.cookies['uid'])
+        req.context['result'] = gamerev
         resp.status = falcon.HTTP_201
-        resp.location = '/%s/' % game['game_id']
+        resp.location = '/%s/revs/0' % gamerev['game_id']
 
-class PlayGame:
+    def on_get (self, req, resp):
+
+        # Return list of games.
+
+        req.context['result'] = [ ]
+        resp.status = falcon.HTTP_200
+
+class Game:
 
     def on_get (self, req, resp, game_id):
 
-        # TODO: Ensure user is owner of game.
+        # Return properties of game.
 
-        req.context['result'] = { 'game_id': game_id }
+        req.context['result'] = { }
         resp.status = falcon.HTTP_200
+
+class GameRevisions:
 
     def on_post (self, req, resp, game_id):
 
         # TODO: Ensure user is owner of game.
 
-        req.context['result'] = { 'game_id': game_id }
+        # TODO: Validate transformation, return new revision.
+
+        gamerev = { 'game_id': game_id, 'rev': 1 } # TODO use real data.
+
+        req.context['result'] = { }
+        resp.status = falcon.HTTP_201
+        resp.location = '/%s/rev/%s' % (gamerev['game_id'], gamerev['rev'])
+
+    def on_get (self, req, resp, game_id):
+
+        # Return list of game revisions.
+
+        req.context['result'] = [ ]
         resp.status = falcon.HTTP_200
 
-    def on_put (self, req, resp, game_id):
+class GameRevision:
 
-        # TODO: Restore from encrypted shadow state.
+    def on_get (self, req, resp, game_id, rev):
 
-        pass
+        # Return list of game revisions.
+
+        req.context['result'] = { }
+        resp.status = falcon.HTTP_200
 
 app = falcon.API(middleware=[
     UserIDValidator(), RequireJSON(), JSONTranslator()])
 
-create_game = CreateGame()
-app.add_route('/', create_game)
+games = Games()
+app.add_route('/', games)
 
-play_game = PlayGame()
-app.add_route('/{game_id}/', play_game)
+game = Game()
+app.add_route('/{game_id}/', game)
+
+gamerevs = GameRevisions()
+app.add_route('/{game_id}/revs/', gamerevs)
+
+gamerev = GameRevision()
+app.add_route('/{game_id}/revs/{rev}/', gamerev)
 
 if __name__ == '__main__':
     httpd = simple_server.make_server('127.0.0.1', 8080, app)
