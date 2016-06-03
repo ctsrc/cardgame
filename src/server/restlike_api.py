@@ -126,7 +126,7 @@ class Games:
         gamerev = init_game(req.cookies['uid'])
         req.context['result'] = gamerev
         resp.status = falcon.HTTP_201
-        resp.location = '/%s/revs/0' % gamerev['game_id']
+        resp.location = '/%s/revs/%s' % (gamerev['game_id'], gamerev['rev'])
 
     def on_get (self, req, resp):
 
