@@ -156,7 +156,7 @@ class GameRevisions:
 
         req.context['result'] = { }
         resp.status = falcon.HTTP_201
-        resp.location = '/%s/rev/%s' % (gamerev['game_id'], gamerev['rev'])
+        resp.location = '/%s/revs/%s' % (gamerev['game_id'], gamerev['rev'])
 
     def on_get (self, req, resp, game_id):
 
