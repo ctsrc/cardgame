@@ -83,7 +83,7 @@ sudo chicken-install bind
 ### Install Server Build Dependencies on Debian and Derivatives
 
 ```bash
-sudo apt install libbsd-dev binutils gcc chicken make
+sudo apt install libbsd-dev binutils gcc chicken-bin make
 sudo chicken-install bind
 ```
 
