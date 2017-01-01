@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Erik Nordstrøm <erik@nordstroem.no>
+ * Copyright (c) 2016, 2017 Erik Nordstrøm <erik@nordstroem.no>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -33,7 +33,6 @@ const BU =
 	{
 		'width': 2.5,
 		'height': 3.5,
-		'border': 0.02,
 		'thickness': 0.012
 	},
 	'margin':
@@ -46,9 +45,6 @@ const BU =
 		'left': 0.5
 	}
 };
-
-// Pixel size
-var ps = { 'card': {}, 'margin': {} };
 
 // Areas in base units
 const AREABU =
@@ -72,8 +68,8 @@ const AREABU =
 	}
 };
 
-// Game area pixel size width minimum
-const GAPSW_MIN = 512;
+// Pixel size
+var ps = { 'card': {}, 'margin': {} };
 
 const G = document.getElementById('game');
 const GTX = G.getContext('2d');
@@ -90,13 +86,43 @@ const PTTX = PT.getContext('2d');
 const GF = document.createElement('canvas');
 const GFTX = GF.getContext('2d');
 
+const M = document.getElementById('messages');
+
+function displayMessage (msgt, msgc)
+{
+	var msg = document.createElement('p');
+	msg.className = msgc;
+	msg.innerHTML = msgt;
+	M.appendChild(msg);
+}
+
+function displayError (msgt)
+{
+	G.style.display = 'none';
+	displayMessage('ERROR: ' + msgt, 'err');
+}
+
+function resetDisplay ()
+{
+	while (M.firstChild) {
+		M.removeChild(M.firstChild);
+	}
+
+	G.style.display = 'block';
+}
+
 // Returns the new width of rectangle that will make it fit within dw x dh.
 function fitRectNearEightToDims (cw, ch, dw, dh)
 {
+	console.log('Wish to fit ' + cw + 'x' + ch + ' to ' + dw + 'x' + dh);
+
 	const WLIM = (cw / ch <= dw / dh) ? Math.floor(dh * cw / ch) : dw;
 
 	return WLIM - WLIM % 8;
 }
+
+const DRAWSCALE_MIN = LOWRES ? 16 : Math.ceil(512 / AREABU.g.width);
+console.log('DRAWSCALE_MIN: ' + DRAWSCALE_MIN);
 
 /*
  * To the extent permitted by the frame time of 16 ms, we want to draw
@@ -106,11 +132,20 @@ function fitRectNearEightToDims (cw, ch, dw, dh)
  * on my non-retina computer but that's part of the fun so I'm keeping this.
  */
 
-function benchApprox ()
-{
-	const START = new Date().getTime();
+const DRAWSCALE_RETINA = LOWRES ? 16 : Math.floor(fitRectNearEightToDims(
+		AREABU.g.width, AREABU.g.height,
+		2 * screen.width, 2 * screen.height)
+	/ AREABU.g.width);
+console.log('DRAWSCALE_RETINA: ' + DRAWSCALE_RETINA);
 
-	for (var i = 0 ; i < 52 ; i++)
+function acceptableFramerate (drawscale)
+{
+	G.width = AREABU.g.width * drawscale;
+	G.height = AREABU.g.height * drawscale;
+
+	var i = 0;
+	for (const START = new Date().getTime() ;
+		i < 52 && new Date().getTime() - START <= 16; i++)
 	{
 		GTX.fillStyle = 'rgb(' +
 			Math.floor(Math.random() * 255) + ', ' +
@@ -121,23 +156,34 @@ function benchApprox ()
 			Math.random() * G.width, Math.random() * G.height);
 	}
 
-	return new Date().getTime() - START;
+	return i == 52;
 }
 
-var drawscale = 4 * fitRectNearEightToDims(AREABU.g.width, AREABU.g.height,
-	screen.width, screen.height) / AREABU.g.width;
+function between (lb, ub) { return  }
 
+var ds_lb = DRAWSCALE_MIN;
+var ds_ub = DRAWSCALE_RETINA;
+
+var ds_accept_last = false;
 do
 {
-	drawscale /= 2;
-	G.width = AREABU.g.width * drawscale;
-	G.height = AREABU.g.height * drawscale;
-} while (benchApprox() > 16 && AREABU.g.width * drawscale >= 2 * GAPSW_MIN)
-
-if (LOWRES)
+	drawscale = ds_lb + Math.ceil((ds_ub - ds_lb)/2);
+	console.log('Trying drawscale `' + drawscale + "'");
+	ds_accept_last = acceptableFramerate(drawscale);
+	if (ds_accept_last)
+	{
+		ds_lb = drawscale;
+	}
+	else
+	{
+		ds_ub = drawscale;
+	}
+} while (ds_ub - ds_lb > 0);
+if (!ds_accept_last)
 {
-	// Force low resolution
-	drawscale = 16;
+	displayError('Unable to find an acceptable '
+		+ 'resolution, frame rate pair.');
+	throw('FATAL ERROR :(');
 }
 
 const DRAWSCALE_MAX = drawscale;
@@ -663,70 +709,96 @@ function renderGame ()
 
 function adaptToDimsAndRes ()
 {
-	const AW = fitRectNearEightToDims(AREABU.g.width, AREABU.g.height,
-		window.innerWidth, window.innerHeight);
+	resetDisplay();
 
-	drawscale = Math.min(DRAWSCALE_MAX, 2 * AW / AREABU.g.width);
-	console.log('drawscale: ' + drawscale);
+	const AW = Math.floor(fitRectNearEightToDims(
+		AREABU.g.width, AREABU.g.height,
+		window.innerWidth, window.innerHeight));
 
-	ps.card.width = Math.floor(BU.card.width * drawscale);
-	ps.card.height = Math.floor(BU.card.height * drawscale);
-	ps.card.border = Math.floor(1 + BU.card.border * drawscale);
-	ps.card.thickness = Math.floor(BU.card.thickness * drawscale);
+	const DRAWSCALE_DESIRED = 2 * Math.floor(AW / AREABU.g.width);
+	console.log('DRAWSCALE_DESIRED: ' + DRAWSCALE_DESIRED);
+	drawscale = DRAWSCALE_DESIRED;
+	stylescale = 1 / 2;
+	ps.card.border = 1;
 
-	ps.margin.elem_vert = Math.floor(BU.margin.elem_vert * drawscale);
-	ps.margin.elem_horz = Math.floor(BU.margin.elem_horz * drawscale);
-	ps.margin.top = Math.floor(BU.margin.top * drawscale);
-	ps.margin.right = Math.floor(BU.margin.right * drawscale);
-	ps.margin.bottom = Math.floor(BU.margin.bottom * drawscale);
-	ps.margin.left = Math.floor(BU.margin.left * drawscale);
-
-	G.width = ps.margin.left + 7 * ps.card.width
-		+ 6 * ps.margin.elem_horz + ps.margin.right;
-	G.height = ps.margin.top + 2 * ps.card.height
-		+ 25 * ps.margin.elem_vert + ps.margin.bottom;
-
-	T.width = G.width;
-	T.height = G.height
-
-	PK.width = G.width;
-	PK.height = G.height
-
-	PT.width = G.width;
-	PT.height = G.height
-
-	GF.width = ps.card.width;
-	GF.height = ps.card.height + 12 * ps.margin.elem_horz;
-
-	if (!NORESIZE)
+	if (drawscale > DRAWSCALE_MAX)
 	{
-		stylescale = AW / G.width;
-		console.log('stylescale: ' + stylescale);
-
-		G.style.width = AW + 'px';
-		G.style.height = Math.floor(G.height * stylescale) + 'px';
-
-		if (DEBUG)
-		{
-			T.style.width = G.style.width;
-			T.style.height = G.style.height;
-
-			PK.style.width = G.style.width;
-			PK.style.height = G.style.height;
-
-			PT.style.width = G.style.width;
-			PT.style.height = G.style.height;
-
-			GF.style.width = Math.floor(GF.width
-				* stylescale) + 'px';
-			GF.style.height = Math.floor(GF.height
-				* stylescale) + 'px';
-		}
+		stylescale = drawscale / (2 * DRAWSCALE_MAX);
+		drawscale = DRAWSCALE_MAX;
 	}
 
-	renderTable();
-	renderPickable();
-	renderGame();
+	console.log('drawscale: ' + drawscale);
+
+	if (drawscale >= DRAWSCALE_MIN)
+	{
+		ps.card.width = Math.floor(BU.card.width * drawscale);
+		ps.card.height = Math.floor(BU.card.height * drawscale);
+		ps.card.thickness = Math.floor(BU.card.thickness * drawscale);
+
+		ps.margin.elem_vert = Math.floor(BU.margin.elem_vert
+			* drawscale);
+		ps.margin.elem_horz = Math.floor(BU.margin.elem_horz
+			* drawscale);
+		ps.margin.top = Math.floor(BU.margin.top * drawscale);
+		ps.margin.right = Math.floor(BU.margin.right * drawscale);
+		ps.margin.bottom = Math.floor(BU.margin.bottom * drawscale);
+		ps.margin.left = Math.floor(BU.margin.left * drawscale);
+
+		G.width = AREABU.g.width * drawscale;
+		G.height = AREABU.g.height * drawscale;
+
+		T.width = G.width;
+		T.height = G.height
+
+		PK.width = G.width;
+		PK.height = G.height
+
+		PT.width = G.width;
+		PT.height = G.height
+
+		GF.width = ps.card.width;
+		GF.height = ps.card.height + 12 * ps.margin.elem_horz;
+
+		if (NORESIZE)
+		{
+			stylescale = 1;
+		}
+		else
+		{
+			ps.card.border = 1 / stylescale;
+
+			G.style.width =
+				Math.floor(G.width * stylescale) + 'px';
+			G.style.height =
+				Math.floor(G.height * stylescale) + 'px';
+
+			if (DEBUG)
+			{
+				T.style.width = G.style.width;
+				T.style.height = G.style.height;
+
+				PK.style.width = G.style.width;
+				PK.style.height = G.style.height;
+
+				PT.style.width = G.style.width;
+				PT.style.height = G.style.height;
+
+				GF.style.width = Math.floor(GF.width
+					* stylescale) + 'px';
+				GF.style.height = Math.floor(GF.height
+					* stylescale) + 'px';
+			}
+		}
+		console.log('stylescale: ' + stylescale);
+
+		renderTable();
+		renderPickable();
+		renderGame();
+	}
+	else
+	{
+		displayError('Browser window is too small.');
+	}
 }
 
 adaptToDimsAndRes();

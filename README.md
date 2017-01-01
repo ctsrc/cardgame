@@ -466,7 +466,7 @@ Hard-coded paths :)
 
 ## Copyright and License
 
-Copyright (c) 2016 Erik Nordstrøm &lt;erik@nordstroem.no&gt;
+Copyright (c) 2016, 2017 Erik Nordstrøm &lt;erik@nordstroem.no&gt;
 
 Klondike is released under the terms of the ISC license.
 See `LICENSE` for details.

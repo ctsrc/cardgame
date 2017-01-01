@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
 /*
- * Copyright (c) 2016 Erik Nordstrøm <erik@nordstroem.no>
+ * Copyright (c) 2016, 2017 Erik Nordstrøm <erik@nordstroem.no>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,6 +24,22 @@
 <style>
 * { margin: 0; padding: 0; }
 body { background: #066; }
+#messages {
+  display: block;
+  max-width: 512px;
+  margin: 0 auto;
+}
+#messages > * {
+  padding: 2em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+#messages > *:first-child {
+  margin-top: 1em;
+}
+.err {
+  background: #f66;
+}
 #game {
   image-rendering: optimizeSpeed; /* Older versions of FF */
   image-rendering: -moz-crisp-edges; /* FF 6.0+ */
@@ -36,5 +52,6 @@ body { background: #066; }
   margin: 0 auto;
 }
 </style>
-<canvas id=game width=256 height=256></canvas>
+<div id=messages></div>
+<canvas id=game></canvas>
 <script id=ks src=klondike.js></script>
