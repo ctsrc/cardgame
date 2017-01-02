@@ -59,13 +59,7 @@ make
 
 For klondike, I have decided to let the system package manager manage
 the CHICKEN Scheme runtime library and, where applicable, libbsd,
-but to bundle the CHICKEN Scheme extensions (eggs).
-
-In this way, every run-time dependency available via the system package manager
-is provided by it and everything else is provided alongside of klondike.
-This should make building packages for distribution as painless as possible.
-If CHICKEN Scheme eggs were available in FreeBSD pkg, Fedora dnf and
-Debian apt official and default repositories, I would use those.
+but to bundle the CHICKEN Scheme extensions (eggs) in the build.
 
 ```bash
 # FreeBSD
