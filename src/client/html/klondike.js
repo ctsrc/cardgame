@@ -276,6 +276,12 @@ class StackOfCards extends Array
 		StackOfCards.prototype.push.apply(this, cards);
 	}
 
+	// XXX: https://bugs.chromium.org/p/chromium/issues/detail?id=615638
+	static get [Symbol.species] ()
+	{
+		return Array;
+	}
+
 	push (card)
 	{
 		super.push(card);
