@@ -8,6 +8,7 @@ https://www.nordstroem.no/en-US/games/klondike/
 ## Table of Contents
 
 * [Supported Server Platforms](#supported-server-platforms)
+* [Security](#security)
 * [Build](#build)
   - [Install Server Build Dependencies](#install-server-build-dependencies)
   - [Perform Build](#perform-build)
@@ -15,7 +16,6 @@ https://www.nordstroem.no/en-US/games/klondike/
   - [Install Server Run-Time Dependencies](#install-server-run-time-dependencies)
   - [Run to the Hills](#run-to-the-hills)
 * [Debug](#debug)
-* [Security](#security)
 * [External Issues Reported During Project](#external-issues-reported-during-project)
 * [Copyright and License](#copyright-and-license)
 
@@ -24,6 +24,10 @@ https://www.nordstroem.no/en-US/games/klondike/
 * FreeBSD 11.0
 * Fedora 23
 * Debian GNU/Linux 8
+
+## Security
+
+TODO: Describe.
 
 ## Build
 
@@ -90,10 +94,6 @@ sudo pip3 install -r requirements.txt
 ```bash
 ./build/$( cc -dumpmachine )/debug/klondike
 ```
-
-## Security
-
-TODO: Describe.
 
 ## External Issues Reported During Project
 
