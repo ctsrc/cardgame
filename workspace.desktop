@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Klondike Workspace
-Comment=
-Exec=urxvt256c-ml -e ~/src/github.com/eriknstr/klondike/workspace.bash
-Terminal=false
-Type=Application
-Icon=applications-developer-tools
