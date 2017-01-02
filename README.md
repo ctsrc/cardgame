@@ -7,7 +7,6 @@ https://www.nordstroem.no/en-US/games/klondike/
 
 ## Table of Contents
 
-* [External Issues Reported During Project](#external-issues-reported-during-project)
 * [Supported Server Platforms](#supported-server-platforms)
 * [Server Build Dependencies](#server-build-dependencies)
   - [Install Server Build Dependencies on FreeBSD](#install-server-build-dependencies-on-freebsd)
@@ -21,13 +20,8 @@ https://www.nordstroem.no/en-US/games/klondike/
 * [Run](#run)
 * [Debug](#debug)
 * [Security](#security)
+* [External Issues Reported During Project](#external-issues-reported-during-project)
 * [Copyright and License](#copyright-and-license)
-
-## External Issues Reported During Project
-
-* Mozilla bug tracker: [Issue #1275421](https://bugzilla.mozilla.org/show_bug.cgi?id=1275421)
-* WebKit bug tracker: [Issue #158106](https://bugs.webkit.org/show_bug.cgi?id=158106)
-* Chromium bug tracker: [Issue #615638](https://bugs.chromium.org/p/chromium/issues/detail?id=615638)
 
 ## Supported Server Platforms
 
@@ -179,6 +173,12 @@ make
 ## Security
 
 TODO: Describe.
+
+## External Issues Reported During Project
+
+* Mozilla bug tracker: [Issue #1275421](https://bugzilla.mozilla.org/show_bug.cgi?id=1275421)
+* WebKit bug tracker: [Issue #158106](https://bugs.webkit.org/show_bug.cgi?id=158106)
+* Chromium bug tracker: [Issue #615638](https://bugs.chromium.org/p/chromium/issues/detail?id=615638)
 
 ## Copyright and License
 
