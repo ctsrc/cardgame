@@ -159,8 +159,6 @@ function acceptableFramerate (drawscale)
 	return i == 52;
 }
 
-function between (lb, ub) { return  }
-
 var ds_lb = DRAWSCALE_MIN;
 var ds_ub = DRAWSCALE_RETINA;
 
