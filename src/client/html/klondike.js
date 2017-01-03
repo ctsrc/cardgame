@@ -493,9 +493,9 @@ table.initialize = function ()
 	{
 		/*
 		 * XXX: I prefer prototype call. I find it
-		 *      to be more readable than calling
-		 *      concat on first array with
-		 *      the others as arguments.
+		 *	to be more readable than calling
+		 *	concat on first array with
+		 *	the others as arguments.
 		 */
 		return Array.prototype.concat.call(
 			this.deck.getRLVisible(),
