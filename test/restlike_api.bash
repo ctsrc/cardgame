@@ -2,6 +2,8 @@
 
 # Obviously, this is not proper testing - it's just a draft.
 
+set -euo pipefail
+
 uid=a1
 token=04c50e95-eb99-4758-8686-121c44b2f290
 
