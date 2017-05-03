@@ -14,16 +14,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-document.body.addEventListener('touchmove', function (event) {
-	event.preventDefault();
-}, false);
+document.body.addEventListener('touchmove', (e) => { e.preventDefault(); });
 
 const OPTS = window.location.search.replace("?", "").split('&');
-const DEBUG = !!OPTS.find(function (e) { return e === 'DEBUG'; });
+const DEBUG = !!OPTS.find((e) => { return e === 'DEBUG'; });
 console.log('DEBUG: ' + DEBUG);
-const LOWRES = !!OPTS.find(function (e) { return e === 'LOWRES'; });
+const LOWRES = !!OPTS.find((e) => { return e === 'LOWRES'; });
 console.log('LOWRES: ' + LOWRES);
-const NORESIZE = !!OPTS.find(function (e) { return e === 'NORESIZE'; });
+const NORESIZE = !!OPTS.find((e) => { return e === 'NORESIZE'; });
 console.log('NORESIZE: ' + NORESIZE);
 
 // Base units
@@ -88,7 +86,7 @@ const GFTX = GF.getContext('2d');
 
 const M = document.getElementById('messages');
 
-function displayMessage (msgt, msgc)
+let displayMessage = (msgt, msgc) =>
 {
 	var msg = document.createElement('p');
 	msg.className = msgc;
@@ -96,13 +94,13 @@ function displayMessage (msgt, msgc)
 	M.appendChild(msg);
 }
 
-function displayError (msgt)
+let displayError = (msgt) =>
 {
 	G.style.display = 'none';
 	displayMessage('ERROR: ' + msgt, 'err');
 }
 
-function resetDisplay ()
+let resetDisplay = () =>
 {
 	while (M.firstChild) {
 		M.removeChild(M.firstChild);
@@ -112,7 +110,7 @@ function resetDisplay ()
 }
 
 // Returns the new width of rectangle that will make it fit within dw x dh.
-function fitRectNearEightToDims (cw, ch, dw, dh)
+let fitRectNearEightToDims = (cw, ch, dw, dh) =>
 {
 	console.log('Wish to fit ' + cw + 'x' + ch + ' to ' + dw + 'x' + dh);
 
@@ -138,7 +136,7 @@ const DRAWSCALE_RETINA = LOWRES ? 16 : Math.floor(fitRectNearEightToDims(
 	/ AREABU.g.width);
 console.log('DRAWSCALE_RETINA: ' + DRAWSCALE_RETINA);
 
-function acceptableFramerate (drawscale)
+let acceptableFramerate = (drawscale) =>
 {
 	G.width = AREABU.g.width * drawscale;
 	G.height = AREABU.g.height * drawscale;
@@ -232,17 +230,17 @@ const FACE_UP = Math.pow(2, 7);
 const MASK_COLOR = 7 << 4;
 const MASK_RANK = 15;
 
-function isFacingUp (card)
+let isFacingUp = (card) =>
 {
 	return card & FACE_UP;
 }
 
-function getColor (card)
+let getColor = (card) =>
 {
 	return (card & MASK_COLOR) >> 4;
 }
 
-function getRank (card)
+let getRank = (card) =>
 {
 	return card & MASK_RANK;
 }
@@ -282,6 +280,9 @@ class StackOfCards extends Array
 
 	push (card)
 	{
+		console.log('StackOfCards pushing card');
+		console.log(card);
+
 		super.push(card);
 	}
 
@@ -362,6 +363,89 @@ class StackOfCards extends Array
 	}
 }
 
+/*
+ * XXX: WasteStackOfStackOfCards holds multiple StackOfCards instances,
+ *	each of which holds up to three cards. Meanwhile, WSOSOC appears
+ *	externally like any other StackOfCards. Talk about hiding
+ *	complexity, eh :)
+ */
+class WasteStackOfStacksOfCards extends StackOfCards
+{
+	constructor (cards, x, y, z)
+	{
+		super();
+
+		this.x = x;
+		this.y = y;
+		this.z = z;
+
+		var stacksoc = [];
+
+		while (cards.length > 3)
+		{
+			stacksoc.append(new StackOfCards(
+				cards.splice(3), x, y, z));
+		}
+
+		if (cards.length)
+		{
+			stacksoc.append(new StackOfCards(cards, x, y, z));
+		}
+
+		StackOfCards.prototype.push.apply(this, stacksoc);
+	}
+
+	push (card)
+	{
+		console.log('WSOSOC pushing card ' + card);
+
+		if (!this.length || this[this.length - 1].length == 3)
+		{
+			StackOfCards.prototype.push.apply(
+				this, [new StackOfCards(
+					[], this.x, this.y, this.z)]);
+		}
+
+		this[this.length - 1].push(card);
+
+		console.log(this);
+
+		return this.length;
+	}
+
+	getLocalCoordXCardByIdx (idx)
+	{
+		console.log('WSOC gLCXCBI, idx: ' + idx);
+		return BU.margin.elem_horz * (idx % 3);
+	}
+
+	getRLVisible ()
+	{
+		if (this.length)
+		{
+			console.log('WSOSC getRLVisible');
+			console.log(this[this.length - 1].getRLVisible());
+			return this[this.length - 1].getRLVisible();
+		}
+		else
+		{
+			return [];
+		}
+	}
+
+	getRLPutable ()
+	{
+		if (this.length)
+		{
+			return this[this.length - 1].getRLPutable();
+		}
+		else
+		{
+			return [];
+		}
+	}
+}
+
 class FoundationStackOfCards extends StackOfCards
 {
 	constructor (cards, x, y, z)
@@ -409,9 +493,18 @@ class TableauStackOfCards extends StackOfCards
 	}
 }
 
-StackOfCards.prototype.push.apply = function (obj, cards)
+StackOfCards.prototype.push.apply = (obj, cards) =>
 {
 	Array.prototype.push.apply(obj, cards);
+}
+
+WasteStackOfStacksOfCards.prototype.push.apply = (obj, cards) =>
+{
+	console.log('WSOC.prot.push.apply, len: ' + cards.length);
+	for (i in cards)
+	{
+		obj.push(cards[i]);
+	}
 }
 
 var table = {};
@@ -420,22 +513,18 @@ table.y = 0;
 table.z = 0;
 table.foundation = [];
 table.tableau = [];
-table.initialize = function ()
+table.initialize = () =>
 {
-	this.deck = new StackOfCards([],
+	this.table.deck = new StackOfCards([],
 		this.x + BU.margin.left, this.y + BU.margin.top, this.z);
 
-	this.waste = new StackOfCards([],
+	this.table.waste = new WasteStackOfStacksOfCards([],
 		this.x + BU.margin.left + BU.card.width + BU.margin.elem_horz,
 		this.y + BU.margin.top, this.z);
-	this.waste.getLocalCoordXCardByIdx = function (idx)
-	{
-		return BU.margin.elem_horz * (idx % 3);
-	};
 
 	for (var i = 0 ; i < 4 ; i++)
 	{
-		this.foundation.push(new FoundationStackOfCards([],
+		this.table.foundation.push(new FoundationStackOfCards([],
 			this.x + BU.margin.left
 				+ (3 + i) * (BU.card.width
 					+ BU.margin.elem_horz),
@@ -444,7 +533,7 @@ table.initialize = function ()
 
 	for (var i = 0 ; i < 7 ; i++)
 	{
-		this.tableau.push(new TableauStackOfCards([],
+		this.table.tableau.push(new TableauStackOfCards([],
 			this.x + BU.margin.left
 				+ i * (BU.card.width + BU.margin.elem_horz),
 			this.y + BU.margin.top + BU.card.height
@@ -461,13 +550,15 @@ table.initialize = function ()
 	{
 		cards[i] = UNKNOWNCARD;
 	}
-	StackOfCards.prototype.push.apply(this.deck, cards);
+	this.table.deck.push.apply(this.table.deck, cards);
 
 	// Waste is empty as it should be. No further initialization required.
 	// Initialize with a few cards for testing.
-	StackOfCards.prototype.push.apply(this.waste,
+	console.log('hurr');
+	this.table.waste.push.apply(this.table.waste,
 		[43 | FACE_UP, 42 | FACE_UP, 41 | FACE_UP,
-			36 | FACE_UP, 18 | FACE_UP, 17 | FACE_UP]);
+			36 | FACE_UP, 18 | FACE_UP]);
+	console.log('durr');
 
 	// Foundations are empty as they should be.
 
@@ -479,17 +570,17 @@ table.initialize = function ()
 		{
 			cards[j] = UNKNOWNCARD;
 		}
-		StackOfCards.prototype.push.apply(this.tableau[i], cards);
+		this.table.tableau[i].push.apply(this.table.tableau[i], cards);
 	}
-	this.tableau[0].push(21 | FACE_UP);
-	this.tableau[1].push(19 | FACE_UP);
-	this.tableau[2].push(61 | FACE_UP);
-	this.tableau[3].push(56 | FACE_UP);
-	this.tableau[4].push(52 | FACE_UP);
-	this.tableau[5].push(49 | FACE_UP);
-	this.tableau[6].push(44 | FACE_UP);
+	this.table.tableau[0].push(21 | FACE_UP);
+	this.table.tableau[1].push(19 | FACE_UP);
+	this.table.tableau[2].push(61 | FACE_UP);
+	this.table.tableau[3].push(56 | FACE_UP);
+	this.table.tableau[4].push(52 | FACE_UP);
+	this.table.tableau[5].push(49 | FACE_UP);
+	this.table.tableau[6].push(44 | FACE_UP);
 
-	this.getRLVisible = function ()
+	this.table.getRLVisible = () =>
 	{
 		/*
 		 * XXX: I prefer prototype call. I find it
@@ -498,58 +589,58 @@ table.initialize = function ()
 		 *	the others as arguments.
 		 */
 		return Array.prototype.concat.call(
-			this.deck.getRLVisible(),
-			this.waste.getRLVisible(),
-			this.foundation[0].getRLVisible(),
-			this.foundation[1].getRLVisible(),
-			this.foundation[2].getRLVisible(),
-			this.foundation[3].getRLVisible(),
-			this.tableau[0].getRLVisible(),
-			this.tableau[1].getRLVisible(),
-			this.tableau[2].getRLVisible(),
-			this.tableau[3].getRLVisible(),
-			this.tableau[4].getRLVisible(),
-			this.tableau[5].getRLVisible(),
-			this.tableau[6].getRLVisible());
+			this.table.deck.getRLVisible(),
+			this.table.waste.getRLVisible(),
+			this.table.foundation[0].getRLVisible(),
+			this.table.foundation[1].getRLVisible(),
+			this.table.foundation[2].getRLVisible(),
+			this.table.foundation[3].getRLVisible(),
+			this.table.tableau[0].getRLVisible(),
+			this.table.tableau[1].getRLVisible(),
+			this.table.tableau[2].getRLVisible(),
+			this.table.tableau[3].getRLVisible(),
+			this.table.tableau[4].getRLVisible(),
+			this.table.tableau[5].getRLVisible(),
+			this.table.tableau[6].getRLVisible());
 	};
 
-	this.getRLPickable = function ()
+	this.table.getRLPickable = () =>
 	{
 		return Array.prototype.concat.call(
-			this.waste.getRLPickable(),
-			this.foundation[0].getRLPickable(),
-			this.foundation[1].getRLPickable(),
-			this.foundation[2].getRLPickable(),
-			this.foundation[3].getRLPickable(),
-			this.tableau[0].getRLPickable(),
-			this.tableau[1].getRLPickable(),
-			this.tableau[2].getRLPickable(),
-			this.tableau[3].getRLPickable(),
-			this.tableau[4].getRLPickable(),
-			this.tableau[5].getRLPickable(),
-			this.tableau[6].getRLPickable());
+			this.table.waste.getRLPickable(),
+			this.table.foundation[0].getRLPickable(),
+			this.table.foundation[1].getRLPickable(),
+			this.table.foundation[2].getRLPickable(),
+			this.table.foundation[3].getRLPickable(),
+			this.table.tableau[0].getRLPickable(),
+			this.table.tableau[1].getRLPickable(),
+			this.table.tableau[2].getRLPickable(),
+			this.table.tableau[3].getRLPickable(),
+			this.table.tableau[4].getRLPickable(),
+			this.table.tableau[5].getRLPickable(),
+			this.table.tableau[6].getRLPickable());
 	};
 
-	this.getRLPutable = function ()
+	this.table.getRLPutable = () =>
 	{
 		return Array.prototype.concat.call(
-			this.foundation[0].getRLPutable(),
-			this.foundation[1].getRLPutable(),
-			this.foundation[2].getRLPutable(),
-			this.foundation[3].getRLPutable(),
-			this.tableau[0].getRLPutable(),
-			this.tableau[1].getRLPutable(),
-			this.tableau[2].getRLPutable(),
-			this.tableau[3].getRLPutable(),
-			this.tableau[4].getRLPutable(),
-			this.tableau[5].getRLPutable(),
-			this.tableau[6].getRLPutable());
+			this.table.foundation[0].getRLPutable(),
+			this.table.foundation[1].getRLPutable(),
+			this.table.foundation[2].getRLPutable(),
+			this.table.foundation[3].getRLPutable(),
+			this.table.tableau[0].getRLPutable(),
+			this.table.tableau[1].getRLPutable(),
+			this.table.tableau[2].getRLPutable(),
+			this.table.tableau[3].getRLPutable(),
+			this.table.tableau[4].getRLPutable(),
+			this.table.tableau[5].getRLPutable(),
+			this.table.tableau[6].getRLPutable());
 	};
 };
 
 table.initialize();
 
-function renderCard (ctx, card, x, y)
+let renderCard = (ctx, card, x, y) =>
 {
 	const _symb_color = ['', '♥', '♠', '♦', '♣', ''];
 
@@ -602,17 +693,17 @@ function renderCard (ctx, card, x, y)
 	}
 }
 
-function cardRenderer (ctx)
+let cardRenderer = (ctx) =>
 {
-	return function (rc, idx)
+	return (rc, idx) =>
 	{
 		renderCard(ctx, rc.card, rc.x, rc.y);
 	}
 }
 
-function cardIdxRenderer (ctx)
+let cardIdxRenderer = (ctx) =>
 {
-	return function (rc, idx)
+	return (rc, idx) =>
 	{
 		ctx.fillStyle = 'rgb(' + (4 * idx + 1) + ',0,0)';
 		ctx.fillRect(
@@ -628,40 +719,40 @@ hand.x = 0;
 hand.y = 0;
 hand.offs_x = 0;
 hand.offs_y = 0;
-hand.getLocalCoordYCardByIdx = function (idx)
+hand.getLocalCoordYCardByIdx = (idx) =>
 {
 	return BU.margin.elem_vert * idx;
 };
 
 var renderRenderableCardToTable = cardRenderer(TTX);
-function renderTable ()
+let renderTable = () =>
 {
 	TTX.clearRect(0, 0, T.width, T.height);
 	table.getRLVisible().forEach(renderRenderableCardToTable);
 }
 
 var renderRenderableCardToPickable = cardIdxRenderer(PKTX);
-function renderPickable ()
+let renderPickable = () =>
 {
 	PKTX.clearRect(0, 0, PK.width, PK.height);
 	table.getRLPickable().forEach(renderRenderableCardToPickable);
 }
 
 var renderRenderableCardToPutable = cardIdxRenderer(PTTX);
-function renderPutable ()
+let renderPutable = () =>
 {
 	PTTX.clearRect(0, 0, PT.width, PT.height);
 	table.getRLPutable().forEach(renderRenderableCardToPutable);
 }
 
 var renderRenderableCardToHand = cardRenderer(GFTX);
-function renderHand ()
+let renderHand = () =>
 {
 	GFTX.clearRect(0, 0, GF.width, GF.height);
 	hand.forEach(renderRenderableCardToHand);
 }
 
-function renderGame ()
+let renderGame = () =>
 {
 	GTX.clearRect(0, 0, G.width, G.height);
 
@@ -711,7 +802,7 @@ function renderGame ()
 	}
 }
 
-function adaptToDimsAndRes ()
+let adaptToDimsAndRes = () =>
 {
 	resetDisplay();
 
@@ -808,13 +899,13 @@ function adaptToDimsAndRes ()
 adaptToDimsAndRes();
 
 var id_ra;
-window.onresize = function ()
+window.onresize = () =>
 {
 	clearTimeout(id_ra);
 	id_ra = setTimeout(adaptToDimsAndRes, 64);
 };
 
-function updateHandPosMouse (e)
+let updateHandPosMouse = (e) =>
 {
 	const X = (e.pageX - G.offsetLeft) / (stylescale * drawscale);
 	const Y = (e.pageY - G.offsetTop) / (stylescale * drawscale);
@@ -827,7 +918,7 @@ function updateHandPosMouse (e)
 		Math.min(Y, AREABU.g.height - BU.margin.bottom));
 }
 
-G.addEventListener('mousemove', function (e)
+G.addEventListener('mousemove', (e) =>
 {
 	if (hand.length > 0)
 	{
@@ -835,7 +926,7 @@ G.addEventListener('mousemove', function (e)
 	}
 });
 
-function updateHandPosTouch (e)
+let updateHandPosTouch = (e) =>
 {
 	const X = (e.touches[0].pageX - G.offsetLeft)
 		/ (stylescale * drawscale);
@@ -850,7 +941,7 @@ function updateHandPosTouch (e)
 		Math.min(Y, AREABU.g.height - BU.margin.bottom));
 }
 
-G.addEventListener('touchmove', function (e)
+G.addEventListener('touchmove', (e) =>
 {
 	if (hand.length > 0)
 	{
@@ -858,7 +949,7 @@ G.addEventListener('touchmove', function (e)
 	}
 });
 
-function pick (e)
+let pick = (e) =>
 {
 	const PIXEL = PKTX.getImageData(
 		hand.x * drawscale, hand.y * drawscale, 1, 1);
@@ -887,19 +978,19 @@ function pick (e)
 	}
 }
 
-G.addEventListener('mousedown', function (e)
+G.addEventListener('mousedown', (e) =>
 {
 	updateHandPosMouse(e);
 	pick(e);
 });
 
-G.addEventListener('touchstart', function (e)
+G.addEventListener('touchstart', (e) =>
 {
 	updateHandPosTouch(e);
 	pick(e);
 });
 
-function place (e)
+let place = (e) =>
 {
 	if (hand.length > 0)
 	{
@@ -915,11 +1006,8 @@ function place (e)
 		{
 			tgt = hand[0];
 		}
-		var cards = hand.splice(0).map(function (e)
-		{
-			return e.card;
-		});
-		StackOfCards.prototype.push.apply(tgt.origin, cards);
+		var cards = hand.splice(0).map((e) => { return e.card; });
+		tgt.origin.push.apply(tgt.origin, cards);
 		renderTable();
 		renderPickable();
 	}

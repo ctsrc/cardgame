@@ -1,0 +1,47 @@
+#
+# Nginx config file for klondike.
+#
+# Substitute com.example.www in the file name with the name of your own domain.
+# Substitute www.example.com and api.example.com in the file with own domain.
+#
+# Config file location:
+#
+#   - Fedora: /etc/nginx/conf.d/com.example.www.conf
+#
+#   - Debian: /etc/nginx/sites-available/com.example.www.conf
+#
+#   - FreeBSD: /usr/local/etc/nginx/conf.d/com.example.www.conf
+#
+# On FreeBSD, /usr/local/etc/nginx/nginx.conf must first be changed to be
+# like /etc/nginx/nginx.conf is on Fedora, and /usr/local/etc/nginx/conf.d/
+# must be created.
+#
+# Remember to change the listen directive if wanting to serve on other
+# addresses in addition / instead of on localhost only.
+# See http://nginx.org/en/docs/http/ngx_http_core_module.html#listen.
+# E.g. to listen to port 80 on all IPv4 and all IPv6 addresses,
+# one would use
+#
+# 	listen 80;
+# 	listen [::]:80;
+#
+
+server {
+	listen 127.0.0.1:80;
+	listen [::1]:80;
+	server_name www.example.com;
+
+	root /var/www/com.example.www/pub/htdocs;
+	index index.htm;
+}
+
+server {
+	listen 80;
+	listen [::1]:80;
+	server_name api.example.com;
+
+	location / {
+		include uwsgi_params;
+		uwsgi_pass unix:/var/www/com.example.www/klondike/restlike.sock;
+	}
+}
