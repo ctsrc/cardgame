@@ -245,56 +245,62 @@ let getRank = (card) =>
 	return card & MASK_RANK;
 }
 
-class RenderableCard
+class ChainableCard
 {
-	constructor (card, cur, soc, oidx)
+	constructor (value)
 	{
-		this.card = card;
-		this.cur = cur;
-		this.x = cur.getLocalCoordXCardByIdx(oidx) + cur.x;
-		this.y = cur.getLocalCoordYCardByIdx(oidx) + cur.y;
-		this.z = cur.getLocalCoordZCardByIdx(oidx) + cur.z;
-		this.origin = soc;
-		this.oidx = oidx;
+		this.value = value;
+
+		this.offset_x = 0;
+		this.offset_y = 0;
+		this.offset_z = 0;
+
+		this.child = null;
+	}
+
+	setOffset (x, y, z)
+	{
+		this.offset_x = x;
+		this.offset_y = y;
+		this.offset_z = z;
+	}
+
+	attachChild (child)
+	{
+		if (this.child !== null)
+		{
+			// TODO: Throw exception
+		}
+		else
+		{
+			this.child = child;
+		}
+	}
+
+	detachChild ()
+	{
+		if (this.child === null)
+		{
+			// TODO: Throw exception
+		}
+		else
+		{
+			child = this.child;
+			this.child = null;
+			return child;
+		}
 	}
 }
 
-class StackOfCards extends Array
+class StackPosition
 {
-	constructor (cards, x, y, z)
+	constructor (x, y, z)
 	{
-		super();
-
 		this.x = x;
 		this.y = y;
 		this.z = z;
 
-		StackOfCards.prototype.push.apply(this, cards);
-	}
-
-	// XXX: https://bugs.chromium.org/p/chromium/issues/detail?id=615638
-	static get [Symbol.species] ()
-	{
-		return Array;
-	}
-
-	push (card)
-	{
-		console.log('StackOfCards pushing card');
-		console.log(card);
-
-		super.push(card);
-	}
-
-	splice (idx)
-	{
-		var ret = super.splice(idx);
-
-		ret.x = this.x;
-		ret.y = this.y;
-		ret.z = this.z;
-
-		return ret;
+		this.card = null;
 	}
 
 	getLocalCoordXCardByIdx (idx)
