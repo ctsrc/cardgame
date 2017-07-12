@@ -16,175 +16,6 @@
 
 document.body.addEventListener('touchmove', (e) => { e.preventDefault(); });
 
-const OPTS = window.location.search.replace("?", "").split('&');
-const DEBUG = !!OPTS.find((e) => { return e === 'DEBUG'; });
-console.log('DEBUG: ' + DEBUG);
-const LOWRES = !!OPTS.find((e) => { return e === 'LOWRES'; });
-console.log('LOWRES: ' + LOWRES);
-const NORESIZE = !!OPTS.find((e) => { return e === 'NORESIZE'; });
-console.log('NORESIZE: ' + NORESIZE);
-
-// Base units
-const BU =
-{
-	'card':
-	{
-		'width': 2.5,
-		'height': 3.5,
-		'thickness': 0.012
-	},
-	'margin':
-	{
-		'elem_vert': 0.5,
-		'elem_horz': 0.5,
-		'top': 0.5,
-		'right': 0.5,
-		'bottom': 0.5,
-		'left': 0.5
-	}
-};
-
-// Areas in base units
-const AREABU =
-{
-	'g':
-	{
-		'width': BU.margin.left + 7 * BU.card.width
-			+ 6 * BU.margin.elem_horz + BU.margin.right,
-		'height': BU.margin.top + 2 * BU.card.height
-			+ 25 * BU.margin.elem_vert + BU.margin.bottom
-	},
-	'gf':
-	{
-		'width': BU.card.width,
-		'height': BU.card.height + 12 * BU.margin.elem_horz
-	},
-	'sprt':
-	{
-		'width': 15 * BU.card.width,
-		'height': 6 * BU.card.height
-	}
-};
-
-// Pixel size
-var ps = { 'card': {}, 'margin': {} };
-
-const G = document.getElementById('game');
-const GTX = G.getContext('2d');
-
-const T = document.createElement('canvas');
-const TTX = T.getContext('2d');
-
-const PK = document.createElement('canvas');
-const PKTX = PK.getContext('2d');
-
-const PT = document.createElement('canvas');
-const PTTX = PT.getContext('2d');
-
-const GF = document.createElement('canvas');
-const GFTX = GF.getContext('2d');
-
-const M = document.getElementById('messages');
-
-let displayMessage = (msgt, msgc) =>
-{
-	var msg = document.createElement('p');
-	msg.className = msgc;
-	msg.innerHTML = msgt;
-	M.appendChild(msg);
-}
-
-let displayError = (msgt) =>
-{
-	G.style.display = 'none';
-	displayMessage('ERROR: ' + msgt, 'err');
-}
-
-let resetDisplay = () =>
-{
-	while (M.firstChild) {
-		M.removeChild(M.firstChild);
-	}
-
-	G.style.display = 'block';
-}
-
-// Returns the new width of rectangle that will make it fit within dw x dh.
-let fitRectNearEightToDims = (cw, ch, dw, dh) =>
-{
-	console.log('Wish to fit ' + cw + 'x' + ch + ' to ' + dw + 'x' + dh);
-
-	const WLIM = (cw / ch <= dw / dh) ? Math.floor(dh * cw / ch) : dw;
-
-	return WLIM - WLIM % 8;
-}
-
-const DRAWSCALE_MIN = LOWRES ? 16 : Math.ceil(512 / AREABU.g.width);
-console.log('DRAWSCALE_MIN: ' + DRAWSCALE_MIN);
-
-/*
- * To the extent permitted by the frame time of 16 ms, we want to draw
- * at a resolution up to twice the one reported by the browser. The idea is to
- * try and look good on retina displays. I don't yet know if it actually does.
- * Will sometimes produce jagged edges on straight lines in Firefox
- * on my non-retina computer but that's part of the fun so I'm keeping this.
- */
-
-const DRAWSCALE_RETINA = LOWRES ? 16 : Math.floor(fitRectNearEightToDims(
-		AREABU.g.width, AREABU.g.height,
-		2 * screen.width, 2 * screen.height)
-	/ AREABU.g.width);
-console.log('DRAWSCALE_RETINA: ' + DRAWSCALE_RETINA);
-
-let acceptableFramerate = (drawscale) =>
-{
-	G.width = AREABU.g.width * drawscale;
-	G.height = AREABU.g.height * drawscale;
-
-	var i = 0;
-	for (const START = new Date().getTime() ;
-		i < 52 && new Date().getTime() - START <= 16; i++)
-	{
-		GTX.fillStyle = 'rgb(' +
-			Math.floor(Math.random() * 255) + ', ' +
-			Math.floor(Math.random() * 255) + ', ' +
-			Math.floor(Math.random() * 255) + ')';
-		GTX.fillRect(
-			Math.random() * G.width, Math.random() * G.height,
-			Math.random() * G.width, Math.random() * G.height);
-	}
-
-	return i == 52;
-}
-
-var ds_lb = DRAWSCALE_MIN;
-var ds_ub = DRAWSCALE_RETINA;
-
-var ds_accept_last = false;
-do
-{
-	drawscale = ds_lb + Math.ceil((ds_ub - ds_lb)/2);
-	console.log('Trying drawscale `' + drawscale + "'");
-	ds_accept_last = acceptableFramerate(drawscale);
-	if (ds_accept_last)
-	{
-		ds_lb = drawscale;
-	}
-	else
-	{
-		ds_ub = drawscale;
-	}
-} while (ds_ub - ds_lb > 0);
-if (!ds_accept_last)
-{
-	displayError('Unable to find an acceptable '
-		+ 'resolution, frame rate pair.');
-	throw('FATAL ERROR :(');
-}
-
-const DRAWSCALE_MAX = drawscale;
-console.log('DRAWSCALE_MAX: ' + DRAWSCALE_MAX);
-
 const enum_color =
 {
 	NO_COLOR : 0,
@@ -214,62 +45,48 @@ const enum_rank =
 	UNKNOWN_RANK : 14
 };
 
-var stylescale = 1;
-
-const enum_lc =
-{
-	NO_USE_LOCAL_COORDS : 0,
-	USE_LOCAL_COORDS : 1
-};
-
 const NULLCARD = 0;
 const UNKNOWNCARD = 94;
 
-const FACE_UP = Math.pow(2, 7);
-
-const MASK_COLOR = 7 << 4;
-const MASK_RANK = 15;
-
-let isFacingUp = (card) =>
+let isFacingUp = (value) =>
 {
-	return card & FACE_UP;
+	return value & (1 << 7);
 }
 
-let getColor = (card) =>
+let getColor = (value) =>
 {
-	return (card & MASK_COLOR) >> 4;
+	return (value & (7 << 4)) >> 4;
 }
 
-let getRank = (card) =>
+let getRank = (value) =>
 {
-	return card & MASK_RANK;
+	return value & 15;
 }
 
-class ChainableCard
+// XXX: How cards are stacked
+const enum_stacking =
 {
-	constructor (value)
+	ONE_STACK : 0,
+	TOP_THREE_HORZ : 1,
+	VERT_SPACE : 2,
+	INHERIT : 3
+};
+
+class ParentToCard
+{
+	constructor (cdims, margs, stacking)
 	{
-		this.value = value;
-
-		this.offset_x = 0;
-		this.offset_y = 0;
-		this.offset_z = 0;
-
+		this.cdims = cdims;
+		this.margs = margs;
 		this.child = null;
+		this.stacking = stacking;
 	}
 
-	setOffset (x, y, z)
-	{
-		this.offset_x = x;
-		this.offset_y = y;
-		this.offset_z = z;
-	}
-
-	attachChild (child)
+	setChild (child)
 	{
 		if (this.child !== null)
 		{
-			// TODO: Throw exception
+			throw 'Attempted to set child where already set.';
 		}
 		else
 		{
@@ -281,744 +98,504 @@ class ChainableCard
 	{
 		if (this.child === null)
 		{
-			// TODO: Throw exception
+			throw 'Attempted to detach child where not set.';
 		}
 		else
 		{
-			child = this.child;
+			let child = this.child;
 			this.child = null;
 			return child;
 		}
 	}
-}
 
-class StackPosition
-{
-	constructor (x, y, z)
+	countChildren ()
 	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		let count = 0;
+		let curr = this;
 
-		this.card = null;
-	}
-
-	getLocalCoordXCardByIdx (idx)
-	{
-		return 0;
-	}
-
-	getLocalCoordYCardByIdx (idx)
-	{
-		return 0;
-	}
-
-	getLocalCoordZCardByIdx (idx)
-	{
-		return BU.card.thickness * idx;
-	}
-
-	getRLVisible ()
-	{
-		var ret = Array(this.length);
-
-		for (var i = 0 ; i < this.length ; i++)
+		while (curr.child !== null)
 		{
-			ret.push(new RenderableCard(this[i], this, this, i));
-		}
-		if (this.length == 0)
-		{
-			ret.push(new RenderableCard(NULLCARD, this, this, 0));
+			curr = curr.child;
+			count++;
 		}
 
-		return ret;
+		return count;
 	}
 
-	// Topmost pickable by default
-	getRLPickable ()
+	/*
+	 * Returns the child offset by n (zero index) if it exists,
+	 *   where a negative requested index means counting
+	 *   backward from the end,
+	 * returns null if exactly off by one,
+	 * throws an exception if out of bounds.
+	 */
+	getChildN (n)
 	{
-		if (this.length > 0)
+		let curr = this.child;
+
+		if (n > 0)
 		{
-			return [new RenderableCard(
-				this[this.length - 1],
-				this,
-				this,
-				this.length - 1)];
-		}
-		else
-		{
-			return [];
-		}
-	}
-
-	putable ()
-	{
-		return false;
-	}
-
-	getRLPutable ()
-	{
-		if (this.putable())
-		{
-			return [new RenderableCard(
-				this[this.length - 1],
-				this,
-				this,
-				this.length - 1)];
-		}
-	}
-}
-
-/*
- * XXX: WasteStackOfStackOfCards holds multiple StackOfCards instances,
- *	each of which holds up to three cards. Meanwhile, WSOSOC appears
- *	externally like any other StackOfCards. Talk about hiding
- *	complexity, eh :)
- */
-class WasteStackOfStacksOfCards extends StackOfCards
-{
-	constructor (cards, x, y, z)
-	{
-		super();
-
-		this.x = x;
-		this.y = y;
-		this.z = z;
-
-		var stacksoc = [];
-
-		while (cards.length > 3)
-		{
-			stacksoc.append(new StackOfCards(
-				cards.splice(3), x, y, z));
-		}
-
-		if (cards.length)
-		{
-			stacksoc.append(new StackOfCards(cards, x, y, z));
-		}
-
-		StackOfCards.prototype.push.apply(this, stacksoc);
-	}
-
-	push (card)
-	{
-		console.log('WSOSOC pushing card ' + card);
-
-		if (!this.length || this[this.length - 1].length == 3)
-		{
-			StackOfCards.prototype.push.apply(
-				this, [new StackOfCards(
-					[], this.x, this.y, this.z)]);
-		}
-
-		this[this.length - 1].push(card);
-
-		console.log(this);
-
-		return this.length;
-	}
-
-	getLocalCoordXCardByIdx (idx)
-	{
-		console.log('WSOC gLCXCBI, idx: ' + idx);
-		return BU.margin.elem_horz * (idx % 3);
-	}
-
-	getRLVisible ()
-	{
-		if (this.length)
-		{
-			console.log('WSOSC getRLVisible');
-			console.log(this[this.length - 1].getRLVisible());
-			return this[this.length - 1].getRLVisible();
-		}
-		else
-		{
-			return [];
-		}
-	}
-
-	getRLPutable ()
-	{
-		if (this.length)
-		{
-			return this[this.length - 1].getRLPutable();
-		}
-		else
-		{
-			return [];
-		}
-	}
-}
-
-class FoundationStackOfCards extends StackOfCards
-{
-	constructor (cards, x, y, z)
-	{
-		super(cards, x, y, z);
-	}
-
-	putable ()
-	{
-		return true; // TODO
-	}
-}
-
-class TableauStackOfCards extends StackOfCards
-{
-	constructor (cards, x, y, z)
-	{
-		super(cards, x, y, z);
-	}
-
-	getLocalCoordYCardByIdx (idx)
-	{
-		return BU.margin.elem_vert * idx;
-	}
-
-	putable ()
-	{
-		return true; // TODO
-	}
-
-	getRLPickable ()
-	{
-		var ret = [];
-
-		for (var i = 0 ; i < this.length ; i++)
-		{
-			if (isFacingUp(this[i]))
+			let i = 0;
+			while (curr !== null && i < n)
 			{
-				ret.push(new RenderableCard(
-					this[i], this, this, i));
+				curr = curr.child;
+				i++;
+			}
+
+			if (i < n)
+			{
+				throw 'Attempted to get child out of bounds.';
 			}
 		}
-
-		return ret;
-	}
-}
-
-StackOfCards.prototype.push.apply = (obj, cards) =>
-{
-	Array.prototype.push.apply(obj, cards);
-}
-
-WasteStackOfStacksOfCards.prototype.push.apply = (obj, cards) =>
-{
-	console.log('WSOC.prot.push.apply, len: ' + cards.length);
-	for (i in cards)
-	{
-		obj.push(cards[i]);
-	}
-}
-
-var table = {};
-table.x = 0;
-table.y = 0;
-table.z = 0;
-table.foundation = [];
-table.tableau = [];
-table.initialize = () =>
-{
-	this.table.deck = new StackOfCards([],
-		this.x + BU.margin.left, this.y + BU.margin.top, this.z);
-
-	this.table.waste = new WasteStackOfStacksOfCards([],
-		this.x + BU.margin.left + BU.card.width + BU.margin.elem_horz,
-		this.y + BU.margin.top, this.z);
-
-	for (var i = 0 ; i < 4 ; i++)
-	{
-		this.table.foundation.push(new FoundationStackOfCards([],
-			this.x + BU.margin.left
-				+ (3 + i) * (BU.card.width
-					+ BU.margin.elem_horz),
-			this.y + BU.margin.top, this.z));
-	}
-
-	for (var i = 0 ; i < 7 ; i++)
-	{
-		this.table.tableau.push(new TableauStackOfCards([],
-			this.x + BU.margin.left
-				+ i * (BU.card.width + BU.margin.elem_horz),
-			this.y + BU.margin.top + BU.card.height
-				+ BU.margin.elem_vert,
-			this.z));
-	}
-
-	// TODO: Get initial state from server.
-
-	// Initialize deck
-	//for (var i = 0 ; i < 24 ; i++)
-	var cards = [];
-	for (var i = 0 ; i < 18 ; i++)
-	{
-		cards[i] = UNKNOWNCARD;
-	}
-	this.table.deck.push.apply(this.table.deck, cards);
-
-	// Waste is empty as it should be. No further initialization required.
-	// Initialize with a few cards for testing.
-	console.log('hurr');
-	this.table.waste.push.apply(this.table.waste,
-		[43 | FACE_UP, 42 | FACE_UP, 41 | FACE_UP,
-			36 | FACE_UP, 18 | FACE_UP]);
-	console.log('durr');
-
-	// Foundations are empty as they should be.
-
-	// Initialize tableaus
-	for (var i = 0 ; i < 7 ; i++)
-	{
-		var cards = [];
-		for (var j = 0 ; j < i ; j++)
+		else if (n < 0)
 		{
-			cards[j] = UNKNOWNCARD;
-		}
-		this.table.tableau[i].push.apply(this.table.tableau[i], cards);
-	}
-	this.table.tableau[0].push(21 | FACE_UP);
-	this.table.tableau[1].push(19 | FACE_UP);
-	this.table.tableau[2].push(61 | FACE_UP);
-	this.table.tableau[3].push(56 | FACE_UP);
-	this.table.tableau[4].push(52 | FACE_UP);
-	this.table.tableau[5].push(49 | FACE_UP);
-	this.table.tableau[6].push(44 | FACE_UP);
+			let tail = this.getChildN(-n);
 
-	this.table.getRLVisible = () =>
+			while (tail !== null)
+			{
+				curr = curr.child;
+				tail = tail.child;
+			}
+		}
+		// else if n !== 0 do we not bother to check for.
+		// else n === 0, we already have the requested child.
+
+		return curr;
+	}
+
+	/*
+	 * Returns the nth-last-most child if it exists,
+	 * returns the first child (may be null) otherwise.
+	 * Throws an exception if n <= 0.
+	 */
+	getDownToNthLastChild (n)
+	{
+		if (n <= 0)
+		{
+			throw 'Requested n is out of range. Need n > 0.';
+		}
+
+		if (this.countChildren() > n)
+		{
+			return this.getChildN(-n);
+		}
+		else
+		{
+			return this.child;
+		}
+	}
+
+	render (ctx, sx, sy, z)
+	{
+		// TODO: Clear previous parts otherwise not overwritten.
+
+		let curr = this.child;
+
+		if (this.stacking === enum_stacking.ONE_STACK)
+		{
+			curr = this.getDownToNthLastChild(1);
+		}
+		else if (this.stacking === enum_stacking.TOP_THREE_HORZ)
+		{
+			curr = this.getDownToNthLastChild(3);
+		}
+
+		while (curr !== null)
+		{
+			if (this.stacking === enum_stacking.TOP_THREE_HORZ)
+			{
+				sx += this.margs.cmin_x; // TODO
+			}
+			else if (this.stacking === enum_stacking.VERT_SPACE)
+			{
+				sy += this.margs.cmin_y;
+			}
+
+			curr.render(ctx, sx, sy, z);
+			curr = curr.child;
+		}
+	}
+}
+
+class ChainableCard extends ParentToCard
+{
+	constructor (cdims, margs, id)
+	{
+		super(cdims, margs, enum_stacking.INHERIT);
+		this.parent = null;
+
+		this.id = id;
+
+		this.value = UNKNOWNCARD;
+	}
+
+	replaceParent (new_parent)
+	{
+		let old_parent = this.parent;
+
+		this.parent.detachChild();
+		new_parent.setChild(this);
+		this.parent = new_parent;
+
+		return old_parent;
+	}
+
+	setParent (new_parent)
+	{
+		if (this.parent !== null)
+		{
+			throw 'Attempted to set parent where already set.';
+		}
+		else
+		{
+			new_parent.setChild(this);
+			this.parent = new_parent;
+		}
+	}
+
+	renderHitable ()
+	{
+		// TODO
+	}
+}
+
+class CardLocation extends ParentToCard
+{
+	constructor (cdims, margs, x, y, z, stacking)
+	{
+		super(cdims, margs, stacking);
+
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+}
+
+class Deck extends CardLocation
+{
+	constructor (cdims, margs, x, y, z)
+	{
+		super(cdims, margs, x, y, z, enum_stacking.ONE_STACK);
+	}
+
+	renderTouchActionable ()
+	{
+		// TODO
+	}
+}
+
+renderTopmostPickable = function ()
+{
+	// TODO
+}
+
+class Waste extends CardLocation
+{
+	constructor (cdims, margs, x, y, z)
+	{
+		super(cdims, margs, x, y, z, enum_stacking.TOP_THREE_HORZ);
+	}
+}
+Waste.prototype.renderPickable = renderTopmostPickable;
+
+class Foundation extends CardLocation
+{
+	constructor (cdims, margs, x, y, z)
+	{
+		super(cdims, margs, x, y, z, enum_stacking.ONE_STACK);
+	}
+
+	renderPutable (card)
+	{
+		// TODO
+	}
+}
+Foundation.prototype.renderPickable = renderTopmostPickable;
+
+class Tableau extends CardLocation
+{
+	constructor (cdims, margs, x, y, z)
+	{
+		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE);
+	}
+
+	renderPickable ()
+	{
+	}
+
+	renderPutable (card)
+	{
+	}
+}
+
+class Hand extends CardLocation
+{
+	constructor (cdims, margs, x, y, z)
+	{
+		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE);
+	}
+}
+
+class CardDims
+{
+	constructor (cw, ch, ct)
+	{
+		this.cw = cw; // Width
+		this.ch = ch; // Height
+		this.ct = ct; // Thickness
+	}
+}
+
+class Margins
+{
+	constructor (cmin_x, cmin_y, ttop, tright, tbottom, tleft)
+	{
+		this.cmin_x = cmin_x; // Min dist cards horizontal
+		this.cmin_y = cmin_y; // Min dist cards vertical
+		this.ttop = ttop; // Table top
+		this.tright = tright; // Table right
+		this.tbottom = tbottom; // Table bottom
+		this.tleft = tleft; // Table left
+	}
+}
+
+class Table
+{
+	constructor (id, canvas_table, cdims, margs)
+	{
+		this.id = id;
+		this.canvas_table = canvas_table;
+		this.cdims = cdims;
+		this.margs = margs;
+
+		canvas_table.addEventListener('mousedown', (e) =>
+		{
+			this.updateHandPosMouse(e);
+			//this.interact(e);
+		});
+		canvas_table.addEventListener('mousemove', (e) =>
+		{
+			if (this.hand.child !== null)
+			{
+				this.updateHandPosMouse(e);
+			}
+		});
+		canvas_table.addEventListener('mouseup', this.release);
+		canvas_table.addEventListener('mouseout', this.release);
+
+		canvas_table.addEventListener('touchstart', (e) =>
+		{
+			this.updateHandPosTouch(e);
+			//this.interact(e);
+		});
+		canvas_table.addEventListener('touchmove', (e) =>
+		{
+			if (this.hand.child !== null)
+			{
+				this.updateHandPosTouch(e);
+			}
+		});
+		canvas_table.addEventListener('touchend', this.release);
+
+		let deck_x = margs.tleft;
+		this.deck = new Deck(cdims, margs, deck_x, margs.ttop, 0);
+
+		let waste_x = deck_x + cdims.cw + margs.cmin_x;
+		this.waste = new Waste(cdims, margs, waste_x, margs.ttop, 0);
+
+		this.tableaus = new Array(7);
+		for (var i = 0 ; i < 7 ; i++)
+		{
+			let tableau_x =
+				margs.tleft + (cdims.cw + margs.cmin_x) * i;
+			this.tableaus[i] = new Tableau(cdims, margs, tableau_x,
+				margs.ttop + cdims.ch + margs.cmin_y, 0);
+		}
+
+		let foundation_start = this.tableaus[6].x
+			- 3 * (cdims.cw + margs.cmin_x);
+		this.foundations = new Array(4);
+		for (var i = 0 ; i < 4 ; i++)
+		{
+			let foundation_x =
+				foundation_start
+				+ (cdims.cw + margs.cmin_x) * i;
+			this.foundations[i] = new Foundation(cdims, margs,
+				foundation_x, margs.ttop, 0);
+		}
+
+		this.w = this.tableaus[6].x + cdims.cw + margs.tright;
+		this.h = this.tableaus[6].y + 12 * margs.cmin_y
+			+ cdims.ch + margs.tbottom;
+
+		this.hand = new Hand(cdims, margs, 0, 0, 0);
+
+		this.ownprops_stale = true;
+
+		this.drawscale_min = 16;
+
+		this.adaptToDimsAndRes();
+
+		this.all_cards = new Array(52);
+		for (var i = 1 ; i <= 52 ; i++)
+		{
+			this.all_cards[i - 1] =
+				new ChainableCard(cdims, margs, i);
+		}
+		this.all_cards[0].setParent(this.deck);
+		for (var i = 2 ; i <= 52 ; i++)
+		{
+			this.all_cards[i - 1].setParent(this.all_cards[i - 2]);
+		}
+
+		for (var i = 0 ; i < 7 ; i++)
+		{
+			let reloc_to_tableau = this.deck.child;
+			reloc_to_tableau.replaceParent(this.tableaus[i]);
+			let reloc_to_deck = reloc_to_tableau.getChildN(i);
+			reloc_to_deck.replaceParent(this.deck);
+		}
+	}
+
+	fitRectNearEightToDims (rw, rh, dw, dh)
+	{
+		let wlim = (rw / rh <= dw / dh) ? Math.floor(dh * rw / rh) : dw;
+		return wlim - wlim % 8;
+	}
+
+	drawscaleMax ()
 	{
 		/*
-		 * XXX: I prefer prototype call. I find it
-		 *	to be more readable than calling
-		 *	concat on first array with
-		 *	the others as arguments.
+		 * XXX: We use 2x under the assumption that it's good
+		 * 	for retina resolution displays. Haven't checked
+		 * 	whether it actually is lol.
 		 */
-		return Array.prototype.concat.call(
-			this.table.deck.getRLVisible(),
-			this.table.waste.getRLVisible(),
-			this.table.foundation[0].getRLVisible(),
-			this.table.foundation[1].getRLVisible(),
-			this.table.foundation[2].getRLVisible(),
-			this.table.foundation[3].getRLVisible(),
-			this.table.tableau[0].getRLVisible(),
-			this.table.tableau[1].getRLVisible(),
-			this.table.tableau[2].getRLVisible(),
-			this.table.tableau[3].getRLVisible(),
-			this.table.tableau[4].getRLVisible(),
-			this.table.tableau[5].getRLVisible(),
-			this.table.tableau[6].getRLVisible());
-	};
-
-	this.table.getRLPickable = () =>
-	{
-		return Array.prototype.concat.call(
-			this.table.waste.getRLPickable(),
-			this.table.foundation[0].getRLPickable(),
-			this.table.foundation[1].getRLPickable(),
-			this.table.foundation[2].getRLPickable(),
-			this.table.foundation[3].getRLPickable(),
-			this.table.tableau[0].getRLPickable(),
-			this.table.tableau[1].getRLPickable(),
-			this.table.tableau[2].getRLPickable(),
-			this.table.tableau[3].getRLPickable(),
-			this.table.tableau[4].getRLPickable(),
-			this.table.tableau[5].getRLPickable(),
-			this.table.tableau[6].getRLPickable());
-	};
-
-	this.table.getRLPutable = () =>
-	{
-		return Array.prototype.concat.call(
-			this.table.foundation[0].getRLPutable(),
-			this.table.foundation[1].getRLPutable(),
-			this.table.foundation[2].getRLPutable(),
-			this.table.foundation[3].getRLPutable(),
-			this.table.tableau[0].getRLPutable(),
-			this.table.tableau[1].getRLPutable(),
-			this.table.tableau[2].getRLPutable(),
-			this.table.tableau[3].getRLPutable(),
-			this.table.tableau[4].getRLPutable(),
-			this.table.tableau[5].getRLPutable(),
-			this.table.tableau[6].getRLPutable());
-	};
-};
-
-table.initialize();
-
-let renderCard = (ctx, card, x, y) =>
-{
-	const _symb_color = ['', '♥', '♠', '♦', '♣', ''];
-
-	const _symb_rank = ['', 'A', '2', '3', '4', '5', '6',
-		'7', '8', '9', '10', 'J', 'Q', 'K', ''];
-
-	const PX = Math.floor(x * drawscale);
-	const PY = Math.floor(y * drawscale);
-
-	ctx.fillStyle = 'rgb(0,0,0)';
-	ctx.fillRect(PX, PY, ps.card.width, ps.card.height);
-
-	if (card == NULLCARD)
-	{
-		ctx.fillStyle = 'rgb(128,128,128)';
-		ctx.fillRect(
-			PX + ps.card.border,
-			PY + ps.card.border,
-			ps.card.width - 2 * ps.card.border,
-			ps.card.height - 2 * ps.card.border);
-	}
-	else if (card == UNKNOWNCARD)
-	{
-		ctx.fillStyle = 'rgb(0,0,255)';
-		ctx.fillRect(
-			PX + ps.card.border,
-			PY + ps.card.border,
-			ps.card.width - 2 * ps.card.border,
-			ps.card.height - 2 * ps.card.border);
-	}
-	else
-	{
-		const COLOR = getColor(card);
-		const RANK = getRank(card);
-
-		ctx.fillStyle = 'rgb(255,255,255)';
-		ctx.fillRect(
-			PX + ps.card.border,
-			PY + ps.card.border,
-			ps.card.width - 2 * ps.card.border,
-			ps.card.height - 2 * ps.card.border);
-
-		ctx.textBaseline = 'top';
-		ctx.font = ((ps.card.width
-			- (ps.card.width % 3))/3) + 'px serif';
-		ctx.fillStyle = 'rgb(' + (COLOR & 1) * 255 + ',0,0)';
-		ctx.fillText(_symb_rank[RANK] + _symb_color[COLOR],
-			PX + ps.card.border + 3,
-			PY + ps.card.border + 4);
-	}
-}
-
-let cardRenderer = (ctx) =>
-{
-	return (rc, idx) =>
-	{
-		renderCard(ctx, rc.card, rc.x, rc.y);
-	}
-}
-
-let cardIdxRenderer = (ctx) =>
-{
-	return (rc, idx) =>
-	{
-		ctx.fillStyle = 'rgb(' + (4 * idx + 1) + ',0,0)';
-		ctx.fillRect(
-			Math.floor(rc.x * drawscale),
-			Math.floor(rc.y * drawscale),
-			ps.card.width,
-			ps.card.height);
-	}
-}
-
-var hand = new StackOfCards([], 0, 0, 0);
-hand.x = 0;
-hand.y = 0;
-hand.offs_x = 0;
-hand.offs_y = 0;
-hand.getLocalCoordYCardByIdx = (idx) =>
-{
-	return BU.margin.elem_vert * idx;
-};
-
-var renderRenderableCardToTable = cardRenderer(TTX);
-let renderTable = () =>
-{
-	TTX.clearRect(0, 0, T.width, T.height);
-	table.getRLVisible().forEach(renderRenderableCardToTable);
-}
-
-var renderRenderableCardToPickable = cardIdxRenderer(PKTX);
-let renderPickable = () =>
-{
-	PKTX.clearRect(0, 0, PK.width, PK.height);
-	table.getRLPickable().forEach(renderRenderableCardToPickable);
-}
-
-var renderRenderableCardToPutable = cardIdxRenderer(PTTX);
-let renderPutable = () =>
-{
-	PTTX.clearRect(0, 0, PT.width, PT.height);
-	table.getRLPutable().forEach(renderRenderableCardToPutable);
-}
-
-var renderRenderableCardToHand = cardRenderer(GFTX);
-let renderHand = () =>
-{
-	GFTX.clearRect(0, 0, GF.width, GF.height);
-	hand.forEach(renderRenderableCardToHand);
-}
-
-let renderGame = () =>
-{
-	GTX.clearRect(0, 0, G.width, G.height);
-
-	GTX.drawImage(T, 0, 0);
-
-	if (hand.length > 0)
-	{
-		GTX.drawImage(GF, (hand.x - hand.offs_x) * drawscale,
-			(hand.y - hand.offs_y) * drawscale);
-		window.requestAnimationFrame(renderGame);
+		console.log(window.innerWidth + 'x' + window.innerHeight);
+		return this.fitRectNearEightToDims(
+			this.w, this.h,
+			2 * window.innerWidth, 2 * window.innerHeight)
+			/ this.w;
 	}
 
-	if (DEBUG)
+	adaptToDimsAndRes ()
 	{
-		const MINIW = Math.floor(G.height / 8);
-		const MINIH = Math.floor(G.width / 8);
-		GTX.strokeStyle = '#808';
-		GTX.lineWidth = 2;
-		GTX.strokeRect(
-			ps.margin.left,
-			G.height - (MINIH + ps.margin.bottom),
-			MINIW,
-			MINIH);
-		GTX.strokeRect(
-			2 * ps.margin.left + MINIW,
-			G.height - (MINIH + ps.margin.bottom),
-			MINIW,
-			MINIH);
-		if (hand.length == 0)
+		this.drawscale = this.drawscaleMax();
+		if (this.drawscale < this.drawscale_min)
 		{
-			GTX.drawImage(
-				PK,
-				ps.margin.left,
-				G.height - (MINIH + ps.margin.bottom),
-				MINIW,
-				MINIH);
+			this.drawscale = this.drawscale_min;
+		}
+		this.stylescale =  window.innerHeight
+			/ (this.drawscale * this.h);
+		//console.log(this.stylescale);
+
+		this.canvas_table.width = this.drawscale * this.w;
+		this.canvas_table.height = this.drawscale * this.h;
+
+		this.canvas_table.style.width = Math.floor(
+			this.canvas_table.width * this.stylescale) + 'px';
+		this.canvas_table.style.height = Math.floor(
+			this.canvas_table.height * this.stylescale) + 'px';
+	}
+
+	/*
+		if (hand.card === null)
+		{
+			deck.renderTouchActionable();
+			waste.renderPickable();
 		}
 		else
 		{
-			GTX.drawImage(
-				PT,
-				2 * ps.margin.left + MINIW,
-				G.height - (MINIH + ps.margin.bottom),
-				MINIW,
-				MINIH);
+			// TODO
 		}
+	*/
+
+	consoleLogState ()
+	{
+		console.log('Table');
+		console.log(this);
+
+		console.log('Deck');
+		console.log(this.deck);
+
+		console.log('Waste');
+		console.log(this.waste);
+
+		for (var i = 0 ; i < 4 ; i++)
+		{
+			console.log('Foundation ' + i);
+			console.log(this.foundations[i]);
+		}
+
+		for (var i = 0 ; i < 7 ; i++)
+		{
+			console.log('Tableau ' + i);
+			console.log(this.tableaus[i]);
+		}
+
+		console.log('Hand');
+		console.log(this.hand);
+	}
+
+	updateHandPos (page_x, page_y)
+	{
+		let margs = this.margs;
+		let stylescale = this.stylescale;
+		let drawscale = this.drawscale;
+		let hand = this.hand;
+
+		const x = (page_x - margs.tleft) / (stylescale * drawscale);
+		const y = (page_y - margs.ttop) / (stylescale * drawscale);
+
+		// XXX: Limit x to margins
+		hand.x = Math.max(margs.tleft,
+			Math.min(x, this.w - margs.tright));
+
+		// XXX: Limit y to margins
+		hand.y = Math.max(margs.ttop,
+			Math.min(y, this.h - margs.tbottom));
+
+		console.log(hand);
+	}
+
+	updateHandPosMouse (e)
+	{
+		this.updateHandPos(e.pageX, e.pageY);
+	}
+
+	updateHandPosTouch (e)
+	{
+		this.updateHandPos(e.touches[0].pageX, e.touches[0].pageY);
 	}
 }
 
-let adaptToDimsAndRes = () =>
+let id = 0; // TODO: Get UUID game ID from server.
+
+let cdims = new CardDims(2.5, 3.5, 0.012);
+let margs = new Margins(0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
+
+const table = new Table(id, document.getElementById('game'), cdims, margs);
+
+table.consoleLogState();
+
+// TODO: Turn the following manual check into a unit test maybe?
+for (var i = -7 ; i <= 7 ; i++)
 {
-	resetDisplay();
-
-	const AW = Math.floor(fitRectNearEightToDims(
-		AREABU.g.width, AREABU.g.height,
-		window.innerWidth, window.innerHeight));
-
-	const DRAWSCALE_DESIRED = 2 * Math.floor(AW / AREABU.g.width);
-	console.log('DRAWSCALE_DESIRED: ' + DRAWSCALE_DESIRED);
-	drawscale = DRAWSCALE_DESIRED;
-	stylescale = 1 / 2;
-	ps.card.border = 1;
-
-	if (drawscale > DRAWSCALE_MAX)
+	console.log('table.tableaus[5].getChildN(' + i + ')');
+	try
 	{
-		stylescale = drawscale / (2 * DRAWSCALE_MAX);
-		drawscale = DRAWSCALE_MAX;
-	}
-
-	console.log('drawscale: ' + drawscale);
-
-	if (drawscale >= DRAWSCALE_MIN)
-	{
-		ps.card.width = Math.floor(BU.card.width * drawscale);
-		ps.card.height = Math.floor(BU.card.height * drawscale);
-		ps.card.thickness = Math.floor(BU.card.thickness * drawscale);
-
-		ps.margin.elem_vert = Math.floor(BU.margin.elem_vert
-			* drawscale);
-		ps.margin.elem_horz = Math.floor(BU.margin.elem_horz
-			* drawscale);
-		ps.margin.top = Math.floor(BU.margin.top * drawscale);
-		ps.margin.right = Math.floor(BU.margin.right * drawscale);
-		ps.margin.bottom = Math.floor(BU.margin.bottom * drawscale);
-		ps.margin.left = Math.floor(BU.margin.left * drawscale);
-
-		G.width = AREABU.g.width * drawscale;
-		G.height = AREABU.g.height * drawscale;
-
-		T.width = G.width;
-		T.height = G.height
-
-		PK.width = G.width;
-		PK.height = G.height
-
-		PT.width = G.width;
-		PT.height = G.height
-
-		GF.width = ps.card.width;
-		GF.height = ps.card.height + 12 * ps.margin.elem_horz;
-
-		if (NORESIZE)
+		let result = table.tableaus[5].getChildN(i);
+		if (result === null)
 		{
-			stylescale = 1;
+			console.log(null);
 		}
 		else
 		{
-			ps.card.border = 1 / stylescale;
-
-			G.style.width =
-				Math.floor(G.width * stylescale) + 'px';
-			G.style.height =
-				Math.floor(G.height * stylescale) + 'px';
-
-			if (DEBUG)
-			{
-				T.style.width = G.style.width;
-				T.style.height = G.style.height;
-
-				PK.style.width = G.style.width;
-				PK.style.height = G.style.height;
-
-				PT.style.width = G.style.width;
-				PT.style.height = G.style.height;
-
-				GF.style.width = Math.floor(GF.width
-					* stylescale) + 'px';
-				GF.style.height = Math.floor(GF.height
-					* stylescale) + 'px';
-			}
+			console.log(result.id);
 		}
-		console.log('stylescale: ' + stylescale);
-
-		renderTable();
-		renderPickable();
-		renderGame();
 	}
-	else
+	catch (e)
 	{
-		displayError('Browser window is too small.');
+		console.log('Caught exception.');
+		console.log(e);
 	}
 }
-
-adaptToDimsAndRes();
-
-var id_ra;
-window.onresize = () =>
-{
-	clearTimeout(id_ra);
-	id_ra = setTimeout(adaptToDimsAndRes, 64);
-};
-
-let updateHandPosMouse = (e) =>
-{
-	const X = (e.pageX - G.offsetLeft) / (stylescale * drawscale);
-	const Y = (e.pageY - G.offsetTop) / (stylescale * drawscale);
-
-	// XXX: Limit x to margins
-	hand.x = Math.max(BU.margin.left,
-		Math.min(X, AREABU.g.width - BU.margin.right));
-	// XXX: Limit y to margins
-	hand.y = Math.max(BU.margin.top,
-		Math.min(Y, AREABU.g.height - BU.margin.bottom));
-}
-
-G.addEventListener('mousemove', (e) =>
-{
-	if (hand.length > 0)
-	{
-		updateHandPosMouse(e);
-	}
-});
-
-let updateHandPosTouch = (e) =>
-{
-	const X = (e.touches[0].pageX - G.offsetLeft)
-		/ (stylescale * drawscale);
-	const Y = (e.touches[0].pageY - G.offsetTop)
-		/ (stylescale * drawscale);
-
-	// XXX: Limit x to margins
-	hand.x = Math.max(BU.margin.left,
-		Math.min(X, AREABU.g.width - BU.margin.right));
-	// XXX: Limit y to margins
-	hand.y = Math.max(BU.margin.top,
-		Math.min(Y, AREABU.g.height - BU.margin.bottom));
-}
-
-G.addEventListener('touchmove', (e) =>
-{
-	if (hand.length > 0)
-	{
-		updateHandPosTouch(e);
-	}
-});
-
-let pick = (e) =>
-{
-	const PIXEL = PKTX.getImageData(
-		hand.x * drawscale, hand.y * drawscale, 1, 1);
-	const VAL = PIXEL.data[0];
-	if (VAL)
-	{
-		var card = table.getRLPickable()[(VAL - 1) / 4];
-		hand.offs_x = hand.x - card.x;
-		hand.offs_y = hand.y - card.y;
-		const CARDS = card.origin.splice(card.oidx);
-		const X = hand.x;
-		const Y = hand.y;
-		hand.x = 0;
-		hand.y = 0;
-		for (var i = 0 ; i < CARDS.length ; i++)
-		{
-			hand.push(new RenderableCard(CARDS[i],
-				hand, card.origin, i));
-		}
-		hand.x = X;
-		hand.y = Y;
-		renderHand();
-		renderPutable();
-		renderTable();
-		window.requestAnimationFrame(renderGame);
-	}
-}
-
-G.addEventListener('mousedown', (e) =>
-{
-	updateHandPosMouse(e);
-	pick(e);
-});
-
-G.addEventListener('touchstart', (e) =>
-{
-	updateHandPosTouch(e);
-	pick(e);
-});
-
-let place = (e) =>
-{
-	if (hand.length > 0)
-	{
-		const PIXEL = PTTX.getImageData(
-			hand.x * drawscale, hand.y * drawscale, 1, 1);
-		const VAL = PIXEL.data[0];
-		var tgt;
-		if (VAL)
-		{
-			tgt = table.getRLPutable()[(VAL - 1) / 4];
-		}
-		else
-		{
-			tgt = hand[0];
-		}
-		var cards = hand.splice(0).map((e) => { return e.card; });
-		tgt.origin.push.apply(tgt.origin, cards);
-		renderTable();
-		renderPickable();
-	}
-}
-
-G.addEventListener('mouseup', place);
-G.addEventListener('mouseout', place);
-G.addEventListener('touchend', place);
