@@ -48,21 +48,6 @@ const enum_rank =
 const NULLCARD = 0;
 const UNKNOWNCARD = 94;
 
-let isFacingUp = (value) =>
-{
-	return value & (1 << 7);
-}
-
-let getColor = (value) =>
-{
-	return (value & (7 << 4)) >> 4;
-}
-
-let getRank = (value) =>
-{
-	return value & 15;
-}
-
 // XXX: How cards are stacked
 const enum_stacking =
 {
@@ -188,12 +173,14 @@ class ParentToCard
 
 class ChainableCard extends ParentToCard
 {
-	constructor (cdims, margs, id)
+	constructor (cdims, margs, id, colorid)
 	{
 		super(cdims, margs, enum_stacking.INHERIT);
 		this.parent = null;
 
 		this.id = id;
+
+		this.colorid = colorid;
 
 		this.value = UNKNOWNCARD;
 	}
@@ -222,33 +209,101 @@ class ChainableCard extends ParentToCard
 		}
 	}
 
+	isFacingUp ()
+	{
+		return this.value & (1 << 7);
+	}
+
+	getColor ()
+	{
+		return (this.value & (7 << 4)) >> 4;
+	}
+
+	getRank ()
+	{
+		return this.value & 15;
+	}
+
+	getDims (drawscale, x, y, z)
+	{
+		let cx = Math.floor(x * drawscale);
+		let cy = Math.floor(y * drawscale);
+		let cz = 0;
+		let cw = Math.ceil(this.cdims.cw * drawscale);
+		let ch = Math.ceil(this.cdims.ch * drawscale);
+		let ct = 0;
+
+		return [cx, cy, cz, cw, ch, ct];
+	}
+
 	render (ctx, drawscale, x, y, z, dx, dy, dz)
 	{
-		let next = this.child;
+		let [cx, cy, cz, cw, ch, ct] = this.getDims(drawscale, x, y, z);
 
-		ctx.fillRect(x * drawscale, y * drawscale, this.cdims.cw * drawscale, this.cdims.ch * drawscale);
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.fillRect(cx, cy, cw, ch);
+
+		if (this.isFacingUp())
+		{
+			ctx.fillStyle = 'rgb(255, 255, 255)';
+		}
+		else
+		{
+			// TODO: Render backside
+			ctx.fillStyle = 'rgb(' + this.colorid.red + ', 0, ' + this.colorid.blue + ')';
+		}
+		ctx.fillRect(cx + 2, cy + 2, cw - 4, ch - 4);
+
+		let next = this.child;
 
 		if (next !== null)
 		{
-			next.render(ctx, drawscale, x + dx, y + dy, z + dz, dx, dy, dz);
+			return next.render(ctx, drawscale, x + dx, y + dy, z + dz, dx, dy, dz);
+		}
+		else
+		{
+			return [cx + cw, cy + ch, cz + ct];
 		}
 	}
 
-	renderHitable ()
+	renderPickable (ctx, drawscale, x, y, z, dx, dy, dz)
 	{
-		// TODO
+		let [cx, cy, cz, cw, ch, ct] = this.getDims(drawscale, x, y, z);
+
+		if (this.isFacingUp())
+		{
+			ctx.fillStyle = 'rgb(' + this.colorid.red + ', 0, ' + this.colorid.blue + ')';
+			ctx.fillRect(cx, cy, cw, ch);
+		}
+
+		let next = this.child;
+
+		if (next !== null)
+		{
+			return next.renderPickable(ctx, drawscale, x + dx, y + dy, z + dz, dx, dy, dz);
+		}
+		else
+		{
+			return [cx + cw, cy + ch, cz + ct];
+		}
 	}
 }
 
 class CardLocation extends ParentToCard
 {
-	constructor (cdims, margs, x, y, z, stacking)
+	constructor (cdims, margs, x, y, z, stacking, w, h)
 	{
 		super(cdims, margs, stacking);
 
 		this.x = x;
 		this.y = y;
 		this.z = z;
+
+		this.w = w;
+		this.h = h;
+
+		this.canvas = document.createElement('canvas');
+		this.ctx = this.canvas.getContext('2d');
 	}
 
 	render (ctx, drawscale)
@@ -275,7 +330,14 @@ class CardLocation extends ParentToCard
 		}
 		else
 		{
-			render_from.render(ctx, drawscale, this.x, this.y, this.z, dx, dy, 0);
+			this.recalcWH();
+			this.canvas.width = Math.ceil(drawscale * this.w);
+			this.canvas.height = Math.ceil(drawscale * this.h);
+
+			let [lx, ly, lz] = render_from.render(this.ctx, drawscale, 0, 0, 0, dx, dy, 0);
+
+			ctx.drawImage(this.canvas, Math.floor(this.x * drawscale), Math.floor(this.y * drawscale));
+			console.log(this.canvas, Math.floor(this.x * drawscale), Math.floor(this.y * drawscale));
 		}
 	}
 }
@@ -284,12 +346,17 @@ class Deck extends CardLocation
 {
 	constructor (cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.ONE_STACK);
+		super(cdims, margs, x, y, z, enum_stacking.ONE_STACK, cdims.cw, cdims.ch);
 	}
 
 	renderTouchActionable ()
 	{
 		// TODO
+	}
+
+	recalcWH ()
+	{
+		// XXX: w and h do not change
 	}
 }
 
@@ -302,7 +369,23 @@ class Waste extends CardLocation
 {
 	constructor (cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.TOP_THREE_HORZ);
+		super(cdims, margs, x, y, z, enum_stacking.TOP_THREE_HORZ, cdims.cw * 3 + margs.cmin_x * 2, cdims.ch);
+	}
+
+	recalcWH ()
+	{
+		let num_children_places = num_children = this.countChildren();
+
+		if (num_children == 0)
+		{
+			num_children_places = 1;
+		}
+		elif (num_children > 3)
+		{
+			num_children_places = 3;
+		}
+
+		this.w = num_children_places * this.cdims.cw + (num_children_places - 1) * this.margs.cmin_x;
 	}
 }
 Waste.prototype.renderPickable = renderTopmostPickable;
@@ -311,12 +394,17 @@ class Foundation extends CardLocation
 {
 	constructor (cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.ONE_STACK);
+		super(cdims, margs, x, y, z, enum_stacking.ONE_STACK, cdims.cw, cdims.ch);
 	}
 
 	renderPutable (card)
 	{
 		// TODO
+	}
+
+	recalcWH ()
+	{
+		// XXX: Does not change.
 	}
 }
 Foundation.prototype.renderPickable = renderTopmostPickable;
@@ -325,7 +413,7 @@ class Tableau extends CardLocation
 {
 	constructor (cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE);
+		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE, cdims.cw, cdims.ch * 13 + margs.cmin_y * 12);
 	}
 
 	renderPickable ()
@@ -335,6 +423,19 @@ class Tableau extends CardLocation
 	renderPutable (card)
 	{
 	}
+
+	recalcWH ()
+	{
+		let num_children = this.countChildren();
+		let num_children_places = num_children;
+
+		if (num_children == 0)
+		{
+			num_children_places = 1;
+		}
+
+		this.h = num_children_places * this.cdims.ch + (num_children_places - 1) * this.margs.cmin_y;
+	}
 }
 
 class Hand extends CardLocation
@@ -342,6 +443,19 @@ class Hand extends CardLocation
 	constructor (cdims, margs, x, y, z)
 	{
 		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE);
+	}
+
+	recalcWH ()
+	{
+		let num_children = this.countChildren();
+		let num_children_places = num_children;
+
+		if (num_children == 0)
+		{
+			num_children_places = 1;
+		}
+
+		this.h = num_children_places * this.cdims.ch + (num_children_places - 1) * this.margs.cmin_y;
 	}
 }
 
@@ -370,43 +484,43 @@ class Margins
 
 class Table
 {
-	constructor (id, canvas_table, cdims, margs)
+	constructor (id, canvas, cdims, margs)
 	{
 		this.id = id;
-		this.canvas_table = canvas_table;
+		this.canvas = canvas;
 		this.cdims = cdims;
 		this.margs = margs;
 
-		this.ctx = canvas_table.getContext('2d');
+		this.ctx = canvas.getContext('2d');
 
-		canvas_table.addEventListener('mousedown', (e) =>
+		canvas.addEventListener('mousedown', (e) =>
 		{
 			this.updateHandPosMouse(e);
 			//this.interact(e);
 		});
-		canvas_table.addEventListener('mousemove', (e) =>
+		canvas.addEventListener('mousemove', (e) =>
 		{
 			if (this.hand.child !== null)
 			{
 				this.updateHandPosMouse(e);
 			}
 		});
-		canvas_table.addEventListener('mouseup', this.release);
-		canvas_table.addEventListener('mouseout', this.release);
+		canvas.addEventListener('mouseup', this.release);
+		canvas.addEventListener('mouseout', this.release);
 
-		canvas_table.addEventListener('touchstart', (e) =>
+		canvas.addEventListener('touchstart', (e) =>
 		{
 			this.updateHandPosTouch(e);
 			//this.interact(e);
 		});
-		canvas_table.addEventListener('touchmove', (e) =>
+		canvas.addEventListener('touchmove', (e) =>
 		{
 			if (this.hand.child !== null)
 			{
 				this.updateHandPosTouch(e);
 			}
 		});
-		canvas_table.addEventListener('touchend', this.release);
+		canvas.addEventListener('touchend', this.release);
 
 		let deck_x = margs.tleft;
 		this.deck = new Deck(cdims, margs, deck_x, margs.ttop, 0);
@@ -447,11 +561,24 @@ class Table
 
 		this.adaptToDimsAndRes();
 
+		this.colormap = {};
+
 		this.all_cards = new Array(52);
 		for (var i = 1 ; i <= 52 ; i++)
 		{
-			this.all_cards[i - 1] =
-				new ChainableCard(cdims, margs, i);
+			let red_blue = i * (Math.pow(2, 16) - 1) / 52;
+
+			let colorid =
+			{
+				'red': (red_blue >> 8) & (Math.pow(2, 8) - 1),
+				'blue': red_blue & (Math.pow(2, 8) - 1)
+			};
+
+			let card = new ChainableCard(cdims, margs, i, colorid);
+
+			this.colormap['(' + colorid.red + ', 0, ' + colorid.blue + ')'] = card;
+
+			this.all_cards[i - 1] = card;
 		}
 		this.all_cards[0].setParent(this.deck);
 		for (var i = 2 ; i <= 52 ; i++)
@@ -466,6 +593,8 @@ class Table
 			let reloc_to_deck = reloc_to_tableau.getChildN(i);
 			reloc_to_deck.replaceParent(this.deck);
 		}
+
+		this.render();
 	}
 
 	fitRectNearEightToDims (rw, rh, dw, dh)
@@ -497,15 +626,35 @@ class Table
 		}
 		this.stylescale =  window.innerHeight
 			/ (this.drawscale * this.h);
-		//console.log(this.stylescale);
 
-		this.canvas_table.width = this.drawscale * this.w;
-		this.canvas_table.height = this.drawscale * this.h;
+		this.canvas.width = this.drawscale * this.w;
+		this.canvas.height = this.drawscale * this.h;
 
-		this.canvas_table.style.width = Math.floor(
-			this.canvas_table.width * this.stylescale) + 'px';
-		this.canvas_table.style.height = Math.floor(
-			this.canvas_table.height * this.stylescale) + 'px';
+		this.canvas.style.width = Math.floor(
+			this.canvas.width * this.stylescale) + 'px';
+		this.canvas.style.height = Math.floor(
+			this.canvas.height * this.stylescale) + 'px';
+
+		this.deck.canvas.width = this.drawscale * this.deck.w;
+		this.deck.canvas.height = this.drawscale * this.deck.h;
+
+		this.waste.canvas.width = this.drawscale * this.waste.w;
+		this.waste.canvas.height = this.drawscale * this.waste.h;
+
+		for (var i = 0 ; i < 4 ; i++)
+		{
+			this.foundations[i].canvas.width = this.drawscale * this.foundations[i].w;
+			this.foundations[i].canvas.height = this.drawscale * this.foundations[i].h;
+		}
+
+		for (var i = 0 ; i < 7 ; i++)
+		{
+			this.tableaus[i].canvas.width = this.drawscale * this.tableaus[i].w;
+			this.tableaus[i].canvas.height = this.drawscale * this.tableaus[i].h;
+		}
+
+		this.hand.canvas.width = this.drawscale * this.hand.w;
+		this.hand.canvas.height = this.drawscale * this.hand.h;
 	}
 
 	/*
@@ -580,6 +729,8 @@ class Table
 
 	render ()
 	{
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
 		this.deck.render(this.ctx, this.drawscale);
 
 		this.waste.render(this.ctx, this.drawscale);
@@ -594,7 +745,7 @@ class Table
 			this.tableaus[i].render(this.ctx, this.drawscale);
 		}
 
-		this.hand.render(this.ctx, this.drawscale);
+		this.hand.render(this.drawscale);
 	}
 }
 
@@ -605,9 +756,7 @@ let margs = new Margins(0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
 
 const table = new Table(id, document.getElementById('game'), cdims, margs);
 
-table.consoleLogState();
-
-table.render();
+//table.consoleLogState();
 
 /*
 // TODO: Turn the following manual check into a unit test maybe?
