@@ -169,6 +169,11 @@ class ParentToCard
 			return this.child;
 		}
 	}
+
+	getRootParent ()
+	{
+		return this;
+	}
 }
 
 class ChainableCard extends ParentToCard
@@ -194,6 +199,11 @@ class ChainableCard extends ParentToCard
 		old_parent.detachChild();
 
 		return old_parent;
+	}
+
+	getRootParent ()
+	{
+		return this.parent.getRootParent();
 	}
 
 	setParent (new_parent)
@@ -238,6 +248,8 @@ class ChainableCard extends ParentToCard
 
 	render (ctx, drawscale, x, y, z, dx, dy, dz)
 	{
+		// TODO: Render only visible portion of card.
+
 		let [cx, cy, cz, cw, ch, ct] = this.getDims(drawscale, x, y, z);
 
 		ctx.fillStyle = 'rgb(0, 0, 0)';
@@ -288,9 +300,11 @@ class ChainableCard extends ParentToCard
 
 class CardLocation extends ParentToCard
 {
-	constructor (cdims, margs, x, y, z, stacking, w, h)
+	constructor (name, cdims, margs, x, y, z, stacking, w, h)
 	{
 		super(cdims, margs, stacking);
+
+		this.name = name;
 
 		this.x = x;
 		this.y = y;
@@ -301,9 +315,11 @@ class CardLocation extends ParentToCard
 
 		this.canvas = document.createElement('canvas');
 		this.ctx = this.canvas.getContext('2d');
+
+		this.stale = true;
 	}
 
-	render (ctx, drawscale)
+	render (drawscale)
 	{
 		let render_from = this.child;
 
@@ -321,6 +337,8 @@ class CardLocation extends ParentToCard
 			dy = 0;
 		}
 
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
 		if (render_from === null)
 		{
 			// TODO: Draw pattern.
@@ -332,17 +350,17 @@ class CardLocation extends ParentToCard
 			this.canvas.height = Math.ceil(drawscale * this.h);
 
 			render_from.render(this.ctx, drawscale, 0, 0, 0, dx, dy, 0);
-
-			ctx.drawImage(this.canvas, Math.floor(this.x * drawscale), Math.floor(this.y * drawscale));
 		}
+
+		this.stale = false;
 	}
 }
 
 class Deck extends CardLocation
 {
-	constructor (cdims, margs, x, y, z)
+	constructor (name, cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.ONE_STACK, cdims.cw, cdims.ch);
+		super(name, cdims, margs, x, y, z, enum_stacking.ONE_STACK, cdims.cw, cdims.ch);
 	}
 
 	renderTouchActionable ()
@@ -368,9 +386,9 @@ renderTopmostPickable = function (ctx, drawscale)
 
 class Waste extends CardLocation
 {
-	constructor (cdims, margs, x, y, z)
+	constructor (name, cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.TOP_THREE_HORZ, cdims.cw * 3 + margs.cmin_x * 2, cdims.ch);
+		super(name, cdims, margs, x, y, z, enum_stacking.TOP_THREE_HORZ, cdims.cw * 3 + margs.cmin_x * 2, cdims.ch);
 	}
 
 	recalcWH ()
@@ -394,9 +412,9 @@ Waste.prototype.renderPickable = renderTopmostPickable;
 
 class Foundation extends CardLocation
 {
-	constructor (cdims, margs, x, y, z)
+	constructor (name, cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.ONE_STACK, cdims.cw, cdims.ch);
+		super(name, cdims, margs, x, y, z, enum_stacking.ONE_STACK, cdims.cw, cdims.ch);
 	}
 
 	renderPutable (card)
@@ -411,7 +429,7 @@ class Foundation extends CardLocation
 
 	renderPutable (ctx, drawscale, hand)
 	{
-		let possibly_putable = getDownToNthLastChild(1);
+		let possibly_putable = hand.getDownToNthLastChild(1);
 
 		if (possibly_putable !== null)
 		{
@@ -438,9 +456,9 @@ Foundation.prototype.renderPickable = renderTopmostPickable;
 
 class Tableau extends CardLocation
 {
-	constructor (cdims, margs, x, y, z)
+	constructor (name, cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE, cdims.cw, cdims.ch * 13 + margs.cmin_y * 12);
+		super(name, cdims, margs, x, y, z, enum_stacking.VERT_SPACE, cdims.cw, cdims.ch * 13 + margs.cmin_y * 12);
 	}
 
 	renderPickable (ctx, drawscale)
@@ -473,9 +491,13 @@ class Tableau extends CardLocation
 
 class Hand extends CardLocation
 {
-	constructor (cdims, margs, x, y, z)
+	constructor (name, cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE, cdims.cw, cdims.ch * 13 + margs.cmin_y * 12);
+		super(name, cdims, margs, x, y, z, enum_stacking.VERT_SPACE, cdims.cw, cdims.ch * 13 + margs.cmin_y * 12);
+
+		this.prev_parent_of_child = null;
+
+		this.has_moved = false;
 	}
 
 	recalcWH ()
@@ -489,6 +511,29 @@ class Hand extends CardLocation
 		}
 
 		this.h = num_children_places * this.cdims.ch + (num_children_places - 1) * this.margs.cmin_y;
+	}
+
+	pick (card)
+	{
+		this.prev_parent_of_child = card.replaceParent(this);
+		this.prev_parent_of_child.getRootParent().stale = true;
+		this.stale = true;
+	}
+
+	drop ()
+	{
+		this.child.replaceParent(this.prev_parent_of_child);
+		this.prev_parent_of_child.getRootParent().stale = true;
+		this.prev_parent_of_child = null;
+		this.stale = true;
+	}
+
+	put (new_parent)
+	{
+		this.child.replaceParent(new_parent);
+		new_parent.getRootParent().stale = true;
+		this.prev_parent_of_child = null;
+		this.stale = true;
 	}
 }
 
@@ -573,67 +618,83 @@ class Table
 			this.ctx_putable = ctx_putable;
 		}
 
+		this.canvas_tablecache = document.createElement('canvas');
+		this.ctx_tablecache = this.canvas_tablecache.getContext('2d');
+
 		canvas.addEventListener('mousedown', (e) =>
 		{
 			this.updateHandPosMouse(e);
-			//this.interact(e);
+			this.interactionStart();
 		});
 		canvas.addEventListener('mousemove', (e) =>
 		{
-			if (this.hand.child !== null)
-			{
-				this.updateHandPosMouse(e);
-			}
+			this.updateHandPosMouse(e);
 		});
-		canvas.addEventListener('mouseup', this.release);
-		canvas.addEventListener('mouseout', this.release);
+		canvas.addEventListener('mouseup', (e) =>
+		{
+			this.updateHandPosMouse(e);
+			this.interactionEnd();
+		});
+		canvas.addEventListener('mouseout', (e) =>
+		{
+			this.updateHandPosMouse(e);
+			this.interactionEnd();
+		});
 
 		canvas.addEventListener('touchstart', (e) =>
 		{
 			this.updateHandPosTouch(e);
-			//this.interact(e);
+			this.interactionStart();
 		});
 		canvas.addEventListener('touchmove', (e) =>
 		{
-			if (this.hand.child !== null)
-			{
-				this.updateHandPosTouch(e);
-			}
+			this.updateHandPosTouch(e);
 		});
-		canvas.addEventListener('touchend', this.release);
+		canvas.addEventListener('touchend', (e) =>
+		{
+			this.updateHandPosTouch(e);
+			this.interactionEnd();
+		});
+
+		this.cardlocations = new Array(13);
 
 		let deck_x = margs.tleft;
-		this.deck = new Deck(cdims, margs, deck_x, margs.ttop, 0);
+		this.deck = new Deck('Deck', cdims, margs, deck_x, margs.ttop, 0);
+		this.cardlocations[0] = this.deck;
 
 		let waste_x = deck_x + cdims.cw + margs.cmin_x;
-		this.waste = new Waste(cdims, margs, waste_x, margs.ttop, 0);
+		this.waste = new Waste('Waste', cdims, margs, waste_x, margs.ttop, 0);
+		this.cardlocations[1] = this.waste;
 
-		this.tableaus = new Array(7);
-		for (var i = 0 ; i < 7 ; i++)
-		{
-			let tableau_x =
-				margs.tleft + (cdims.cw + margs.cmin_x) * i;
-			this.tableaus[i] = new Tableau(cdims, margs, tableau_x,
-				margs.ttop + cdims.ch + margs.cmin_y, 0);
-		}
-
-		let foundation_start = this.tableaus[6].x
-			- 3 * (cdims.cw + margs.cmin_x);
+		let foundation_start = 4 * (cdims.cw + margs.cmin_x);
 		this.foundations = new Array(4);
 		for (var i = 0 ; i < 4 ; i++)
 		{
 			let foundation_x =
 				foundation_start
 				+ (cdims.cw + margs.cmin_x) * i;
-			this.foundations[i] = new Foundation(cdims, margs,
+			this.foundations[i] = new Foundation(
+				'Foundation #' + (i + 1), cdims, margs,
 				foundation_x, margs.ttop, 0);
+			this.cardlocations[2 + i] = this.foundations[i];
+		}
+
+		this.tableaus = new Array(7);
+		for (var i = 0 ; i < 7 ; i++)
+		{
+			let tableau_x =
+				margs.tleft + (cdims.cw + margs.cmin_x) * i;
+			this.tableaus[i] = new Tableau('Tableau #' + (i + 1),
+				cdims, margs, tableau_x,
+				margs.ttop + cdims.ch + margs.cmin_y, 0);
+			this.cardlocations[6 + i] = this.tableaus[i];
 		}
 
 		this.w = this.tableaus[6].x + cdims.cw + margs.tright;
 		this.h = this.tableaus[6].y + 12 * margs.cmin_y
 			+ cdims.ch + margs.tbottom;
 
-		this.hand = new Hand(cdims, margs, 0, 0, 0);
+		this.hand = new Hand('Hand', cdims, margs, 0, 0, 0);
 
 		this.ownprops_stale = true;
 
@@ -674,6 +735,7 @@ class Table
 			reloc_to_deck.replaceParent(this.deck);
 		}
 
+		this.tablecache_stale = true;
 		this.render();
 	}
 
@@ -685,15 +747,12 @@ class Table
 
 	drawscaleMax ()
 	{
-		/*
-		 * XXX: We use 2x under the assumption that it's good
-		 * 	for retina resolution displays. Haven't checked
-		 * 	whether it actually is lol.
-		 */
+		// 2x for retina? 0.5x for performance? 1x for now.
+		// TODO: Benchmark to decide max drawscale for host.
 		console.log(window.innerWidth + 'x' + window.innerHeight);
 		return this.fitRectNearEightToDims(
 			this.w, this.h,
-			2 * window.innerWidth, 2 * window.innerHeight)
+			1 * window.innerWidth, 1 * window.innerHeight)
 			/ this.w;
 	}
 
@@ -712,6 +771,12 @@ class Table
 
 		this.canvas_pickable.width = this.drawscale * this.w;
 		this.canvas_pickable.height = this.drawscale * this.h;
+
+		this.canvas_putable.width = this.drawscale * this.w;
+		this.canvas_putable.height = this.drawscale * this.h;
+
+		this.canvas_tablecache.width = this.drawscale * this.w;
+		this.canvas_tablecache.height = this.drawscale * this.h;
 
 		this.canvas.style.width = Math.floor(
 			this.canvas.width * this.stylescale) + 'px';
@@ -742,29 +807,15 @@ class Table
 
 	consoleLogState ()
 	{
-		console.log('Table');
-		console.log(this);
+		console.log('Table', this);
 
-		console.log('Deck');
-		console.log(this.deck);
-
-		console.log('Waste');
-		console.log(this.waste);
-
-		for (var i = 0 ; i < 4 ; i++)
+		for (var i in this.cardlocations)
 		{
-			console.log('Foundation ' + i);
-			console.log(this.foundations[i]);
+			let cardlocation = this.cardlocations[i];
+			console.log(cardlocation.name, cardlocation);
 		}
 
-		for (var i = 0 ; i < 7 ; i++)
-		{
-			console.log('Tableau ' + i);
-			console.log(this.tableaus[i]);
-		}
-
-		console.log('Hand');
-		console.log(this.hand);
+		console.log(this.hand.name, this.hand);
 	}
 
 	updateHandPos (page_x, page_y)
@@ -774,18 +825,13 @@ class Table
 		let drawscale = this.drawscale;
 		let hand = this.hand;
 
-		const x = (page_x - margs.tleft) / (stylescale * drawscale);
-		const y = (page_y - margs.ttop) / (stylescale * drawscale);
+		let x = (page_x - this.canvas.offsetLeft) / (stylescale * drawscale);
+		let y = (page_y - this.canvas.offsetTop) / (stylescale * drawscale);
 
-		// XXX: Limit x to margins
-		hand.x = Math.max(margs.tleft,
-			Math.min(x, this.w - margs.tright));
+		hand.x = Math.max(margs.tleft, Math.min(x, this.w - margs.tright));
+		hand.y = Math.max(margs.ttop, Math.min(y, this.h - margs.tbottom));
 
-		// XXX: Limit y to margins
-		hand.y = Math.max(margs.ttop,
-			Math.min(y, this.h - margs.tbottom));
-
-		console.log(hand);
+		this.hand.has_moved = true;
 	}
 
 	updateHandPosMouse (e)
@@ -798,30 +844,111 @@ class Table
 		this.updateHandPos(e.touches[0].pageX, e.touches[0].pageY);
 	}
 
-	render (ctx = this.ctx)
+	interactionStart ()
 	{
-		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-		this.deck.render(ctx, this.drawscale);
-
-		this.waste.render(ctx, this.drawscale);
-
-		for (var i = 0 ; i < 4 ; i++)
+		if (this.hand.child === null)
 		{
-			this.foundations[i].render(ctx, this.drawscale);
-		}
+			this.renderPickable();
 
-		for (var i = 0 ; i < 7 ; i++)
-		{
-			this.tableaus[i].render(ctx, this.drawscale);
-		}
+			// TODO: Pick
 
-		this.hand.render(ctx, this.drawscale);
+			if (this.hand.child !== null)
+			{
+				this.tablecache_stale = true;
+			}
+		}
 	}
 
-	renderPickable (ctx = this.ctx_pickable)
+	interactionEnd ()
 	{
-		ctx.clearRect(0, 0, this.canvas_pickable.width, this.canvas_pickable.height);
+		if (this.hand.child !== null)
+		{
+			this.renderPutable();
+
+			// if (...) // TODO: If putable
+			// {
+			// 	// TODO: Put
+			// }
+			// else
+			// {
+				this.hand.drop();
+			// }
+
+			this.tablecache_stale = true;
+		}
+	}
+
+	rerenderTablecache ()
+	{
+		let ctx = this.ctx_tablecache, canvas = this.canvas_tablecache;
+
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		let any_stale = false;
+
+		for (var i in this.cardlocations)
+		{
+			let cardlocation = this.cardlocations[i];
+
+			if (cardlocation.stale)
+			{
+				any_stale = true;
+				cardlocation.render(this.drawscale);
+			}
+
+			ctx.drawImage(cardlocation.canvas,
+				Math.floor(cardlocation.x * this.drawscale),
+				Math.floor(cardlocation.y * this.drawscale));
+		}
+
+		if (!any_stale)
+		{
+			throw 'rerenderTablecache was called but it seems that tablecache was not stale.';
+		}
+
+		this.tablecache_stale = false;
+	}
+
+	render ()
+	{
+		let ctx = this.ctx;
+		let canvas = this.canvas;
+
+		let tablecache_was_stale = this.tablecache_stale;
+
+		if (this.tablecache_stale)
+		{
+			this.rerenderTablecache();
+
+			ctx.clearRect(0, 0,
+				this.canvas_tablecache.width, this.canvas_tablecache.height);
+			ctx.drawImage(this.canvas_tablecache, 0, 0);
+		}
+
+		if (tablecache_was_stale || (this.hand.has_moved && this.hand.countChildren()) || this.hand.stale)
+		{
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.drawImage(this.canvas_tablecache, 0, 0);
+
+			if (this.hand.stale)
+			{
+				this.hand.render(this.drawscale);
+			}
+
+			// TODO MAYBE: Position relative to where on card card was picked?
+			ctx.drawImage(this.hand.canvas,
+				Math.floor((this.hand.x - 0.5 * this.cdims.cw) * this.drawscale),
+				Math.floor((this.hand.y - 0.5 * this.cdims.ch) * this.drawscale));
+
+			this.hand.has_moved = false;
+		}
+
+		window.requestAnimationFrame(this.render.bind(this));
+	}
+
+	renderPickable (ctx = this.ctx_pickable, canvas = this.canvas_pickable)
+	{
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		if (!(this.hand.countChildren())) // Can't pick if you have something on hand.
 		{
@@ -839,9 +966,9 @@ class Table
 		}
 	}
 
-	renderPutable (ctx = this.ctx_putable)
+	renderPutable (ctx = this.ctx_putable, canvas = this.canvas_putable)
 	{
-		ctx.clearRect(0, 0, this.canvas_pickable.width, this.canvas_pickable.height);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		if (this.hand.countChildren() === 1)
 		{
@@ -867,3 +994,7 @@ let cdims = new CardDims(2.5, 3.5, 0.012);
 let margs = new Margins(0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
 
 const table = new Table(id, cdims, margs, document.getElementById('game'));
+
+// TODO: Remove below line of debug test code.
+table.hand.pick(table.all_cards[0]);
+table.tablecache_stale = true;
