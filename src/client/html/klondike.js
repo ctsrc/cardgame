@@ -495,7 +495,9 @@ class Margins
 
 class Table
 {
-	constructor (id, cdims, margs, canvas, ctx = null, canvas_pickable = null, ctx_pickable = null, canvas_putable = null, ctx_putable = null)
+	constructor (id, cdims, margs, canvas, ctx = null,
+		canvas_pickable = null, ctx_pickable = null,
+		canvas_putable = null, ctx_putable = null)
 	{
 		this.id = id;
 
