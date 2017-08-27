@@ -995,6 +995,13 @@ let margs = new Margins(0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
 
 const table = new Table(id, cdims, margs, document.getElementById('game'));
 
-// TODO: Remove below line of debug test code.
-table.hand.pick(table.all_cards[0]);
-table.tablecache_stale = true;
+document.addEventListener('mouseenter', (e) =>
+{
+	document.removeEventListener('mouseenter', this);
+
+	// TODO: Hide native cursor, draw custom cursor in hand.
+
+	// TODO: Remove the two debug testing lines below.
+	table.hand.pick(table.all_cards[0]);
+	table.tablecache_stale = true;
+});
