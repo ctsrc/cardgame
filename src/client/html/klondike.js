@@ -184,37 +184,6 @@ class ParentToCard
 			return this.child;
 		}
 	}
-
-	render (ctx, sx, sy, z)
-	{
-		// TODO: Clear previous parts otherwise not overwritten.
-
-		let curr = this.child;
-
-		if (this.stacking === enum_stacking.ONE_STACK)
-		{
-			curr = this.getDownToNthLastChild(1);
-		}
-		else if (this.stacking === enum_stacking.TOP_THREE_HORZ)
-		{
-			curr = this.getDownToNthLastChild(3);
-		}
-
-		while (curr !== null)
-		{
-			if (this.stacking === enum_stacking.TOP_THREE_HORZ)
-			{
-				sx += this.margs.cmin_x; // TODO
-			}
-			else if (this.stacking === enum_stacking.VERT_SPACE)
-			{
-				sy += this.margs.cmin_y;
-			}
-
-			curr.render(ctx, sx, sy, z);
-			curr = curr.child;
-		}
-	}
 }
 
 class ChainableCard extends ParentToCard
@@ -253,6 +222,18 @@ class ChainableCard extends ParentToCard
 		}
 	}
 
+	render (ctx, drawscale, x, y, z, dx, dy, dz)
+	{
+		let next = this.child;
+
+		ctx.fillRect(x * drawscale, y * drawscale, this.cdims.cw * drawscale, this.cdims.ch * drawscale);
+
+		if (next !== null)
+		{
+			next.render(ctx, drawscale, x + dx, y + dy, z + dz, dx, dy, dz);
+		}
+	}
+
 	renderHitable ()
 	{
 		// TODO
@@ -268,6 +249,34 @@ class CardLocation extends ParentToCard
 		this.x = x;
 		this.y = y;
 		this.z = z;
+	}
+
+	render (ctx, drawscale)
+	{
+		let render_from = this.child;
+
+		let dx = 0;
+		let dy = this.margs.cmin_y;
+
+		if (this.stacking === enum_stacking.ONE_STACK)
+		{
+			render_from = this.getDownToNthLastChild(1);
+		}
+		else if (this.stacking === enum_stacking.TOP_THREE_HORZ)
+		{
+			render_from = this.getDownToNthLastChild(3);
+			dx = this.margs.cmin_x;
+			dy = 0;
+		}
+
+		if (render_from == null)
+		{
+			// TODO
+		}
+		else
+		{
+			render_from.render(ctx, drawscale, this.x, this.y, this.z, dx, dy, 0);
+		}
 	}
 }
 
@@ -367,6 +376,8 @@ class Table
 		this.canvas_table = canvas_table;
 		this.cdims = cdims;
 		this.margs = margs;
+
+		this.ctx = canvas_table.getContext('2d');
 
 		canvas_table.addEventListener('mousedown', (e) =>
 		{
@@ -566,6 +577,25 @@ class Table
 	{
 		this.updateHandPos(e.touches[0].pageX, e.touches[0].pageY);
 	}
+
+	render ()
+	{
+		this.deck.render(this.ctx, this.drawscale);
+
+		this.waste.render(this.ctx, this.drawscale);
+
+		for (var i = 0 ; i < 4 ; i++)
+		{
+			this.foundations[i].render(this.ctx, this.drawscale);
+		}
+
+		for (var i = 0 ; i < 7 ; i++)
+		{
+			this.tableaus[i].render(this.ctx, this.drawscale);
+		}
+
+		this.hand.render(this.ctx, this.drawscale);
+	}
 }
 
 let id = 0; // TODO: Get UUID game ID from server.
@@ -577,6 +607,9 @@ const table = new Table(id, document.getElementById('game'), cdims, margs);
 
 table.consoleLogState();
 
+table.render();
+
+/*
 // TODO: Turn the following manual check into a unit test maybe?
 for (var i = -7 ; i <= 7 ; i++)
 {
@@ -599,3 +632,4 @@ for (var i = -7 ; i <= 7 ; i++)
 		console.log(e);
 	}
 }
+*/
