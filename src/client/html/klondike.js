@@ -755,30 +755,3 @@ let cdims = new CardDims(2.5, 3.5, 0.012);
 let margs = new Margins(0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
 
 const table = new Table(id, document.getElementById('game'), cdims, margs);
-
-//table.consoleLogState();
-
-/*
-// TODO: Turn the following manual check into a unit test maybe?
-for (var i = -7 ; i <= 7 ; i++)
-{
-	console.log('table.tableaus[5].getChildN(' + i + ')');
-	try
-	{
-		let result = table.tableaus[5].getChildN(i);
-		if (result === null)
-		{
-			console.log(null);
-		}
-		else
-		{
-			console.log(result.id);
-		}
-	}
-	catch (e)
-	{
-		console.log('Caught exception.');
-		console.log(e);
-	}
-}
-*/
