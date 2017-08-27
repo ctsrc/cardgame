@@ -189,9 +189,9 @@ class ChainableCard extends ParentToCard
 	{
 		let old_parent = this.parent;
 
-		this.parent.detachChild();
 		new_parent.setChild(this);
 		this.parent = new_parent;
+		old_parent.detachChild();
 
 		return old_parent;
 	}
@@ -324,9 +324,9 @@ class CardLocation extends ParentToCard
 			dy = 0;
 		}
 
-		if (render_from == null)
+		if (render_from === null)
 		{
-			// TODO
+			// TODO: Draw pattern.
 		}
 		else
 		{
@@ -337,7 +337,6 @@ class CardLocation extends ParentToCard
 			let [lx, ly, lz] = render_from.render(this.ctx, drawscale, 0, 0, 0, dx, dy, 0);
 
 			ctx.drawImage(this.canvas, Math.floor(this.x * drawscale), Math.floor(this.y * drawscale));
-			console.log(this.canvas, Math.floor(this.x * drawscale), Math.floor(this.y * drawscale));
 		}
 	}
 }
@@ -360,9 +359,14 @@ class Deck extends CardLocation
 	}
 }
 
-renderTopmostPickable = function ()
+renderTopmostPickable = function (ctx, drawscale)
 {
-	// TODO
+	topmost = this.getDownToNthLastChild(1);
+
+	if (topmost != null)
+	{
+		topmost.renderPickable(ctx, drawscale, this.x, this.y, this.z, 0, 0, 0);
+	}
 }
 
 class Waste extends CardLocation
@@ -374,13 +378,14 @@ class Waste extends CardLocation
 
 	recalcWH ()
 	{
-		let num_children_places = num_children = this.countChildren();
+		let num_children = this.countChildren();
+		let num_children_places = num_children;
 
 		if (num_children == 0)
 		{
 			num_children_places = 1;
 		}
-		elif (num_children > 3)
+		else if (num_children > 3)
 		{
 			num_children_places = 3;
 		}
@@ -416,8 +421,14 @@ class Tableau extends CardLocation
 		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE, cdims.cw, cdims.ch * 13 + margs.cmin_y * 12);
 	}
 
-	renderPickable ()
+	renderPickable (ctx, drawscale)
 	{
+		let possibly_pickable = this.child;
+
+		if (possibly_pickable != null)
+		{
+			possibly_pickable.renderPickable(ctx, drawscale, this.x, this.y, this.z, 0, this.margs.cmin_y, 0);
+		}
 	}
 
 	renderPutable (card)
@@ -484,14 +495,59 @@ class Margins
 
 class Table
 {
-	constructor (id, canvas, cdims, margs)
+	constructor (id, cdims, margs, canvas, ctx = null, canvas_pickable = null, ctx_pickable = null, canvas_putable = null, ctx_putable = null)
 	{
 		this.id = id;
-		this.canvas = canvas;
+
 		this.cdims = cdims;
 		this.margs = margs;
 
-		this.ctx = canvas.getContext('2d');
+		this.canvas = canvas;
+
+		if (ctx === null)
+		{
+			this.ctx = canvas.getContext('2d');
+		}
+		else
+		{
+			this.ctx = ctx;
+		}
+
+		if (canvas_pickable === null)
+		{
+			this.canvas_pickable = document.createElement('canvas');
+		}
+		else
+		{
+			this.canvas_pickable = canvas_pickable;
+		}
+
+		if (ctx_pickable === null)
+		{
+			this.ctx_pickable = this.canvas_pickable.getContext('2d');
+		}
+		else
+		{
+			this.ctx_pickable = ctx_pickable;
+		}
+
+		if (canvas_putable === null)
+		{
+			this.canvas_putable = document.createElement('canvas');
+		}
+		else
+		{
+			this.canvas_putable = canvas_putable;
+		}
+
+		if (ctx_putable === null)
+		{
+			this.ctx_putable = this.canvas_putable.getContext('2d');
+		}
+		else
+		{
+			this.ctx_putable = ctx_putable;
+		}
 
 		canvas.addEventListener('mousedown', (e) =>
 		{
@@ -630,6 +686,9 @@ class Table
 		this.canvas.width = this.drawscale * this.w;
 		this.canvas.height = this.drawscale * this.h;
 
+		this.canvas_pickable.width = this.drawscale * this.w;
+		this.canvas_pickable.height = this.drawscale * this.h;
+
 		this.canvas.style.width = Math.floor(
 			this.canvas.width * this.stylescale) + 'px';
 		this.canvas.style.height = Math.floor(
@@ -656,18 +715,6 @@ class Table
 		this.hand.canvas.width = this.drawscale * this.hand.w;
 		this.hand.canvas.height = this.drawscale * this.hand.h;
 	}
-
-	/*
-		if (hand.card === null)
-		{
-			deck.renderTouchActionable();
-			waste.renderPickable();
-		}
-		else
-		{
-			// TODO
-		}
-	*/
 
 	consoleLogState ()
 	{
@@ -727,25 +774,66 @@ class Table
 		this.updateHandPos(e.touches[0].pageX, e.touches[0].pageY);
 	}
 
-	render ()
+	render (ctx = this.ctx)
 	{
-		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		this.deck.render(this.ctx, this.drawscale);
+		this.deck.render(ctx, this.drawscale);
 
-		this.waste.render(this.ctx, this.drawscale);
+		this.waste.render(ctx, this.drawscale);
 
 		for (var i = 0 ; i < 4 ; i++)
 		{
-			this.foundations[i].render(this.ctx, this.drawscale);
+			this.foundations[i].render(ctx, this.drawscale);
 		}
 
 		for (var i = 0 ; i < 7 ; i++)
 		{
-			this.tableaus[i].render(this.ctx, this.drawscale);
+			this.tableaus[i].render(ctx, this.drawscale);
 		}
 
 		this.hand.render(this.drawscale);
+	}
+
+	renderPickable (ctx = this.ctx_pickable)
+	{
+		ctx.clearRect(0, 0, this.canvas_pickable.width, this.canvas_pickable.height);
+
+		if (!(this.hand.countChildren())) // Can't pick if you have something on hand.
+		{
+			this.waste.renderPickable(ctx, this.drawscale);
+
+			for (var i = 0 ; i < 4 ; i++)
+			{
+				this.foundations[i].renderPickable(ctx, this.drawscale);
+			}
+
+			for (var i = 0 ; i < 7 ; i++)
+			{
+				this.tableaus[i].renderPickable(ctx, this.drawscale);
+			}
+		}
+	}
+
+	renderPutable (ctx = this.ctx_putable)
+	{
+		ctx.clearRect(0, 0, this.canvas_pickable.width, this.canvas_pickable.height);
+
+		if (this.hand.countChildren() === 1)
+		{
+			for (var i = 0 ; i < 4 ; i++)
+			{
+				this.foundations[i].renderPutable(ctx, this.drawscale, this.hand);
+			}
+		}
+
+		if (this.hand.countChildren() >= 1)
+		{
+			for (var i = 0 ; i < 7 ; i++)
+			{
+				this.tableaus[i].renderPutable(ctx, this.drawscale, this.hand);
+			}
+		}
 	}
 }
 
@@ -754,4 +842,4 @@ let id = 0; // TODO: Get UUID game ID from server.
 let cdims = new CardDims(2.5, 3.5, 0.012);
 let margs = new Margins(0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
 
-const table = new Table(id, document.getElementById('game'), cdims, margs);
+const table = new Table(id, cdims, margs, document.getElementById('game'));
