@@ -258,33 +258,30 @@ class ChainableCard extends ParentToCard
 
 		if (next !== null)
 		{
-			return next.render(ctx, drawscale, x + dx, y + dy, z + dz, dx, dy, dz);
+			next.render(ctx, drawscale, x + dx, y + dy, z + dz, dx, dy, dz);
 		}
-		else
-		{
-			return [cx + cw, cy + ch, cz + ct];
-		}
+	}
+
+	renderId (ctx, drawscale, x, y, z)
+	{
+		let [cx, cy, cz, cw, ch, ct] = this.getDims(drawscale, x, y, z);
+
+		ctx.fillStyle = 'rgb(' + this.colorid.red + ', 0, ' + this.colorid.blue + ')';
+		ctx.fillRect(cx, cy, cw, ch);
 	}
 
 	renderPickable (ctx, drawscale, x, y, z, dx, dy, dz)
 	{
-		let [cx, cy, cz, cw, ch, ct] = this.getDims(drawscale, x, y, z);
-
 		if (this.isFacingUp())
 		{
-			ctx.fillStyle = 'rgb(' + this.colorid.red + ', 0, ' + this.colorid.blue + ')';
-			ctx.fillRect(cx, cy, cw, ch);
+			this.renderId(ctx, drawscale, x, y, z);
 		}
 
 		let next = this.child;
 
 		if (next !== null)
 		{
-			return next.renderPickable(ctx, drawscale, x + dx, y + dy, z + dz, dx, dy, dz);
-		}
-		else
-		{
-			return [cx + cw, cy + ch, cz + ct];
+			next.renderPickable(ctx, drawscale, x + dx, y + dy, z + dz, dx, dy, dz);
 		}
 	}
 }
@@ -334,7 +331,7 @@ class CardLocation extends ParentToCard
 			this.canvas.width = Math.ceil(drawscale * this.w);
 			this.canvas.height = Math.ceil(drawscale * this.h);
 
-			let [lx, ly, lz] = render_from.render(this.ctx, drawscale, 0, 0, 0, dx, dy, 0);
+			render_from.render(this.ctx, drawscale, 0, 0, 0, dx, dy, 0);
 
 			ctx.drawImage(this.canvas, Math.floor(this.x * drawscale), Math.floor(this.y * drawscale));
 		}
@@ -411,6 +408,31 @@ class Foundation extends CardLocation
 	{
 		// XXX: Does not change.
 	}
+
+	renderPutable (ctx, drawscale, hand)
+	{
+		let possibly_putable = getDownToNthLastChild(1);
+
+		if (possibly_putable !== null)
+		{
+			if (hand.countChildren() !== 1)
+			{
+				return;
+			}
+
+			if (hand.child.getColor() !== possibly_putable.getColor())
+			{
+				return;
+			}
+
+			if (hand.child.getRank() !== possibly_putable.getRank() - 1)
+			{
+				return;
+			}
+
+			possibly_putable.renderId(ctx, drawscale, this.x, this.y, this.z);
+		}
+	}
 }
 Foundation.prototype.renderPickable = renderTopmostPickable;
 
@@ -453,7 +475,7 @@ class Hand extends CardLocation
 {
 	constructor (cdims, margs, x, y, z)
 	{
-		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE);
+		super(cdims, margs, x, y, z, enum_stacking.VERT_SPACE, cdims.cw, cdims.ch * 13 + margs.cmin_y * 12);
 	}
 
 	recalcWH ()
@@ -794,7 +816,7 @@ class Table
 			this.tableaus[i].render(ctx, this.drawscale);
 		}
 
-		this.hand.render(this.drawscale);
+		this.hand.render(ctx, this.drawscale);
 	}
 
 	renderPickable (ctx = this.ctx_pickable)
