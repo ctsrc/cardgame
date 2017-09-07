@@ -18,7 +18,6 @@ use std::fmt;
 
 mod cards;
 use cards::shuffled_deck;
-
 mod display_cards;
 
 fn main ()
