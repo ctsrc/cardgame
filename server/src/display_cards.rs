@@ -21,9 +21,10 @@ use cards::Color::*;
 use cards::Rank;
 use cards::Rank::*;
 
+// https://stackoverflow.com/a/45893535
+
 impl fmt::Display for Color
 {
-    // https://stackoverflow.com/a/45893535
     fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result
     {
         match *self
