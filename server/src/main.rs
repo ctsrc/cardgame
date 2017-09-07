@@ -43,6 +43,7 @@ enum Rank
     Seven,
     Eight,
     Nine,
+    Ten,
     J,
     Q,
     K
@@ -77,8 +78,9 @@ impl Rank
 {
     fn iterator () -> Iter<'static, Rank>
     {
-        static RANKS: [Rank; 12] =
-            [ A, Two, Three, Four, Five, Six, Seven, Eight, Nine, J, Q, K ] ;
+        static RANKS: [Rank; 13] =
+            [ A, Two, Three, Four, Five, Six, Seven,
+              Eight, Nine, Ten, J, Q, K ] ;
         RANKS.into_iter()
     }
 }
@@ -98,6 +100,7 @@ impl fmt::Display for Rank
             Seven => write!(f, "7"),
             Eight => write!(f, "8"),
             Nine  => write!(f, "9"),
+            Ten   => write!(f, "10"),
             J     => write!(f, "J"),
             Q     => write!(f, "Q"),
             K     => write!(f, "K"),
