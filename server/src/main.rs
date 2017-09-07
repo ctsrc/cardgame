@@ -14,51 +14,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-use self::Color::*;
-use self::Rank::*;
-use std::slice::Iter;
 use std::fmt;
-use std::mem;
 
-extern crate rand;
-use rand::Rng;
+mod cards;
 
-#[derive(Copy, Clone)]
-enum Color
-{
-    Spades,   // ♠,
-    Hearts,   // ♥,
-    Diamonds, // ♦,
-    Clubs,    // ♣
-}
-
-#[derive(Copy, Clone)]
-enum Rank
-{
-    A     = 1,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    J,
-    Q,
-    K
-}
-
-impl Color
-{
-    // https://stackoverflow.com/a/21376984
-    fn iterator () -> Iter<'static, Color>
-    {
-        static COLORS: [Color; 4] = [Spades, Hearts, Diamonds, Clubs];
-        COLORS.into_iter()
-    }
-}
+use cards::Color;
+use cards::Color::*;
+use cards::Rank;
+use cards::Rank::*;
+use cards::shuffled_deck;
 
 impl fmt::Display for Color
 {
@@ -72,17 +36,6 @@ impl fmt::Display for Color
             Diamonds => write!(f, "♦"),
             Clubs => write!(f, "♣"),
         }
-    }
-}
-
-impl Rank
-{
-    fn iterator () -> Iter<'static, Rank>
-    {
-        static RANKS: [Rank; 13] =
-            [ A, Two, Three, Four, Five, Six, Seven,
-              Eight, Nine, Ten, J, Q, K ] ;
-        RANKS.into_iter()
     }
 }
 
@@ -109,53 +62,19 @@ impl fmt::Display for Rank
     }
 }
 
-struct Card
-{
-    color:     Color,
-    rank:      Rank,
-    id:        u8,
-    facing_up: bool
-}
-
 fn main ()
 {
-    // https://stackoverflow.com/a/31361031
-    let all_cards = unsafe
-    {
-        let mut _all_cards: [Card; 52] = mem::uninitialized();
-
-        let mut ids_available: Vec<u8> = (0..52).collect();
-
-        // https://stackoverflow.com/a/26035435
-        let mut ids_avail_slice = ids_available.as_mut_slice();
-        rand::thread_rng().shuffle(ids_avail_slice);
-        let mut id_iter = ids_avail_slice.iter_mut();
-
-        for color in Color::iterator()
-        {
-            for rank in Rank::iterator()
-            {
-
-                let curr_id = *(id_iter.next().unwrap());
-
-                let card = Card
-                {
-                    color:     *color,
-                    rank:      *rank,
-                    id:        curr_id,
-                    facing_up: false
-                };
-
-                _all_cards[curr_id as usize] = card;
-            }
-        }
-
-        _all_cards
-    };
+    let all_cards = *shuffled_deck();
 
     for card in all_cards.iter()
     {
-        println!("{}{} {:2} {}",
-                 card.color, card.rank, card.id, card.facing_up);
+        if card.id < 51
+        {
+            print!("{}{} ", card.color, card.rank);
+        }
+        else
+        {
+            println!("{}{}", card.color, card.rank);
+        }
     }
 }
