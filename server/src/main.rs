@@ -20,7 +20,7 @@ use std::slice::Iter;
 use std::fmt;
 
 extern crate rand;
-use self::rand::{thread_rng, Rng};
+use rand::Rng;
 
 #[derive(Copy, Clone)]
 enum Color
@@ -120,15 +120,17 @@ fn main ()
 {
     let mut all_cards: Vec<Card> = Vec::new();
 
-    let ids_available: Vec<u8> = (0..51).collect();
+    let mut ids_available: Vec<u8> = (0..52).collect();
+    // https://stackoverflow.com/a/26035435
+    let mut ids_avail_slice: &mut [u8] = ids_available.as_mut_slice();
+    rand::thread_rng().shuffle(ids_avail_slice);
+    let mut id_iter = ids_avail_slice.iter_mut();
 
     for color in Color::iterator()
     {
         for rank in Rank::iterator()
         {
-            let curr_id: u8;
-
-            curr_id = 0;
+            let curr_id = *(id_iter.next().unwrap());
 
             let card = Card
             {
