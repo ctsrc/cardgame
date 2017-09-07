@@ -1,0 +1,7 @@
+[package]
+name = "klondike"
+version = "0.1.0"
+authors = ["Erik Nordstroem <erik@nordstroem.no>"]
+
+[dependencies]
+rand = "0.3.16"
