@@ -14,8 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-use std::fmt;
-
 mod cards;
 use cards::shuffled_deck;
 mod display_cards;
