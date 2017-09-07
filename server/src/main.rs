@@ -17,50 +17,9 @@
 use std::fmt;
 
 mod cards;
-
-use cards::Color;
-use cards::Color::*;
-use cards::Rank;
-use cards::Rank::*;
 use cards::shuffled_deck;
 
-impl fmt::Display for Color
-{
-    // https://stackoverflow.com/a/45893535
-    fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result
-    {
-        match *self
-        {
-            Spades => write!(f, "♠"),
-            Hearts => write!(f, "♥"),
-            Diamonds => write!(f, "♦"),
-            Clubs => write!(f, "♣"),
-        }
-    }
-}
-
-impl fmt::Display for Rank
-{
-    fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result
-    {
-        match *self
-        {
-            A     => write!(f, "{:-2}", "A"),
-            Two   => write!(f, "{:-2}", "2"),
-            Three => write!(f, "{:-2}", "3"),
-            Four  => write!(f, "{:-2}", "4"),
-            Five  => write!(f, "{:-2}", "5"),
-            Six   => write!(f, "{:-2}", "6"),
-            Seven => write!(f, "{:-2}", "7"),
-            Eight => write!(f, "{:-2}", "8"),
-            Nine  => write!(f, "{:-2}", "9"),
-            Ten   => write!(f, "{:-2}", "10"),
-            J     => write!(f, "{:-2}", "J"),
-            Q     => write!(f, "{:-2}", "Q"),
-            K     => write!(f, "{:-2}", "K"),
-        }
-    }
-}
+mod display_cards;
 
 fn main ()
 {
