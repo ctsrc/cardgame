@@ -18,6 +18,7 @@ use self::Color::*;
 use self::Rank::*;
 use std::slice::Iter;
 use std::fmt;
+use std::mem;
 
 extern crate rand;
 use rand::Rng;
@@ -91,19 +92,19 @@ impl fmt::Display for Rank
     {
         match *self
         {
-            A     => write!(f, "A"),
-            Two   => write!(f, "2"),
-            Three => write!(f, "3"),
-            Four  => write!(f, "4"),
-            Five  => write!(f, "5"),
-            Six   => write!(f, "6"),
-            Seven => write!(f, "7"),
-            Eight => write!(f, "8"),
-            Nine  => write!(f, "9"),
-            Ten   => write!(f, "10"),
-            J     => write!(f, "J"),
-            Q     => write!(f, "Q"),
-            K     => write!(f, "K"),
+            A     => write!(f, "{:-2}", "A"),
+            Two   => write!(f, "{:-2}", "2"),
+            Three => write!(f, "{:-2}", "3"),
+            Four  => write!(f, "{:-2}", "4"),
+            Five  => write!(f, "{:-2}", "5"),
+            Six   => write!(f, "{:-2}", "6"),
+            Seven => write!(f, "{:-2}", "7"),
+            Eight => write!(f, "{:-2}", "8"),
+            Nine  => write!(f, "{:-2}", "9"),
+            Ten   => write!(f, "{:-2}", "10"),
+            J     => write!(f, "{:-2}", "J"),
+            Q     => write!(f, "{:-2}", "Q"),
+            K     => write!(f, "{:-2}", "K"),
         }
     }
 }
@@ -118,35 +119,43 @@ struct Card
 
 fn main ()
 {
-    let mut all_cards: Vec<Card> = Vec::new();
-
-    let mut ids_available: Vec<u8> = (0..52).collect();
-    // https://stackoverflow.com/a/26035435
-    let mut ids_avail_slice: &mut [u8] = ids_available.as_mut_slice();
-    rand::thread_rng().shuffle(ids_avail_slice);
-    let mut id_iter = ids_avail_slice.iter_mut();
-
-    for color in Color::iterator()
+    // https://stackoverflow.com/a/31361031
+    let all_cards = unsafe
     {
-        for rank in Rank::iterator()
+        let mut _all_cards: [Card; 52] = mem::uninitialized();
+
+        let mut ids_available: Vec<u8> = (0..52).collect();
+
+        // https://stackoverflow.com/a/26035435
+        let mut ids_avail_slice = ids_available.as_mut_slice();
+        rand::thread_rng().shuffle(ids_avail_slice);
+        let mut id_iter = ids_avail_slice.iter_mut();
+
+        for color in Color::iterator()
         {
-            let curr_id = *(id_iter.next().unwrap());
-
-            let card = Card
+            for rank in Rank::iterator()
             {
-                color:     *color,
-                rank:      *rank,
-                id:        curr_id,
-                facing_up: false
-            };
 
-            all_cards.push(card);
+                let curr_id = *(id_iter.next().unwrap());
+
+                let card = Card
+                {
+                    color:     *color,
+                    rank:      *rank,
+                    id:        curr_id,
+                    facing_up: false
+                };
+
+                _all_cards[curr_id as usize] = card;
+            }
         }
-    }
+
+        _all_cards
+    };
 
     for card in all_cards.iter()
     {
-        println!("{}{} {} {}",
+        println!("{}{} {:2} {}",
                  card.color, card.rank, card.id, card.facing_up);
     }
 }
