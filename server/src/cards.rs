@@ -88,7 +88,7 @@ pub fn shuffled_deck () -> Box<[Card; 52]>
         let mut ids_available: Vec<u8> = (0..52).collect();
 
         // https://stackoverflow.com/a/26035435
-        let mut ids_avail_slice = ids_available.as_mut_slice();
+        let ids_avail_slice = ids_available.as_mut_slice();
         rand::thread_rng().shuffle(ids_avail_slice);
         let mut id_iter = ids_avail_slice.iter_mut();
 
