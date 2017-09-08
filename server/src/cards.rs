@@ -25,10 +25,10 @@ use self::rand::Rng;
 #[derive(Copy, Clone)]
 pub enum Color
 {
-    Spades,   // ♠,
-    Hearts,   // ♥,
-    Diamonds, // ♦,
-    Clubs,    // ♣
+    Spades   = 1, // ♠,
+    Hearts,       // ♥,
+    Diamonds,     // ♦,
+    Clubs,        // ♣
 }
 
 #[derive(Copy, Clone)]

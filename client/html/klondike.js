@@ -19,8 +19,8 @@ document.body.addEventListener('touchmove', (e) => { e.preventDefault(); });
 const enum_color =
 {
 	NO_COLOR : 0,
-	HEARTS : 1,
-	SPADES : 2,
+	SPADES : 1,
+	HEARTS : 2,
 	DIAMONDS : 3,
 	CLUBS : 4,
 	UNKNOWN_COLOR : 5
