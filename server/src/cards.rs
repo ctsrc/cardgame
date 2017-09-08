@@ -85,7 +85,6 @@ pub fn shuffled_deck () -> Box<[Card; 52]>
         {
             for rank in Rank::iterator()
             {
-
                 let curr_id = *(id_iter.next().unwrap());
 
                 let card = Card
