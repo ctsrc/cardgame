@@ -34,19 +34,8 @@ pub enum Color
 #[derive(Copy, Clone)]
 pub enum Rank
 {
-    A     = 1,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    J,
-    Q,
-    K
+    A = 1, Two, Three, Four, Five, Six,
+    Seven, Eight, Nine, Ten, J, Q, K
 }
 
 impl Color
