@@ -25,28 +25,17 @@ use self::rand::Rng;
 #[derive(Copy, Clone)]
 pub enum Color
 {
-    Spades,   // ♠,
-    Hearts,   // ♥,
-    Diamonds, // ♦,
-    Clubs,    // ♣
+    Spades   = 1, // ♠,
+    Hearts,       // ♥,
+    Diamonds,     // ♦,
+    Clubs,        // ♣
 }
 
 #[derive(Copy, Clone)]
 pub enum Rank
 {
-    A     = 1,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    J,
-    Q,
-    K
+    A = 1, Two, Three, Four, Five, Six,
+    Seven, Eight, Nine, Ten, J, Q, K
 }
 
 impl Color
@@ -78,8 +67,14 @@ pub struct Card
     pub facing_up: bool
 }
 
-pub fn shuffled_deck () -> Box<[Card; 52]>
+pub fn cards_by_id_shuffled_deck () -> Box<[Card; 52]>
 {
+    /*
+     * Returns a boxed array of Cards, where the cards
+     * appear in order of their IDs, such that the card
+     * with ID n is at array position n.
+     */
+
     // https://stackoverflow.com/a/31361031
     let all_cards = unsafe
     {
@@ -96,7 +91,6 @@ pub fn shuffled_deck () -> Box<[Card; 52]>
         {
             for rank in Rank::iterator()
             {
-
                 let curr_id = *(id_iter.next().unwrap());
 
                 let card = Card

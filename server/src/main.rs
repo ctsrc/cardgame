@@ -15,12 +15,12 @@
  */
 
 mod cards;
-use cards::shuffled_deck;
+use cards::cards_by_id_shuffled_deck;
 mod display_cards;
 
 fn main ()
 {
-    let all_cards = *shuffled_deck();
+    let all_cards = *cards_by_id_shuffled_deck();
 
     for card in all_cards.iter()
     {
