@@ -20,11 +20,11 @@ extern crate arrayvec;
 extern crate rand;
 
 mod cards;
-use cards::cards_by_id_shuffled_deck;
+use cards::ShuffledDeck;
 
 fn main ()
 {
-    let deck = cards_by_id_shuffled_deck();
+    let deck = ShuffledDeck::new();
 
     for card in deck.iter()
     {

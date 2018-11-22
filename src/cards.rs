@@ -71,35 +71,42 @@ pub struct Card
 }
 
 // TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.
-pub fn cards_by_id_shuffled_deck () -> ArrayVec<[Card; 56]>
+type Deck = ArrayVec<[Card; 56]>;
+
+pub struct ShuffledDeck(Deck);
+
+impl ShuffledDeck
 {
-    /*
-     * The cards in the shuffled deck appear in order of their IDs,
-     * such that the card with ID n is at array position n.
-     */
-
-    let mut all_cards = ArrayVec::<[_; 56]>::new();
-
-    let mut card_ids: Vec<i8> = (0..52).collect();
-    rand::thread_rng().shuffle(&mut card_ids);
-
-    let mut card_ids_iter = card_ids.iter_mut();
-
-    for color in Color::iter().skip(1)
+    pub fn new () -> Deck
     {
-        for rank in Rank::iter().skip(1)
+        /*
+         * The cards in the shuffled deck appear in order of their IDs,
+         * such that the card with ID n is at array position n.
+         */
+
+        let mut deck = Deck::new();
+
+        let mut card_ids: Vec<i8> = (0..52).collect();
+        rand::thread_rng().shuffle(&mut card_ids);
+
+        let mut card_ids_iter = card_ids.iter_mut();
+
+        for color in Color::iter().skip(1)
         {
-            all_cards.push(Card
+            for rank in Rank::iter().skip(1)
             {
-                color:     color,
-                rank:      rank,
-                id:        *(card_ids_iter.next().unwrap()),
-                facing_up: false
-            });
+                deck.push(Card
+                {
+                    color:     color,
+                    rank:      rank,
+                    id:        *(card_ids_iter.next().unwrap()),
+                    facing_up: false
+                });
+            }
         }
+
+        deck.sort_unstable_by_key(|k| k.id);
+
+        deck
     }
-
-    all_cards.sort_unstable_by_key(|k| k.id);
-
-    all_cards
 }
