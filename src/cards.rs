@@ -16,7 +16,7 @@
 
 use strum::IntoEnumIterator;
 use arrayvec::ArrayVec;
-use rand::Rng;
+use rand::seq::SliceRandom;
 
 use std::ops::Deref;
 
@@ -92,7 +92,7 @@ impl ShuffledDeck
         let mut deck = Deck::new();
 
         let mut card_ids: Vec<i8> = (0..52).collect();
-        rand::thread_rng().shuffle(&mut card_ids);
+        card_ids.shuffle(&mut rand::thread_rng());
 
         let mut card_ids_iter = card_ids.iter_mut();
 
