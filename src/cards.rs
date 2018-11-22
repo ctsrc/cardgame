@@ -19,6 +19,8 @@ use arrayvec::ArrayVec;
 use rand::seq::SliceRandom;
 
 use std::ops::Deref;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 
 #[derive(EnumIter, Display, Copy, Clone)]
 pub enum Color
@@ -55,6 +57,14 @@ pub struct Card
     pub rank:      Rank,
     pub id:        i8,
     pub facing_up: bool
+}
+
+impl Display for Card
+{
+    fn fmt (&self, f: &mut Formatter) -> fmt::Result
+    {
+        write!(f, "{}{}", self.color, self.rank)
+    }
 }
 
 // TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.

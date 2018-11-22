@@ -31,11 +31,11 @@ fn main ()
     {
         if card.id < 51
         {
-            print!("{}{} ", card.color, card.rank);
+            print!("{} ", card);
         }
         else
         {
-            println!("{}{}", card.color, card.rank);
+            println!("{}", card);
         }
     }
 }
