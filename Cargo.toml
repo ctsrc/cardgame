@@ -1,5 +1,5 @@
 [package]
-name = "klondike"
+name = "cardgame"
 version = "0.1.0"
 authors = ["Erik Nordstroem <erik@nordstroem.no>"]
 

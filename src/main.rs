@@ -23,6 +23,9 @@ extern crate rand;
 mod cards;
 use cards::ShuffledDeck;
 
+mod klondike;
+use klondike::Table;
+
 fn main ()
 {
     let deck = ShuffledDeck::new();
