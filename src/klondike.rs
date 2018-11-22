@@ -20,22 +20,6 @@ use std::ops::Deref;
 
 use cards::Card;
 
-macro_rules! impl_cardstack
-{
-    ($t:ident, $a:ty) =>
-    {
-        impl_cardstack_ops!($t, $a);
-
-        impl $t
-        {
-            pub fn new () -> $t
-            {
-                $t::from(ArrayVec::<$a>::new())
-            }
-        }
-    }
-}
-
 impl_cardstack!(StockSlot,      [Card; 21]); // 52 - (1 + 2 + 3 + 4 + 5 + 6 + 7) = 21
 impl_cardstack!(WastePileSlot,  [Card; 21]);
 impl_cardstack!(FoundationSlot, [Card; 13]);

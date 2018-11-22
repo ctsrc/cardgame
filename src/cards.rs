@@ -95,6 +95,22 @@ macro_rules! impl_cardstack_ops
     }
 }
 
+macro_rules! impl_cardstack
+{
+    ($t:ident, $a:ty) =>
+    {
+        impl_cardstack_ops!($t, $a);
+
+        impl $t
+        {
+            pub fn new () -> $t
+            {
+                $t::from(ArrayVec::<$a>::new())
+            }
+        }
+    }
+}
+
 // TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.
 type DeckArray = [Card; 56];
 impl_cardstack_ops!(ShuffledDeck, DeckArray);
