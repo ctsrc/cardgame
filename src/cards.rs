@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Erik Nordstrøm <erik@nordstroem.no>
+ * Copyright (c) 2017, 2018 Erik Nordstrøm <erik@nordstroem.no>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,23 +19,49 @@ use self::Rank::*;
 use std::slice::Iter;
 use std::mem;
 
+extern crate strum;
+
 extern crate rand;
 use self::rand::Rng;
 
-#[derive(Copy, Clone)]
+#[derive(Display, Copy, Clone)]
 pub enum Color
 {
-    Spades   = 1, // ♠,
-    Hearts,       // ♥,
-    Diamonds,     // ♦,
-    Clubs,        // ♣
+    #[strum(serialize="♠")]
+    Spades   = 1,
+    #[strum(serialize="♥")]
+    Hearts,
+    #[strum(serialize="♦")]
+    Diamonds,
+    #[strum(serialize="♣")]
+    Clubs
 }
 
-#[derive(Copy, Clone)]
+#[derive(Display, Copy, Clone)]
 pub enum Rank
 {
-    A = 1, Two, Three, Four, Five, Six,
-    Seven, Eight, Nine, Ten, J, Q, K
+    A = 1,
+    #[strum(serialize="2")]
+    Two,
+    #[strum(serialize="3")]
+    Three,
+    #[strum(serialize="4")]
+    Four,
+    #[strum(serialize="5")]
+    Five,
+    #[strum(serialize="6")]
+    Six,
+    #[strum(serialize="7")]
+    Seven,
+    #[strum(serialize="8")]
+    Eight,
+    #[strum(serialize="9")]
+    Nine,
+    #[strum(serialize="10")]
+    Ten,
+    J,
+    Q,
+    K
 }
 
 impl Color

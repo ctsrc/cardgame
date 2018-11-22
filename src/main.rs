@@ -14,9 +14,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#[macro_use] extern crate strum_macros;
+
 mod cards;
 use cards::cards_by_id_shuffled_deck;
-mod display_cards;
 
 fn main ()
 {

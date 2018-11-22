@@ -1,4 +1,4 @@
-/server/target/
+/target/
 core
 *.core
 /.idea/
