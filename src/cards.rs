@@ -23,45 +23,30 @@ use std::ops::Deref;
 #[derive(EnumIter, Display, Copy, Clone)]
 pub enum Color
 {
-    #[strum(serialize="?")]
-    Unknown,
-    #[strum(serialize="♠")]
-    Spades,
-    #[strum(serialize="♥")]
-    Hearts,
-    #[strum(serialize="♦")]
-    Diamonds,
-    #[strum(serialize="♣")]
-    Clubs
+    #[strum(serialize="?")]     Unknown,
+    #[strum(serialize="♠")]     Spades,
+    #[strum(serialize="♥")]     Hearts,
+    #[strum(serialize="♦")]     Diamonds,
+    #[strum(serialize="♣")]     Clubs
 }
 
 #[derive(EnumIter, Display, Copy, Clone)]
 pub enum Rank
 {
-    #[strum(serialize="?")]
-    Unknown,
-    A,
-    #[strum(serialize="2")]
-    Two,
-    #[strum(serialize="3")]
-    Three,
-    #[strum(serialize="4")]
-    Four,
-    #[strum(serialize="5")]
-    Five,
-    #[strum(serialize="6")]
-    Six,
-    #[strum(serialize="7")]
-    Seven,
-    #[strum(serialize="8")]
-    Eight,
-    #[strum(serialize="9")]
-    Nine,
-    #[strum(serialize="10")]
-    Ten,
-    J,
-    Q,
-    K
+    #[strum(serialize="?")]     Unknown,
+                                A,
+    #[strum(serialize="2")]     Two,
+    #[strum(serialize="3")]     Three,
+    #[strum(serialize="4")]     Four,
+    #[strum(serialize="5")]     Five,
+    #[strum(serialize="6")]     Six,
+    #[strum(serialize="7")]     Seven,
+    #[strum(serialize="8")]     Eight,
+    #[strum(serialize="9")]     Nine,
+    #[strum(serialize="10")]    Ten,
+                                J,
+                                Q,
+                                K
 }
 
 pub struct Card
