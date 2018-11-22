@@ -14,17 +14,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-use self::Color::*;
-use self::Rank::*;
-use std::slice::Iter;
+use strum::IntoEnumIterator;
+use rand::Rng;
+
 use std::mem;
 
-extern crate strum;
-
-extern crate rand;
-use self::rand::Rng;
-
-#[derive(Display, Copy, Clone)]
+#[derive(EnumIter, Display, Copy, Clone)]
 pub enum Color
 {
     #[strum(serialize="♠")]
@@ -37,7 +32,7 @@ pub enum Color
     Clubs
 }
 
-#[derive(Display, Copy, Clone)]
+#[derive(EnumIter, Display, Copy, Clone)]
 pub enum Rank
 {
     A = 1,
@@ -62,27 +57,6 @@ pub enum Rank
     J,
     Q,
     K
-}
-
-impl Color
-{
-    // https://stackoverflow.com/a/21376984
-    fn iterator () -> Iter<'static, Color>
-    {
-        static COLORS: [Color; 4] = [Spades, Hearts, Diamonds, Clubs];
-        COLORS.into_iter()
-    }
-}
-
-impl Rank
-{
-    fn iterator () -> Iter<'static, Rank>
-    {
-        static RANKS: [Rank; 13] =
-            [ A, Two, Three, Four, Five, Six, Seven,
-              Eight, Nine, Ten, J, Q, K ] ;
-        RANKS.into_iter()
-    }
 }
 
 pub struct Card
@@ -113,16 +87,16 @@ pub fn cards_by_id_shuffled_deck () -> Box<[Card; 52]>
         rand::thread_rng().shuffle(ids_avail_slice);
         let mut id_iter = ids_avail_slice.iter_mut();
 
-        for color in Color::iterator()
+        for color in Color::iter()
         {
-            for rank in Rank::iterator()
+            for rank in Rank::iter()
             {
                 let curr_id = *(id_iter.next().unwrap());
 
                 let card = Card
                 {
-                    color:     *color,
-                    rank:      *rank,
+                    color:     color,
+                    rank:      rank,
                     id:        curr_id,
                     facing_up: false
                 };
