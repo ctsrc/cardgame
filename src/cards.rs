@@ -15,15 +15,16 @@
  */
 
 use strum::IntoEnumIterator;
+use arrayvec::ArrayVec;
 use rand::Rng;
-
-use std::mem;
 
 #[derive(EnumIter, Display, Copy, Clone)]
 pub enum Color
 {
+    #[strum(serialize="?")]
+    Unknown,
     #[strum(serialize="♠")]
-    Spades   = 1,
+    Spades,
     #[strum(serialize="♥")]
     Hearts,
     #[strum(serialize="♦")]
@@ -35,7 +36,9 @@ pub enum Color
 #[derive(EnumIter, Display, Copy, Clone)]
 pub enum Rank
 {
-    A = 1,
+    #[strum(serialize="?")]
+    Unknown,
+    A,
     #[strum(serialize="2")]
     Two,
     #[strum(serialize="3")]
@@ -63,50 +66,44 @@ pub struct Card
 {
     pub color:     Color,
     pub rank:      Rank,
-    pub id:        u8,
+    pub id:        i8,
     pub facing_up: bool
 }
 
-pub fn cards_by_id_shuffled_deck () -> Box<[Card; 52]>
+// TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.
+pub fn cards_by_id_shuffled_deck () -> ArrayVec<[Card; 56]>
 {
     /*
-     * Returns a boxed array of Cards, where the cards
-     * appear in order of their IDs, such that the card
-     * with ID n is at array position n.
+     * The cards in the shuffled deck appear in order of their IDs,
+     * such that the card with ID n is at array position n.
      */
 
-    // https://stackoverflow.com/a/31361031
-    let all_cards = unsafe
+    let mut all_cards = ArrayVec::<[_; 56]>::new();
+
+    let mut card_ids: Vec<i8> = (0..52).collect();
+    rand::thread_rng().shuffle(&mut card_ids);
+
+    let mut card_ids_iter = card_ids.iter_mut();
+
+    for color in Color::iter().skip(1)
     {
-        let mut _all_cards: [Card; 52] = mem::uninitialized();
-
-        let mut ids_available: Vec<u8> = (0..52).collect();
-
-        // https://stackoverflow.com/a/26035435
-        let ids_avail_slice = ids_available.as_mut_slice();
-        rand::thread_rng().shuffle(ids_avail_slice);
-        let mut id_iter = ids_avail_slice.iter_mut();
-
-        for color in Color::iter()
+        for rank in Rank::iter().skip(1)
         {
-            for rank in Rank::iter()
+            let curr_id = *(card_ids_iter.next().unwrap());
+
+            let card = Card
             {
-                let curr_id = *(id_iter.next().unwrap());
+                color:     color,
+                rank:      rank,
+                id:        curr_id,
+                facing_up: false
+            };
 
-                let card = Card
-                {
-                    color:     color,
-                    rank:      rank,
-                    id:        curr_id,
-                    facing_up: false
-                };
-
-                _all_cards[curr_id as usize] = card;
-            }
+            all_cards.push(card);
         }
+    }
 
-        _all_cards
-    };
+    all_cards.sort_unstable_by_key(|k| k.id);
 
-    Box::new(all_cards)
+    all_cards
 }

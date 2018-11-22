@@ -16,7 +16,7 @@
 
 extern crate strum;
 #[macro_use] extern crate strum_macros;
-
+extern crate arrayvec;
 extern crate rand;
 
 mod cards;
@@ -24,9 +24,9 @@ use cards::cards_by_id_shuffled_deck;
 
 fn main ()
 {
-    let all_cards = *cards_by_id_shuffled_deck();
+    let deck = cards_by_id_shuffled_deck();
 
-    for card in all_cards.iter()
+    for card in deck.iter()
     {
         if card.id < 51
         {
