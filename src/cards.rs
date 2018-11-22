@@ -110,7 +110,6 @@ impl Deref for ShuffledDeck
 {
     type Target = [<DeckArray as arrayvec::Array>::Item];
 
-    #[inline]
     fn deref (&self) -> &[<DeckArray as arrayvec::Array>::Item]
     {
         Deck::deref(&self.0)
