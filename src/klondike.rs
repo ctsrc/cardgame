@@ -20,33 +20,23 @@ use std::ops::Deref;
 
 use cards::Card;
 
-type TableauSlotArray = [Card; 19];
-pub struct TableauSlot(ArrayVec<TableauSlotArray>);
-
-NewtypeFrom! { () pub struct TableauSlot(ArrayVec<TableauSlotArray>); }
-
-impl TableauSlot
+macro_rules! impl_cardstack
 {
-    pub fn new () -> TableauSlot
+    ($t:ident, $a:ty) =>
     {
-        TableauSlot::from(ArrayVec::<TableauSlotArray>::new())
-    }
+        impl_cardstack_ops!($t, $a);
 
-    pub fn push (&mut self, element: <TableauSlotArray as arrayvec::Array>::Item)
-    {
-        ArrayVec::<TableauSlotArray>::push(&mut self.0, element)
+        impl $t
+        {
+            pub fn new () -> $t
+            {
+                $t::from(ArrayVec::<$a>::new())
+            }
+        }
     }
 }
 
-impl Deref for TableauSlot
-{
-    type Target = [<TableauSlotArray as arrayvec::Array>::Item];
-
-    fn deref (&self) -> &[<TableauSlotArray as arrayvec::Array>::Item]
-    {
-        ArrayVec::<TableauSlotArray>::deref(&self.0)
-    }
-}
+impl_cardstack!(TableauSlot, [Card; 19]);
 
 pub struct Table
 {

@@ -67,13 +67,37 @@ impl Display for Card
     }
 }
 
+macro_rules! impl_cardstack_ops
+{
+    ($t:ident, $a:ty) =>
+    {
+        pub struct $t(ArrayVec<$a>);
+
+        NewtypeFrom! { () pub struct $t(ArrayVec<$a>); }
+
+        impl $t
+        {
+            pub fn push (&mut self, element: <$a as arrayvec::Array>::Item)
+            {
+                ArrayVec::<$a>::push(&mut self.0, element)
+            }
+        }
+
+        impl Deref for $t
+        {
+            type Target = [<$a as arrayvec::Array>::Item];
+
+            fn deref (&self) -> &[<$a as arrayvec::Array>::Item]
+            {
+                ArrayVec::<$a>::deref(&self.0)
+            }
+        }
+    }
+}
+
 // TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.
 type DeckArray = [Card; 56];
-type Deck = ArrayVec<DeckArray>;
-
-pub struct ShuffledDeck(Deck);
-
-NewtypeFrom! { () pub struct ShuffledDeck(Deck); }
+impl_cardstack_ops!(ShuffledDeck, DeckArray);
 
 impl ShuffledDeck
 {
@@ -84,7 +108,7 @@ impl ShuffledDeck
          * such that the card with ID n is at array position n.
          */
 
-        let mut deck = Deck::new();
+        let mut deck = ArrayVec::<DeckArray>::new();
 
         let mut card_ids: Vec<i8> = (0..52).collect();
         card_ids.shuffle(&mut rand::thread_rng());
@@ -108,20 +132,5 @@ impl ShuffledDeck
         deck.sort_unstable_by_key(|k| k.id);
 
         ShuffledDeck::from(deck)
-    }
-
-    pub fn push (&mut self, element: <DeckArray as arrayvec::Array>::Item)
-    {
-        Deck::push(&mut self.0, element)
-    }
-}
-
-impl Deref for ShuffledDeck
-{
-    type Target = [<DeckArray as arrayvec::Array>::Item];
-
-    fn deref (&self) -> &[<DeckArray as arrayvec::Array>::Item]
-    {
-        Deck::deref(&self.0)
     }
 }

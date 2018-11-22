@@ -20,7 +20,7 @@ extern crate arrayvec;
 #[macro_use] extern crate newtype_derive;
 extern crate rand;
 
-mod cards;
+#[macro_use] mod cards;
 use cards::ShuffledDeck;
 
 mod klondike;
