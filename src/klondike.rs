@@ -20,10 +20,10 @@ use std::ops::Deref;
 
 use cards::Card;
 
-impl_cardstack!(StockSlot,      [Card; 21]); // 52 - (1 + 2 + 3 + 4 + 5 + 6 + 7) = 21
-impl_cardstack!(WastePileSlot,  [Card; 21]);
-impl_cardstack!(FoundationSlot, [Card; 13]);
-impl_cardstack!(TableauSlot,    [Card; 19]);
+impl_cardstack!(StockSlot,      StockSlotArray,      21); // 52 - (1 + 2 + 3 + 4 + 5 + 6 + 7) = 21
+impl_cardstack!(WastePileSlot,  WastePileSlotArray,  21);
+impl_cardstack!(FoundationSlot, FoundationSlotArray, 13);
+impl_cardstack!(TableauSlot,    TableauSlotArray,    19);
 
 pub struct Table
 {

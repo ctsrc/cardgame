@@ -69,8 +69,10 @@ impl Display for Card
 
 macro_rules! impl_cardstack_ops
 {
-    ($t:ident, $a:ty) =>
+    ($t:ident, $a:ident, $n:expr) =>
     {
+        type $a = [Card; $n];
+
         pub struct $t(ArrayVec<$a>);
 
         NewtypeFrom! { () pub struct $t(ArrayVec<$a>); }
@@ -97,9 +99,9 @@ macro_rules! impl_cardstack_ops
 
 macro_rules! impl_cardstack
 {
-    ($t:ident, $a:ty) =>
+    ($t:ident, $a:ident, $n:expr) =>
     {
-        impl_cardstack_ops!($t, $a);
+        impl_cardstack_ops!($t, $a, $n);
 
         impl $t
         {
@@ -112,8 +114,7 @@ macro_rules! impl_cardstack
 }
 
 // TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.
-type DeckArray = [Card; 56];
-impl_cardstack_ops!(ShuffledDeck, DeckArray);
+impl_cardstack_ops!(ShuffledDeck, ShuffledDeckArray, 56);
 
 impl ShuffledDeck
 {
@@ -124,7 +125,7 @@ impl ShuffledDeck
          * such that the card with ID n is at array position n.
          */
 
-        let mut deck = ArrayVec::<DeckArray>::new();
+        let mut deck = ArrayVec::<ShuffledDeckArray>::new();
 
         let mut card_ids: Vec<i8> = (0..52).collect();
         card_ids.shuffle(&mut rand::thread_rng());
