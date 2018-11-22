@@ -7,4 +7,5 @@ authors = ["Erik Nordstroem <erik@nordstroem.no>"]
 strum = "0.11.0"
 strum_macros = "0.11.0"
 arrayvec = "0.4.7"
+newtype_derive = "0.1.6"
 rand = "0.3.16"

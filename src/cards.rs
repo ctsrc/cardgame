@@ -18,6 +18,8 @@ use strum::IntoEnumIterator;
 use arrayvec::ArrayVec;
 use rand::Rng;
 
+use std::ops::Deref;
+
 #[derive(EnumIter, Display, Copy, Clone)]
 pub enum Color
 {
@@ -75,9 +77,11 @@ type Deck = ArrayVec<[Card; 56]>;
 
 pub struct ShuffledDeck(Deck);
 
+NewtypeFrom! { () pub struct ShuffledDeck(Deck); }
+
 impl ShuffledDeck
 {
-    pub fn new () -> Deck
+    pub fn new () -> ShuffledDeck
     {
         /*
          * The cards in the shuffled deck appear in order of their IDs,
@@ -107,6 +111,22 @@ impl ShuffledDeck
 
         deck.sort_unstable_by_key(|k| k.id);
 
-        deck
+        ShuffledDeck::from(deck)
+    }
+
+    pub fn push (&mut self, element: <[Card; 56] as arrayvec::Array>::Item)
+    {
+        Deck::push(&mut self.0, element)
+    }
+}
+
+impl Deref for ShuffledDeck
+{
+    type Target = [<[Card; 56] as arrayvec::Array>::Item];
+
+    #[inline]
+    fn deref (&self) -> &[<[Card; 56] as arrayvec::Array>::Item]
+    {
+        Deck::deref(&self.0)
     }
 }

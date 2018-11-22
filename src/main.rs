@@ -17,6 +17,7 @@
 extern crate strum;
 #[macro_use] extern crate strum_macros;
 extern crate arrayvec;
+#[macro_use] extern crate newtype_derive;
 extern crate rand;
 
 mod cards;
