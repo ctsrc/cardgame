@@ -73,7 +73,8 @@ pub struct Card
 }
 
 // TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.
-type Deck = ArrayVec<[Card; 56]>;
+type DeckArray = [Card; 56];
+type Deck = ArrayVec<DeckArray>;
 
 pub struct ShuffledDeck(Deck);
 
@@ -114,7 +115,7 @@ impl ShuffledDeck
         ShuffledDeck::from(deck)
     }
 
-    pub fn push (&mut self, element: <[Card; 56] as arrayvec::Array>::Item)
+    pub fn push (&mut self, element: <DeckArray as arrayvec::Array>::Item)
     {
         Deck::push(&mut self.0, element)
     }
@@ -122,10 +123,10 @@ impl ShuffledDeck
 
 impl Deref for ShuffledDeck
 {
-    type Target = [<[Card; 56] as arrayvec::Array>::Item];
+    type Target = [<DeckArray as arrayvec::Array>::Item];
 
     #[inline]
-    fn deref (&self) -> &[<[Card; 56] as arrayvec::Array>::Item]
+    fn deref (&self) -> &[<DeckArray as arrayvec::Array>::Item]
     {
         Deck::deref(&self.0)
     }
