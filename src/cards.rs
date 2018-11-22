@@ -89,17 +89,13 @@ pub fn cards_by_id_shuffled_deck () -> ArrayVec<[Card; 56]>
     {
         for rank in Rank::iter().skip(1)
         {
-            let curr_id = *(card_ids_iter.next().unwrap());
-
-            let card = Card
+            all_cards.push(Card
             {
                 color:     color,
                 rank:      rank,
-                id:        curr_id,
+                id:        *(card_ids_iter.next().unwrap()),
                 facing_up: false
-            };
-
-            all_cards.push(card);
+            });
         }
     }
 
