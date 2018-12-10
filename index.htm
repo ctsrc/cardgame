@@ -72,7 +72,7 @@ body
   --card-vertical-stacking-offset-make-prev-card-rank-color-visible: calc(var(--card-height) / 8);
   --card-vertical-stacking-offset-on-unknown-card: calc(var(--card-height) / 16);
 
-  --card-vertical-stacking-offset-upwards-piling: 3px;
+  --card-vertical-stacking-offset-upwards-piling: 2px;
 }
 
 .slot, #gap
@@ -109,6 +109,61 @@ body
 {
   width: var(--card-width);
   height: var(--card-height);
+  background: linear-gradient(#999, #777);
+  border: 1px solid #55a;
+  border-radius: var(--card-radius);
+}
+
+.card.unknown
+{
+  background: linear-gradient(#99e, #77c);
+}
+
+#table-area-upper
+{
+  min-height: calc(var(--card-height)
+    + 6 * var(--card-vertical-stacking-offset-upwards-piling));
+}
+
+#table-area-upper .card,
+#tableau .card
+{
+  position: absolute;
+}
+
+#table-area-upper .slot > .card
+{
+  bottom: 0;
+}
+
+#table-area-upper .slot > .card + .card
+{
+  bottom: var(--card-vertical-stacking-offset-upwards-piling);
+}
+
+#table-area-upper .slot > .card + .card + .card
+{
+  bottom: calc(2 * var(--card-vertical-stacking-offset-upwards-piling));
+}
+
+#table-area-upper .slot > .card + .card + .card + .card
+{
+  bottom: calc(3 * var(--card-vertical-stacking-offset-upwards-piling));
+}
+
+#table-area-upper .slot > .card + .card + .card + .card + .card
+{
+  bottom: calc(4 * var(--card-vertical-stacking-offset-upwards-piling));
+}
+
+#table-area-upper .slot > .card + .card + .card + .card + .card + .card
+{
+  bottom: calc(5 * var(--card-vertical-stacking-offset-upwards-piling));
+}
+
+#table-area-upper .slot > .card + .card + .card + .card + .card + .card + .card
+{
+  bottom: calc(6 * var(--card-vertical-stacking-offset-upwards-piling));
 }
 
 #tableau
@@ -118,10 +173,39 @@ body
     + var(--card-height));
 }
 
-#table-area-upper
+#tableau .slot > .card
 {
-  min-height: calc(var(--card-height)
-    + 6 * var(--card-vertical-stacking-offset-upwards-piling));
+  top: 0;
+}
+
+#tableau .slot > .unknown + .card
+{
+  top: var(--card-vertical-stacking-offset-on-unknown-card);
+}
+
+#tableau .slot > .unknown + .unknown + .card
+{
+  top: calc(2 * var(--card-vertical-stacking-offset-on-unknown-card));
+}
+
+#tableau .slot > .unknown + .unknown + .unknown + .card
+{
+  top: calc(3 * var(--card-vertical-stacking-offset-on-unknown-card));
+}
+
+#tableau .slot > .unknown + .unknown + .unknown + .unknown + .card
+{
+  top: calc(4 * var(--card-vertical-stacking-offset-on-unknown-card));
+}
+
+#tableau .slot > .unknown + .unknown + .unknown + .unknown + .unknown + .card
+{
+  top: calc(5 * var(--card-vertical-stacking-offset-on-unknown-card));
+}
+
+#tableau .slot > .unknown + .unknown + .unknown + .unknown + .unknown + .unknown + .card
+{
+  top: calc(6 * var(--card-vertical-stacking-offset-on-unknown-card));
 }
 
 #wrap
@@ -177,7 +261,15 @@ body
 <div id=wrap>
 <div id=table>
   <div id=table-area-upper>
-    <div id=stock-slot class=slot></div>
+    <div id=stock-slot class=slot>
+      <div data-card-id=18 class="card unknown"></div>
+      <div data-card-id=19 class="card unknown"></div>
+      <div data-card-id=20 class="card unknown"></div>
+      <div data-card-id=21 class="card unknown"></div>
+      <div data-card-id=22 class="card unknown"></div>
+      <div data-card-id=23 class="card unknown"></div>
+      <div data-card-id=24 class="card unknown"></div>
+    </div>
     <div id=waste-pile-slot class=slot></div>
     <div id=gap></div>
     <div id=foundation-slot-1 class=slot></div>
@@ -186,13 +278,48 @@ body
     <div id=foundation-slot-4 class=slot></div>
   </div>
   <div id=tableau>
-    <div id=tableau-slot-1 class=slot></div>
-    <div id=tableau-slot-2 class=slot></div>
-    <div id=tableau-slot-3 class=slot></div>
-    <div id=tableau-slot-4 class=slot></div>
-    <div id=tableau-slot-5 class=slot></div>
-    <div id=tableau-slot-6 class=slot></div>
-    <div id=tableau-slot-7 class=slot></div>
+    <div id=tableau-slot-1 class=slot>
+      <div data-card-id=25 class="card loading"></div>
+    </div>
+    <div id=tableau-slot-2 class=slot>
+      <div data-card-id=26 class="card unknown"></div>
+      <div data-card-id=27 class="card loading"></div>
+    </div>
+    <div id=tableau-slot-3 class=slot>
+      <div data-card-id=28 class="card unknown"></div>
+      <div data-card-id=29 class="card unknown"></div>
+      <div data-card-id=30 class="card loading"></div>
+    </div>
+    <div id=tableau-slot-4 class=slot>
+      <div data-card-id=31 class="card unknown"></div>
+      <div data-card-id=32 class="card unknown"></div>
+      <div data-card-id=33 class="card unknown"></div>
+      <div data-card-id=34 class="card loading"></div>
+    </div>
+    <div id=tableau-slot-5 class=slot>
+      <div data-card-id=35 class="card unknown"></div>
+      <div data-card-id=36 class="card unknown"></div>
+      <div data-card-id=37 class="card unknown"></div>
+      <div data-card-id=38 class="card unknown"></div>
+      <div data-card-id=39 class="card loading"></div>
+    </div>
+    <div id=tableau-slot-6 class=slot>
+      <div data-card-id=40 class="card unknown"></div>
+      <div data-card-id=41 class="card unknown"></div>
+      <div data-card-id=42 class="card unknown"></div>
+      <div data-card-id=43 class="card unknown"></div>
+      <div data-card-id=44 class="card unknown"></div>
+      <div data-card-id=45 class="card loading"></div>
+    </div>
+    <div id=tableau-slot-7 class=slot>
+      <div data-card-id=46 class="card unknown"></div>
+      <div data-card-id=47 class="card unknown"></div>
+      <div data-card-id=48 class="card unknown"></div>
+      <div data-card-id=49 class="card unknown"></div>
+      <div data-card-id=50 class="card unknown"></div>
+      <div data-card-id=51 class="card unknown"></div>
+      <div data-card-id=52 class="card loading"></div>
+    </div>
   </div>
 </div>
 </div>
