@@ -20,6 +20,7 @@
 <meta charset=utf-8>
 <title>Klondike MMO</title>
 <meta name=viewport content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Unlock" rel="stylesheet">
 <style>
 *
 {
@@ -206,7 +207,7 @@ body
 #table, #hand
 {
   padding: var(--table-padding);
-  padding-top: 6rem;
+  padding-top: 3rem;
 }
 
 #tableau
@@ -223,7 +224,7 @@ body
   left: 0;
   text-align: center;
 
-  padding-top: 25vh;
+  padding-top: calc(var(--card-height) + 16pt);
 
   background: linear-gradient(270deg, rgba(36, 102, 85, 0.75), rgba(0, 255, 189, 0.75));
   background-size: 400% 400%;
@@ -242,14 +243,11 @@ body
 
 #title-screen h1
 {
-  font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+  font-family: 'Unlock', sans-serif;
   font-variant: small-caps;
-  font-size: 38pt;
-
-  text-shadow:
-    1px 2px 1px rgba(220, 219, 219, 0.5),
-    1px 4px 1px rgba(243, 242, 241, 0.5),
-    1px 6px 1px rgba(258, 255, 255, 0.5);
+  font-size: 34pt;
+  color: #eee;
+  text-shadow: 1px 3px 1px rgba(43, 42, 41, 0.3);
 }
 </style>
 <style>
