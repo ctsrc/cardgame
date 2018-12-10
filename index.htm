@@ -249,6 +249,28 @@ body
   color: #eee;
   text-shadow: 1px 3px 1px rgba(43, 42, 41, 0.3);
 }
+
+#title-screen .menu
+{
+  margin-top: 0.8rem;
+}
+
+.button
+{
+  display: inline-block;
+  font-size: 16pt;
+  text-decoration: none;
+  color: #eee;
+  background: black;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  box-shadow: 1px 3px 1px rgba(43, 42, 41, 0.3);
+}
+
+.button + .button
+{
+  margin-left: 0.7rem;
+}
 </style>
 <style>
 .github-corner:hover .octo-arm
@@ -286,10 +308,10 @@ body
   <header>
     <h1>Klondike MMO</h1>
   </header>
-  <div id=menu>
-    <a href=#>Spectate</a>
-    <a href=#>Practice</a>
-    <a href=#>Play</a>
+  <div class=menu>
+    <a href=# class=button>Spectate</a>
+    <a href=# class=button>Practice</a>
+    <a href=# class=button>Play</a>
   </div>
 </div>
 <div id=wrap>
