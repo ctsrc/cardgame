@@ -59,19 +59,21 @@
 
 :root
 {
+  --height-header-main: calc(2 * 1rem + 24pt);
   --card-width: calc((100vw - 2 * var(--table-padding)) / 8);
+  --card-height: calc(var(--card-width) * var(--real-card-ratio-wh));
 }
 
-@media (min-aspect-ratio: 1/1)
+@media (min-aspect-ratio: 3/4) and (max-aspect-ratio: 4/3)
 {
   :root
   {
-    --card-width: calc((100vh - 2 * var(--table-padding)) / 8);
+    --card-width: calc((75vh - 2 * var(--table-padding)) / 8);
   }
 
   #table, #chat
   {
-    max-width: calc(100vh - 2 * var(--table-padding));
+    max-width: calc(75vh - 2 * var(--table-padding));
     margin: 0 auto;
   }
 
@@ -81,10 +83,42 @@
   }
 }
 
+@media (min-aspect-ratio: 4/3)
+{
+  :root
+  {
+    --height-vp-minus-header: calc(100vh - var(--height-header-main));
+    --card-height: calc((var(--height-vp-minus-header) - 2 * var(--table-padding)) / 4.5);
+    --card-width: calc(var(--card-height) / var(--real-card-ratio-wh));
+  }
+
+  #table
+  {
+    max-width: calc(8 * var(--card-width));
+    margin: 0 auto;
+  }
+
+  #outer-wrap
+  {
+    display: flex;
+    height: var(--height-vp-minus-header);
+  }
+  #wrap
+  {
+    min-width: calc(var(--card-width) * 8);
+    flex-grow: 2;
+    padding-right: calc(1.2 * var(--table-padding));
+  }
+  #chat
+  {
+    flex-grow: 1;
+    margin: 0;
+    max-width: 35ch;
+  }
+}
+
 :root
 {
-  --card-height: calc(var(--card-width) * var(--real-card-ratio-wh));
-
   --card-radius: calc(var(--card-height) / 24);
   --card-vertical-stacking-offset-make-prev-card-rank-color-visible: calc(var(--card-height) / 8);
   --card-vertical-stacking-offset-on-unknown-card: calc(var(--card-height) / 16);
@@ -224,7 +258,7 @@
 #table, #hand
 {
   padding: var(--table-padding);
-  padding-top: 3rem;
+  padding-top: calc(1.6 * var(--table-padding));
 }
 
 #chat
@@ -343,153 +377,155 @@
 <header id=header-main>
   <h1>Klondike MMO</h1>
 </header>
-<div id=wrap>
-<div id=table>
-  <div id=table-area-upper>
-    <div id=stock-slot class="slot tuple">
-      <div data-card-ids-omitted-from-view="1..=17" data-card-id=18 class="card unknown"></div>
-      <div class=tuple>
-        <div data-card-id=19 class="card unknown"></div>
-        <div class=tuple>
-          <div data-card-id=20 class="card unknown"></div>
-          <div class=tuple>
-            <div data-card-id=21 class="card unknown"></div>
-            <div class=tuple>
-              <div data-card-id=22 class="card unknown"></div>
-              <div class=tuple>
-                <div data-card-id=23 class="card unknown"></div>
-                <div class=tuple>
-                  <div data-card-id=24 class="card unknown"></div>
-                  <div class=empty></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id=waste-pile-slot class="slot empty"></div>
-    <div id=gap></div>
-    <div id=foundation-slot-1 class="slot empty"></div>
-    <div id=foundation-slot-2 class="slot empty"></div>
-    <div id=foundation-slot-3 class="slot empty"></div>
-    <div id=foundation-slot-4 class="slot empty"></div>
-  </div>
-  <div id=tableau>
-    <div id=tableau-slot-1 class="slot tuple">
-      <div data-card-id=25 class="card known loading"></div>
-      <div class=empty></div>
-    </div>
-    <div id=tableau-slot-2 class="slot tuple">
-      <div data-card-id=26 class="card unknown"></div>
-      <div class=tuple>
-        <div data-card-id=27 class="card known loading"></div>
-        <div class=empty></div>
-      </div>
-    </div>
-    <div id=tableau-slot-3 class="slot tuple">
-      <div data-card-id=28 class="card unknown"></div>
-      <div class=tuple>
-        <div data-card-id=29 class="card unknown"></div>
-        <div class=tuple>
-          <div data-card-id=30 class="card known loading"></div>
+<div id=outer-wrap>
+  <div id=wrap>
+    <div id=table>
+      <div id=table-area-upper>
+                                <div id=stock-slot class="slot tuple">
+                                <div data-card-ids-omitted-from-view="1..=17" data-card-id=18 class="card unknown"></div>
+                                <div class=tuple>
+                                <div data-card-id=19 class="card unknown"></div>
+                                <div class=tuple>
+                                <div data-card-id=20 class="card unknown"></div>
+                                <div class=tuple>
+                                <div data-card-id=21 class="card unknown"></div>
+                                <div class=tuple>
+                                <div data-card-id=22 class="card unknown"></div>
+                                <div class=tuple>
+                                <div data-card-id=23 class="card unknown"></div>
+                                <div class=tuple>
+                                <div data-card-id=24 class="card unknown"></div>
+                                <div class=empty></div>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                                <div id=waste-pile-slot class="slot empty"></div>
+                                <div id=gap></div>
+                                <div id=foundation-slot-1 class="slot empty"></div>
+                                <div id=foundation-slot-2 class="slot empty"></div>
+                                <div id=foundation-slot-3 class="slot empty"></div>
+                                <div id=foundation-slot-4 class="slot empty"></div>
+                                </div>
+      <div id=tableau>
+        <div id=tableau-slot-1 class="slot tuple">
+          <div data-card-id=25 class="card known loading"></div>
           <div class=empty></div>
         </div>
-      </div>
-    </div>
-    <div id=tableau-slot-4 class="slot tuple">
-      <div data-card-id=31 class="card unknown"></div>
-      <div class=tuple>
-        <div data-card-id=32 class="card unknown"></div>
-        <div class=tuple>
-          <div data-card-id=33 class="card unknown"></div>
+        <div id=tableau-slot-2 class="slot tuple">
+          <div data-card-id=26 class="card unknown"></div>
           <div class=tuple>
-            <div data-card-id=34 class="card known loading"></div>
+            <div data-card-id=27 class="card known loading"></div>
             <div class=empty></div>
           </div>
         </div>
-      </div>
-    </div>
-    <div id=tableau-slot-5 class="slot tuple">
-      <div data-card-id=35 class="card unknown"></div>
-      <div class=tuple>
-        <div data-card-id=36 class="card unknown"></div>
-        <div class=tuple>
-          <div data-card-id=37 class="card unknown"></div>
+        <div id=tableau-slot-3 class="slot tuple">
+          <div data-card-id=28 class="card unknown"></div>
           <div class=tuple>
-            <div data-card-id=38 class="card unknown"></div>
+            <div data-card-id=29 class="card unknown"></div>
             <div class=tuple>
-              <div data-card-id=39 class="card known loading"></div>
+              <div data-card-id=30 class="card known loading"></div>
               <div class=empty></div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div id=tableau-slot-6 class="slot tuple">
-      <div data-card-id=40 class="card unknown"></div>
-      <div class=tuple>
-        <div data-card-id=41 class="card unknown"></div>
-        <div class=tuple>
-          <div data-card-id=42 class="card unknown"></div>
+        <div id=tableau-slot-4 class="slot tuple">
+          <div data-card-id=31 class="card unknown"></div>
           <div class=tuple>
-            <div data-card-id=43 class="card unknown"></div>
+            <div data-card-id=32 class="card unknown"></div>
             <div class=tuple>
-              <div data-card-id=44 class="card unknown"></div>
+              <div data-card-id=33 class="card unknown"></div>
               <div class=tuple>
-                <div data-card-id=45 class="card known loading"></div>
+                <div data-card-id=34 class="card known loading"></div>
                 <div class=empty></div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div id=tableau-slot-7 class="slot tuple">
-      <div data-card-id=46 class="card unknown"></div>
-      <div class=tuple>
-        <div data-card-id=47 class="card unknown"></div>
-        <div class=tuple>
-          <div data-card-id=48 class="card unknown"></div>
+        <div id=tableau-slot-5 class="slot tuple">
+          <div data-card-id=35 class="card unknown"></div>
           <div class=tuple>
-            <div data-card-id=49 class="card unknown"></div>
+            <div data-card-id=36 class="card unknown"></div>
             <div class=tuple>
-              <div data-card-id=50 class="card unknown"></div>
+              <div data-card-id=37 class="card unknown"></div>
               <div class=tuple>
-                <div data-card-id=51 class="card unknown"></div>
+                <div data-card-id=38 class="card unknown"></div>
                 <div class=tuple>
-                  <div data-card-id=52 class="card known loading"></div>
+                  <div data-card-id=39 class="card known loading"></div>
                   <div class=empty></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <div id=tableau-slot-6 class="slot tuple">
+          <div data-card-id=40 class="card unknown"></div>
+          <div class=tuple>
+            <div data-card-id=41 class="card unknown"></div>
+            <div class=tuple>
+              <div data-card-id=42 class="card unknown"></div>
+              <div class=tuple>
+                <div data-card-id=43 class="card unknown"></div>
+                <div class=tuple>
+                  <div data-card-id=44 class="card unknown"></div>
+                  <div class=tuple>
+                    <div data-card-id=45 class="card known loading"></div>
+                    <div class=empty></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id=tableau-slot-7 class="slot tuple">
+          <div data-card-id=46 class="card unknown"></div>
+          <div class=tuple>
+            <div data-card-id=47 class="card unknown"></div>
+            <div class=tuple>
+              <div data-card-id=48 class="card unknown"></div>
+              <div class=tuple>
+                <div data-card-id=49 class="card unknown"></div>
+                <div class=tuple>
+                  <div data-card-id=50 class="card unknown"></div>
+                  <div class=tuple>
+                    <div data-card-id=51 class="card unknown"></div>
+                    <div class=tuple>
+                      <div data-card-id=52 class="card known loading"></div>
+                      <div class=empty></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id=table-overlays>
+        <svg id=votes-moves viewBox="0 0 1920 1080">
+          <line x1=400 y1=200 x2=600 y2=700 stroke=black stroke-width=3px></line>
+        </svg>
       </div>
     </div>
   </div>
-  <div id=table-overlays>
-    <svg id=votes-moves viewBox="0 0 1920 1080">
-      <line x1=400 y1=200 x2=600 y2=700 stroke=black stroke-width=3px></line>
-    </svg>
+  <div id=chat>
+    <p class=staffaction>
+      <time class=timestamp datetime=2019-09-09T00:15:22Z>00:15</time>
+      <span class=staff>ModBot</span> did a <a href=# class=help>split the room in half</a>.</span>
+    </p>
+    <p class=message>
+      <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
+      <span class=author><span class=user><span class=anonymous></span><span class=userid>5371</span></span></span>
+      <span class=message-text>wat</span>
+    </p>
+    <p class=message>
+      <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
+      <span class=author><span class=user><span class=anonymous></span><span class=userid>5371</span></span></span>
+      <span class=message-text>oh, i c!</span>
+    </p>
   </div>
-</div>
-</div>
-<div id=chat>
-  <p class=staffaction>
-    <time class=timestamp datetime=2019-09-09T00:15:22Z>00:15</time>
-    <span class=staff>ModBot</span> did a <a href=# class=help>split the room in half</a>.</span>
-  </p>
-  <p class=message>
-    <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
-    <span class=author><span class=user><span class=anonymous></span><span class=userid>5371</span></span></span>
-    <span class=message-text>wat</span>
-  </p>
-  <p class=message>
-    <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
-    <span class=author><span class=user><span class=anonymous></span><span class=userid>5371</span></span></span>
-    <span class=message-text>oh, i c!</span>
-  </p>
 </div>
 <div id=hand><div id=hand-slot class=slot></div></div>
 <script>
