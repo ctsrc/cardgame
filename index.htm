@@ -33,9 +33,17 @@
   background: linear-gradient(0, hsl(164, 47%, 27%), hsl(164, 100%, 31%));
 }
 
+:root
+{
+  --real-card-width: 2.25in;
+  --real-card-height: 3.5in;
+  --real-card-ratio-wh: calc(3.5 / 2.25);
+  --table-padding: 1.2rem;
+}
+
 #header-main
 {
-  padding: 1rem 1.6rem;
+  padding: 1rem var(--table-padding);
   background: linear-gradient(0, hsl(240, 47%, 45%), hsl(240, 33%, 33%));
   border-bottom: 1px solid #36366c;
 }
@@ -47,14 +55,6 @@
   font-size: 24pt;
   color: #eee;
   text-shadow: 1px 1px 1px rgba(43, 42, 41, 0.3);
-}
-
-:root
-{
-  --real-card-width: 2.25in;
-  --real-card-height: 3.5in;
-  --real-card-ratio-wh: calc(3.5 / 2.25);
-  --table-padding: 1.2rem;
 }
 
 :root
