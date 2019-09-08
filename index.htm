@@ -28,9 +28,25 @@
   padding: 0;
 }
 
-body
+:root
 {
-  background: #030;
+  background: linear-gradient(0, hsl(164, 47%, 27%), hsl(164, 100%, 31%));
+}
+
+#header-main
+{
+  padding: 1rem 1.6rem;
+  background: linear-gradient(0, hsl(240, 47%, 45%), hsl(240, 33%, 33%));
+  border-bottom: 1px solid #36366c;
+}
+
+#header-main > h1
+{
+  font-family: 'Unlock', sans-serif;
+  font-variant: small-caps;
+  font-size: 24pt;
+  color: #eee;
+  text-shadow: 1px 1px 1px rgba(43, 42, 41, 0.3);
 }
 
 :root
@@ -105,7 +121,7 @@ body
 {
   width: var(--card-width);
   height: var(--card-height);
-  background: linear-gradient(#999, #777);
+  background: linear-gradient(#cdcdcd, #aaaaaa);
   border: 1px solid #55a;
   border-radius: var(--card-radius);
 }
@@ -180,46 +196,6 @@ body
   padding-top: inherit;
 }
 
-#title-screen
-{
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  text-align: center;
-
-  padding-top: calc(var(--card-height) + 16pt);
-
-  background: linear-gradient(270deg, rgba(36, 102, 85, 0.75), rgba(0, 255, 189, 0.75));
-  background-size: 400% 400%;
-
-  animation: titlebg 30s ease infinite;
-
-  z-index: 1;
-}
-
-@keyframes titlebg
-{
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-#title-screen h1
-{
-  font-family: 'Unlock', sans-serif;
-  font-variant: small-caps;
-  font-size: 34pt;
-  color: #eee;
-  text-shadow: 1px 3px 1px rgba(43, 42, 41, 0.3);
-}
-
-#title-screen .menu
-{
-  margin-top: 0.8rem;
-}
-
 .button
 {
   display: inline-block;
@@ -239,7 +215,7 @@ body
 
 #wrap
 {
-  margin-top: calc(100vh - );
+  margin-top: 10vh;
 }
 </style>
 <style>
@@ -274,16 +250,9 @@ body
   }
 }
 </style>
-<div id=title-screen>
-  <header>
-    <h1>Klondike MMO</h1>
-  </header>
-  <div class=menu>
-    <a href=# class=button>Spectate</a>
-    <a href=# class=button>Practice</a>
-    <a href=# class=button>Play</a>
-  </div>
-</div>
+<header id=header-main>
+  <h1>Klondike MMO</h1>
+</header>
 <div id=wrap>
 <div id=table>
   <div id=table-area-upper>
