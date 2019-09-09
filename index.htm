@@ -369,6 +369,22 @@ a:link, a:hover, a:active, a:visited
 {
   content: ':';
 }
+#chat > .notice > .notice-text > .at::before,
+#chat > .message > .message-text > .at::before
+{
+  content: "@#";
+}
+#chat > .notice > .notice-text > .at.you::after,
+#chat > .message > .message-text > .at.you::after
+{
+  content: " (you)";
+}
+#chat > .notice > .notice-text > .at.you,
+#chat > .message > .message-text > .at.you
+{
+  color: yellow;
+  font-weight: bold;
+}
 </style>
 <style>
 .github-corner:hover .octo-arm
@@ -546,6 +562,11 @@ a:link, a:hover, a:active, a:visited
     <p class=notice>
       <time class=timestamp datetime=2019-09-09T00:15:22Z>00:15</time>
       <span class=notice-text>Room-local userids are re-randomized upon room splits.</span>
+    </p>
+    <p class=notice>
+      <time class=timestamp datetime=2019-09-09T00:15:22Z>00:15</time>
+      <span class=notice-text>Your new room-local userid is #3272. When someone at-s you, it'll look like this:
+        <span class="at you">3272</span>.
     </p>
     <p class=message>
       <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
