@@ -320,15 +320,30 @@ a:link, a:hover, a:active, a:visited
 .anonymous::before
 {
   content: 'Anonymous';
-  color: greenyellow;
+}
+.anonymous
+{
+  color: hsl(83, 100%, 59%); /* = greenyellow */
+}
+.registered > .anonymous
+{
+  color: hsl(149, 100%, 59%);
 }
 .anonymous + .userid::before
 {
   content: "#";
 }
+.registered > .anonymous + .userid::before
+{
+  content: "!";
+}
 .anonymous + .userid
 {
-  color: hotpink;
+  color: hsl(330, 100%, 71%); /* = hotpink */
+}
+.registered > .anonymous + .userid
+{
+  color: hsl(264, 100%, 71%);
 }
 .incognito::before
 {
@@ -577,6 +592,11 @@ a:link, a:hover, a:active, a:visited
       <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
       <span class=author><span class=user><span class=anonymous></span><span class=userid>5371</span></span></span>
       <span class=message-text>oh, i c!</span>
+    </p>
+    <p class=message>
+      <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
+      <span class=author><span class="registered user"><span class=anonymous></span><span class=userid>443</span></span></span>
+      <span class=message-text>lol</span>
     </p>
   </div>
 </div>
