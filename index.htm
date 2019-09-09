@@ -321,15 +321,15 @@ a:link, a:hover, a:active, a:visited
 {
   content: 'Anonymous';
 }
-.anonymous
+.user
 {
   color: hsl(83, 100%, 59%); /* = greenyellow */
 }
-.subscriber > .anonymous
+.subscriber
 {
   color: hsl(149, 100%, 59%);
 }
-.platinum.subscriber > .anonymous
+.platinum.subscriber
 {
   color: hsl(198, 100%, 71%);
 }
@@ -345,7 +345,7 @@ a:link, a:hover, a:active, a:visited
 {
   content: "%";
 }
-.anonymous + .userid
+.user > .anonymous + .userid
 {
   color: hsl(330, 100%, 71%); /* = hotpink */
 }
@@ -377,7 +377,7 @@ a:link, a:hover, a:active, a:visited
   font-family: sans-serif;
   font-size: 11pt;
 }
-#chat > .staffaction > .timestamp::after
+#chat > .staff-action > .timestamp::after
 {
   content: " -!- ";
 }
@@ -385,8 +385,9 @@ a:link, a:hover, a:active, a:visited
 {
   content: " -!- Notice: ";
 }
-#chat > .staffaction,
+#chat > .staff-action,
 #chat > .notice,
+#chat > .user-joined,
 #chat > .message > .timestamp
 {
   font-style: italic;
@@ -592,7 +593,7 @@ a:link, a:hover, a:active, a:visited
     </div>
   </div>
   <div id=chat>
-    <p class=staffaction>
+    <p class=staff-action>
       <time class=timestamp datetime=2019-09-09T00:15:22Z>00:15</time>
       <span class=staff>ModBot</span> did a <a href=# class=help>split the room in half</a>.
     </p>
@@ -629,10 +630,10 @@ a:link, a:hover, a:active, a:visited
       <span class=author><span class="subscriber user"><span class=anonymous></span><span class=userid>443</span></span></span>
       <span class=message-text>lol</span>
     </p>
-    <p class=notice>
+    <p class=user-joined>
       <time class=timestamp datetime=2019-09-09T00:16:03Z>00:16</time>
       <span class=notice-text><span class="platinum subscriber user"><span class=anonymous></span><span class=userid>155</span></span>
-        has entered the room.</span>
+        has <span class="platinum subscriber entered">entered the room</span>.</span>
     </p>
     <p class=message>
       <time class=timestamp datetime=2019-09-09T00:16:05Z>00:16</time>
