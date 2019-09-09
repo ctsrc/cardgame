@@ -325,25 +325,37 @@ a:link, a:hover, a:active, a:visited
 {
   color: hsl(83, 100%, 59%); /* = greenyellow */
 }
-.registered > .anonymous
+.subscriber > .anonymous
 {
   color: hsl(149, 100%, 59%);
+}
+.platinum.subscriber > .anonymous
+{
+  color: hsl(198, 100%, 71%);
 }
 .anonymous + .userid::before
 {
   content: "#";
 }
-.registered > .anonymous + .userid::before
+.subscriber > .anonymous + .userid::before
 {
   content: "!";
+}
+.platinum.subscriber > .anonymous + .userid::before
+{
+  content: "%";
 }
 .anonymous + .userid
 {
   color: hsl(330, 100%, 71%); /* = hotpink */
 }
-.registered > .anonymous + .userid
+.subscriber > .anonymous + .userid
 {
   color: hsl(264, 100%, 71%);
+}
+.platinum.subscriber > .anonymous + .userid
+{
+  color: hsl(215, 100%, 59%);
 }
 .incognito::before
 {
@@ -388,6 +400,16 @@ a:link, a:hover, a:active, a:visited
 #chat > .message > .message-text > .at::before
 {
   content: "@#";
+}
+#chat > .notice > .notice-text > .at.subscriber::before,
+#chat > .message > .message-text > .at.subscriber::before
+{
+  content: "@!";
+}
+#chat > .notice > .notice-text > .at.platinum.subscriber::before,
+#chat > .message > .message-text > .at.platinum.subscriber::before
+{
+  content: "@%";
 }
 #chat > .notice > .notice-text > .at.you::after,
 #chat > .message > .message-text > .at.you::after
@@ -600,8 +622,23 @@ a:link, a:hover, a:active, a:visited
     </p>
     <p class=message>
       <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
-      <span class=author><span class="registered user"><span class=anonymous></span><span class=userid>443</span></span></span>
+      <span class=author><span class="subscriber user"><span class=anonymous></span><span class=userid>443</span></span></span>
       <span class=message-text>lol</span>
+    </p>
+    <p class=notice>
+      <time class=timestamp datetime=2019-09-09T00:16Z>00:16</time>
+      <span class=notice-text><span class="platinum subscriber user"><span class=anonymous></span><span class=userid>155</span></span>
+        has entered the room.</span>
+    </p>
+    <p class=message>
+      <time class=timestamp datetime=2019-09-09T00:16Z>00:16</time>
+      <span class=author><span class="subscriber user"><span class=anonymous></span><span class=userid>443</span></span></span>
+      <span class=message-text><span class="at platinum subscriber">155</span> o/</span>
+    </p>
+    <p class=message>
+      <time class=timestamp datetime=2019-09-09T00:16Z>00:16</time>
+      <span class=author><span class="platinum subscriber user"><span class=anonymous></span><span class=userid>155</span></span></span>
+      <span class=message-text><span class="at subscriber">443</span> hey man ^^</span>
     </p>
   </div>
 </div>
