@@ -354,7 +354,12 @@ a:link, a:hover, a:active, a:visited
 {
   content: " -!- ";
 }
+#chat > .notice > .timestamp::after
+{
+  content: " -!- Notice: ";
+}
 #chat > .staffaction,
+#chat > .notice,
 #chat > .message > .timestamp
 {
   font-style: italic;
@@ -537,6 +542,10 @@ a:link, a:hover, a:active, a:visited
     <p class=staffaction>
       <time class=timestamp datetime=2019-09-09T00:15:22Z>00:15</time>
       <span class=staff>ModBot</span> did a <a href=# class=help>split the room in half</a>.</span>
+    </p>
+    <p class=notice>
+      <time class=timestamp datetime=2019-09-09T00:15:22Z>00:15</time>
+      <span class=notice-text>Room-local userids are re-randomized upon room splits.</span>
     </p>
     <p class=message>
       <time class=timestamp datetime=2019-09-09T00:15Z>00:15</time>
