@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
 /*
- * Copyright (c) 2018 Erik Nordstrøm <erik@nordstroem.no>
+ * Copyright (c) 2018, 2019 Erik Nordstrøm <erik@nordstroem.no>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -30,7 +30,7 @@
 
 :root
 {
-  background: linear-gradient(0deg, hsl(266, 85%, 25%), hsl(266, 5%, 50%));
+  background: linear-gradient(0deg, hsl(236, 100%, 63.69%), hsl(256, 100%, 84.36%));
 }
 
 :root
@@ -63,11 +63,6 @@
   --height-vp-minus-header: calc(100vh - var(--height-header-main));
   --card-width: calc((100vw - 2 * var(--table-padding)) / 8);
   --card-height: calc(var(--card-width) * var(--real-card-ratio-wh));
-}
-
-a:link, a:hover, a:active, a:visited
-{
-  color: darkred;
 }
 
 #outer-wrap
@@ -351,15 +346,15 @@ a:link, a:hover, a:active, a:visited
 }
 .user > .anonymous + .userid
 {
-  color: hsl(330, 100%, 71%); /* = hotpink */
+  color: hsl(321, 100%, 76%);
 }
 .subscriber > .anonymous + .userid
 {
-  color: hsl(264, 100%, 71%);
+  color: hsl(264, 100%, 35%);
 }
 .platinum.subscriber > .anonymous + .userid
 {
-  color: hsl(215, 100%, 59%);
+  color: hsl(193, 13%, 72%);
 }
 .incognito::before
 {
@@ -372,7 +367,7 @@ a:link, a:hover, a:active, a:visited
 }
 .staff
 {
-  color: darkred;
+  color: hsl(0, 100%, 57%);
 }
 </style>
 <style>
@@ -380,6 +375,21 @@ a:link, a:hover, a:active, a:visited
 {
   font-family: sans-serif;
   font-size: 11pt;
+  background: hsla(0, 0%, 0%, 0.35);
+}
+.message:nth-child(odd), .notice:nth-child(odd),
+.staff-action:nth-child(odd), .user-joined:nth-child(odd)
+{
+  color: hsl(100, 100%, 96%);
+}
+.message:nth-child(even), .notice:nth-child(even),
+.staff-action:nth-child(even), .user-joined:nth-child(even)
+{
+  color: hsl(306, 100%, 96%);
+}
+#chat a:link, #chat a:hover, #chat a:active, #chat a:visited
+{
+  color: hsl(126, 84%, 88%);
 }
 #chat > .staff-action > .timestamp::after
 {
@@ -395,7 +405,6 @@ a:link, a:hover, a:active, a:visited
 #chat > .message > .timestamp
 {
   font-style: italic;
-  color: darkslategray;
 }
 #chat > .message > .author::after
 {
