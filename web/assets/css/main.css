@@ -1,0 +1,459 @@
+/*
+ * Copyright (c) 2018, 2019, 2024 Erik Nordstrøm <erik@nordstroem.no>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+*
+{
+  margin: 0;
+  padding: 0;
+}
+
+:root
+{
+  background: linear-gradient(0deg, hsl(236, 100%, 63.69%), hsl(256, 100%, 84.36%));
+}
+
+:root
+{
+  --real-card-width: 2.25in;
+  --real-card-height: 3.5in;
+  --real-card-ratio-wh: calc(3.5 / 2.25);
+  --table-padding: 1.2rem;
+}
+
+#header-main
+{
+  padding: 1rem var(--table-padding);
+  background: linear-gradient(0deg, hsl(270, 100%, 18%), hsl(270, 100%, 25%));
+  border-bottom: 1px solid #36366c;
+}
+
+#header-main > h1
+{
+  font-family: 'Unlock', sans-serif;
+  font-variant: small-caps;
+  font-size: 24pt;
+  color: #eee;
+  text-shadow: 1px 1px 1px rgba(43, 42, 41, 0.3);
+}
+
+:root
+{
+  --height-header-main: calc(2 * 1rem + 24pt);
+  --height-vp-minus-header: calc(100vh - var(--height-header-main));
+  --card-width: calc((100vw - 2 * var(--table-padding)) / 8);
+  --card-height: calc(var(--card-width) * var(--real-card-ratio-wh));
+}
+
+#outer-wrap
+{
+  display: flex;
+  height: var(--height-vp-minus-header);
+}
+
+#chat
+{
+  flex-grow: 1;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-aspect-ratio: 3/4) and (max-aspect-ratio: 4/3)
+{
+  :root
+  {
+    --card-width: calc((75vh - 2 * var(--table-padding)) / 8);
+  }
+
+  #table
+  {
+    max-width: calc(75vh - 2 * var(--table-padding));
+    margin: 0 auto;
+  }
+}
+
+@media (max-aspect-ratio: 4/3)
+{
+  #chat
+  {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  #outer-wrap
+  {
+    flex-direction: column;
+  }
+}
+
+@media (min-aspect-ratio: 4/3)
+{
+  :root
+  {
+    --card-height: calc((var(--height-vp-minus-header) - 2 * var(--table-padding)) / 4.5);
+    --card-width: calc(var(--card-height) / var(--real-card-ratio-wh));
+  }
+
+  #table
+  {
+    max-width: calc(8 * var(--card-width));
+    margin: 0 auto;
+  }
+
+  #wrap
+  {
+    min-width: calc(var(--card-width) * 8);
+    flex-grow: 2;
+    padding-right: calc(1.2 * var(--table-padding));
+  }
+  #chat
+  {
+    margin: 0;
+    max-width: 35ch;
+  }
+}
+
+:root
+{
+  --card-radius: calc(var(--card-height) / 24);
+  --card-vertical-stacking-offset-make-prev-card-rank-color-visible: calc(var(--card-height) / 8);
+  --card-vertical-stacking-offset-on-unknown-card: calc(var(--card-height) / 16);
+
+  --card-vertical-stacking-offset-upwards-piling: 2px;
+}
+
+.help
+{
+  cursor: help;
+}
+
+#wrap
+{
+  background: rgba(0, 0, 127, 0.4);
+  box-shadow: inset 0 0 6rem 2rem rgba(0, 0, 0, 0.4);
+}
+
+#table
+{
+  position: relative;
+}
+
+#table-overlays
+{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+#votes-moves
+{
+  width: 100%;
+  height: 100%;
+}
+
+.slot, #gap
+{
+  display: inline-block;
+  min-width: var(--card-width);
+  min-height: var(--card-height);
+  position: relative;
+}
+
+.slot
+{
+  background: rgba(204, 204, 204, 0.25);
+  border-radius: var(--card-radius);
+}
+
+#table-area-upper, #tableau
+{
+  display: flex;
+  justify-content: space-between;
+}
+
+#tableau
+{
+  align-items: flex-start;
+}
+
+#table-area-upper
+{
+  align-items: flex-end;
+}
+
+.card
+{
+  width: var(--card-width);
+  height: var(--card-height);
+  background: linear-gradient(#cdcdcd, #aaaaaa);
+  border: 1px solid #55a;
+  border-radius: var(--card-radius);
+}
+
+.card.unknown
+{
+  background: linear-gradient(#99e, #77c);
+}
+
+#table-area-upper
+{
+  min-height: calc(var(--card-height)
+    + 6 * var(--card-vertical-stacking-offset-upwards-piling));
+}
+
+#tableau
+{
+  /* TODO: Adjust dynamically according to need. */
+  /* min-height: calc(6 * var(--card-vertical-stacking-offset-on-unknown-card)
+    + 12 * var(--card-vertical-stacking-offset-make-prev-card-rank-color-visible)
+    + var(--card-height)); */
+  min-height: calc(6 * var(--card-vertical-stacking-offset-on-unknown-card)
+    + var(--card-height));
+}
+
+.tuple
+{
+  position: relative;
+  display: inline-block;
+}
+
+#table-area-upper .tuple
+{
+  min-height: var(--card-height);
+}
+
+.card
+{
+  position: absolute;
+}
+
+#table-area-upper .card
+{
+  bottom: 0;
+}
+
+.card + .empty
+{
+  display: inline-block;
+}
+
+#table-area-upper .card + .tuple
+{
+  margin-bottom: var(--card-vertical-stacking-offset-upwards-piling);
+}
+
+#tableau .unknown + .tuple
+{
+  margin-top: var(--card-vertical-stacking-offset-on-unknown-card);
+}
+
+#tableau .known + .tuple
+{
+  margin-top: var(--card-vertical-stacking-offset-make-prev-card-rank-color-visible);
+}
+
+#table
+{
+  padding: calc(1.6 * var(--table-padding)) var(--table-padding);
+}
+
+#chat
+{
+  padding: var(--table-padding);
+}
+
+#hand
+{
+  display: none;
+}
+
+#tableau
+{
+  padding-top: inherit;
+}
+
+.button
+{
+  display: inline-block;
+  font-size: 16pt;
+  text-decoration: none;
+  color: #eee;
+  background: black;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  box-shadow: 1px 3px 1px rgba(43, 42, 41, 0.3);
+}
+
+.button + .button
+{
+  margin-left: 0.7rem;
+}
+
+.user, .staff
+{
+  font-weight: bold;
+}
+.anonymous::before
+{
+  content: 'Anonymous';
+}
+.user
+{
+  color: hsl(83, 100%, 59%); /* = greenyellow */
+}
+.subscriber
+{
+  color: hsl(149, 100%, 59%);
+}
+.platinum.subscriber
+{
+  color: hsl(198, 100%, 71%);
+}
+.anonymous + .userid::before
+{
+  content: "#";
+}
+.subscriber > .anonymous + .userid::before
+{
+  content: "!";
+}
+.platinum.subscriber > .anonymous + .userid::before
+{
+  content: "%";
+}
+.user > .anonymous + .userid
+{
+  color: hsl(321, 100%, 76%);
+}
+.subscriber > .anonymous + .userid
+{
+  color: hsl(264, 100%, 84.13%);
+}
+.platinum.subscriber > .anonymous + .userid
+{
+  color: hsl(193, 13%, 72%);
+}
+.incognito::before
+{
+  content: 'Anonymous ## Incognito';
+  color: slategray;
+}
+.staff::after
+{
+  content: ' ## Staff';
+}
+.staff
+{
+  color: hsl(0, 100%, 57%);
+}
+
+#chat
+{
+  font-family: sans-serif;
+  font-size: 11pt;
+  background: hsla(0, 0%, 0%, 0.35);
+}
+.message:nth-child(odd), .notice:nth-child(odd),
+.staff-action:nth-child(odd), .user-joined:nth-child(odd)
+{
+  color: hsl(100, 100%, 96%);
+}
+.message:nth-child(even), .notice:nth-child(even),
+.staff-action:nth-child(even), .user-joined:nth-child(even)
+{
+  color: hsl(306, 100%, 96%);
+}
+#chat a:link, #chat a:hover, #chat a:active, #chat a:visited
+{
+  color: hsl(126, 84%, 88%);
+}
+#chat > .staff-action > .timestamp::after
+{
+  content: " -!- ";
+}
+#chat > .notice > .timestamp::after
+{
+  content: " -!- Notice: ";
+}
+#chat > .staff-action,
+#chat > .notice,
+#chat > .user-joined,
+#chat > .message > .timestamp
+{
+  font-style: italic;
+}
+#chat > .message > .author::after
+{
+  content: ':';
+}
+#chat > .notice > .notice-text > .at::before,
+#chat > .message > .message-text > .at::before
+{
+  content: "@#";
+}
+#chat > .notice > .notice-text > .at.subscriber::before,
+#chat > .message > .message-text > .at.subscriber::before
+{
+  content: "@!";
+}
+#chat > .notice > .notice-text > .at.platinum.subscriber::before,
+#chat > .message > .message-text > .at.platinum.subscriber::before
+{
+  content: "@%";
+}
+#chat > .notice > .notice-text > .at.you::after,
+#chat > .message > .message-text > .at.you::after
+{
+  content: " (you)";
+}
+#chat > .notice > .notice-text > .at.you,
+#chat > .message > .message-text > .at.you
+{
+  color: yellow;
+  font-weight: bold;
+}
+
+.github-corner:hover .octo-arm
+{
+  animation:octocat-wave 560ms ease-in-out;
+}
+@keyframes octocat-wave
+{
+  0%, 100%
+  {
+    transform: rotate(0);
+  }
+  20%, 60%
+  {
+    transform: rotate(-25deg);
+  }
+  40%, 80%
+  {
+    transform: rotate(10deg);
+  }
+}
+@media (max-width:500px)
+{
+  .github-corner:hover .octo-arm
+  {
+    animation:none;
+  }
+  .github-corner .octo-arm
+  {
+    animation:octocat-wave 560ms ease-in-out;
+  }
+}
