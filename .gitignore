@@ -2,3 +2,4 @@
 core
 *.core
 /.idea/
+.DS_Store
