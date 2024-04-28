@@ -40,7 +40,13 @@
   border-bottom: 1px solid #36366c;
 }
 
-#header-main > h1
+#header-main a:link, #header-main a:hover, #header-main a:active, #header-main a:visited
+{
+  text-decoration: none;
+  color: #eee;
+}
+
+#header-main h1
 {
   font-family: 'Unlock', sans-serif;
   font-variant: small-caps;
