@@ -6,6 +6,6 @@ authors = ["Erik Nordstroem <erik@nordstroem.no>"]
 [dependencies]
 strum = "0.15.0"
 strum_macros = "0.15.0"
-arrayvec = "0.4.11"
+arrayvec = "0.4.12"
 newtype_derive = "0.1.6"
-rand = "0.7.1"
+rand = "0.7.3"
