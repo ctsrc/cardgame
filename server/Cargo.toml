@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Erik Nordstroem <erik@nordstroem.no>"]
 
 [dependencies]
-strum = "0.15.0"
-strum_macros = "0.15.0"
+strum = "0.27.1"
+strum_macros = "0.27.1"
 arrayvec = "0.4.12"
 newtype_derive = "0.1.6"
-rand = "0.7.3"
+rand = "0.9.0"
