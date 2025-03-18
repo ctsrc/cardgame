@@ -1,0 +1,17 @@
+[workspace]
+
+resolver = "2"
+
+members = [
+  "server",
+]
+
+[workspace.dependencies]
+# Path dependencies
+
+# Crates.io deps
+strum = "0.27.1"
+strum_macros = "0.27.1"
+arrayvec = "0.4.12"
+newtype_derive = "0.1.6"
+rand = "0.9.0"
