@@ -71,6 +71,16 @@ impl Display for Card {
     }
 }
 
+impl Debug for Card {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}{}({},{},{})",
+            self.color, self.rank, self.id, self.ever_revealed, self.currently_facing_up
+        )
+    }
+}
+
 #[macro_export]
 macro_rules! impl_cardstack_ops {
     ($t:ident, $n:expr) => {
