@@ -105,6 +105,12 @@ macro_rules! impl_cardstack {
     ($t:ident, $a:ident, $n:expr) => {
         impl_cardstack_ops!($t, $a, $n);
 
+        impl Default for $t {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
+
         impl $t {
             pub fn new() -> $t {
                 $t::from(ArrayVec::<$a>::new())
@@ -116,6 +122,12 @@ macro_rules! impl_cardstack {
 // TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.
 impl_cardstack_ops!(ShuffledDeck, ShuffledDeckArray, 56);
 
+impl Default for ShuffledDeck {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ShuffledDeck {
     pub fn new() -> ShuffledDeck {
         /*
@@ -126,15 +138,15 @@ impl ShuffledDeck {
         let mut deck = ArrayVec::<ShuffledDeckArray>::new();
 
         let mut card_ids: Vec<i8> = (0..52).collect();
-        card_ids.shuffle(&mut rand::thread_rng());
+        card_ids.shuffle(&mut rand::rng());
 
         let mut card_ids_iter = card_ids.iter_mut();
 
         for color in Color::iter().skip(1) {
             for rank in Rank::iter().skip(1) {
                 deck.push(Card {
-                    color: color,
-                    rank: rank,
+                    color,
+                    rank,
                     id: *(card_ids_iter.next().unwrap()),
                     facing_up: false,
                 });
