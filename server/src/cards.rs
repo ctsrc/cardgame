@@ -64,24 +64,24 @@ impl Display for Card {
 
 #[macro_export]
 macro_rules! impl_cardstack_ops {
-    ($t:ident, $a:ident, $n:expr) => {
-        type $a = [Card; $n];
+    ($t:ident, $n:expr) => {
+        pub struct $t(ArrayVec<Card, $n>);
 
-        pub struct $t(ArrayVec<$a>);
-
-        NewtypeFrom! { () pub struct $t(ArrayVec<$a>); }
+        NewtypeFrom! { () pub struct $t(ArrayVec<Card, $n>); }
 
         impl $t {
-            pub fn push(&mut self, element: <$a as arrayvec::Array>::Item) {
-                ArrayVec::<$a>::push(&mut self.0, element)
+            pub fn push(&mut self, element: Card) {
+                self.0.push(element)
+                //ArrayVec::<Card, $n>::push(&mut self.0, element)
             }
         }
 
         impl Deref for $t {
-            type Target = [<$a as arrayvec::Array>::Item];
+            type Target = [Card];
 
-            fn deref(&self) -> &[<$a as arrayvec::Array>::Item] {
-                ArrayVec::<$a>::deref(&self.0)
+            fn deref(&self) -> &[Card] {
+                self.0.deref()
+                //ArrayVec::<Card, $n>::deref(&self.0)
             }
         }
     };
@@ -89,8 +89,8 @@ macro_rules! impl_cardstack_ops {
 
 #[macro_export]
 macro_rules! impl_cardstack {
-    ($t:ident, $a:ident, $n:expr) => {
-        impl_cardstack_ops!($t, $a, $n);
+    ($t:ident, $n:expr) => {
+        impl_cardstack_ops!($t, $n);
 
         impl Default for $t {
             fn default() -> Self {
@@ -100,14 +100,13 @@ macro_rules! impl_cardstack {
 
         impl $t {
             pub fn new() -> $t {
-                $t::from(ArrayVec::<$a>::new())
+                $t::from(ArrayVec::<Card, $n>::new())
             }
         }
     };
 }
 
-// TODO: Change to ArrayVec<[Card; 52]> after PR for that size has been merged.
-impl_cardstack_ops!(ShuffledDeck, ShuffledDeckArray, 56);
+impl_cardstack_ops!(ShuffledDeck, 52);
 
 impl Default for ShuffledDeck {
     fn default() -> Self {
@@ -122,7 +121,7 @@ impl ShuffledDeck {
          * such that the card with ID n is at array position n.
          */
 
-        let mut deck = ArrayVec::<ShuffledDeckArray>::new();
+        let mut deck = ArrayVec::<Card, 52>::new();
 
         let mut card_ids: Vec<i8> = (0..52).collect();
         card_ids.shuffle(&mut rand::rng());
