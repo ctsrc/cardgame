@@ -1,11 +1,11 @@
 [package]
 name = "cardgame"
 version = "0.1.0"
+edition = "2024"
 authors = ["Erik Nordstroem <erik@nordstroem.no>"]
 
 [dependencies]
-strum.workspace = true
-strum_macros.workspace = true
+strum = { workspace = true, features = ["derive"] }
 arrayvec.workspace = true
 newtype_derive.workspace = true
 rand.workspace = true

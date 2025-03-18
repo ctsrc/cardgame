@@ -1,10 +1,11 @@
 use arrayvec::ArrayVec;
+use newtype_derive::NewtypeFrom;
 use rand::seq::SliceRandom;
-use strum::IntoEnumIterator;
-
-use std::fmt;
-use std::fmt::{Display, Formatter};
-use std::ops::Deref;
+use std::{
+    fmt::{self, Display, Formatter},
+    ops::Deref,
+};
+use strum::{Display, EnumIter, IntoEnumIterator};
 
 #[derive(EnumIter, Display, Copy, Clone)]
 pub enum Color {
@@ -61,6 +62,7 @@ impl Display for Card {
     }
 }
 
+#[macro_export]
 macro_rules! impl_cardstack_ops {
     ($t:ident, $a:ident, $n:expr) => {
         type $a = [Card; $n];
@@ -85,6 +87,7 @@ macro_rules! impl_cardstack_ops {
     };
 }
 
+#[macro_export]
 macro_rules! impl_cardstack {
     ($t:ident, $a:ident, $n:expr) => {
         impl_cardstack_ops!($t, $a, $n);
