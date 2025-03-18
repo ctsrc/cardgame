@@ -67,7 +67,15 @@ pub struct Card {
 
 impl Display for Card {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}{}", self.color, self.rank)
+        if self.currently_facing_up {
+            write!(f, "{}{}", self.color, self.rank)
+        } else {
+            if self.ever_revealed {
+                write!(f, "({}{})", self.color, self.rank)
+            } else {
+                write!(f, "*")
+            }
+        }
     }
 }
 
