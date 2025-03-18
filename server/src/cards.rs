@@ -1,6 +1,7 @@
 use arrayvec::ArrayVec;
 use newtype_derive::NewtypeFrom;
 use rand::seq::SliceRandom;
+use std::fmt::Debug;
 use std::{
     fmt::{self, Display, Formatter},
     ops::Deref,
@@ -50,10 +51,18 @@ pub enum Rank {
 }
 
 pub struct Card {
-    pub color: Color,
-    pub rank: Rank,
+    /// Unique id of card in deck.
+    ///
+    /// This id is tied to the original position the card had in the deck after shuffling.
     pub id: i8,
-    pub facing_up: bool,
+    /// The color of the card.
+    pub color: Color,
+    /// The rank of the card.
+    pub rank: Rank,
+    /// Whether this card has yet been revealed.
+    pub ever_revealed: bool,
+    /// Whether the card is currently facing up.
+    pub currently_facing_up: bool,
 }
 
 impl Display for Card {
@@ -134,7 +143,8 @@ impl ShuffledDeck {
                     color,
                     rank,
                     id: *(card_ids_iter.next().unwrap()),
-                    facing_up: false,
+                    ever_revealed: false,
+                    currently_facing_up: false,
                 });
             }
         }
