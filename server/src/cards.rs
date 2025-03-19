@@ -111,6 +111,34 @@ macro_rules! impl_cardstack_ops {
                 //ArrayVec::<Card, $n>::deref(&self.0)
             }
         }
+
+        impl std::fmt::Display for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                let mut it = self.iter();
+                let Some(card) = it.next() else {
+                    return Ok(());
+                };
+                write!(f, "{card}")?;
+                for card in it {
+                    write!(f, " {card}")?;
+                }
+                Ok(())
+            }
+        }
+
+        impl std::fmt::Debug for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                let mut it = self.iter();
+                let Some(card) = it.next() else {
+                    return Ok(());
+                };
+                write!(f, "{card:?}")?;
+                for card in it {
+                    write!(f, " {card:?}")?;
+                }
+                Ok(())
+            }
+        }
     };
 }
 
