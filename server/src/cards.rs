@@ -97,7 +97,6 @@ macro_rules! impl_cardstack_ops {
         impl $t {
             pub fn push(&mut self, element: Card) {
                 self.0.push(element)
-                //ArrayVec::<Card, $n>::push(&mut self.0, element)
             }
         }
 
@@ -106,7 +105,6 @@ macro_rules! impl_cardstack_ops {
 
             fn deref(&self) -> &[Card] {
                 self.0.deref()
-                //ArrayVec::<Card, $n>::deref(&self.0)
             }
         }
 
