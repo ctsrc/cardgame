@@ -139,6 +139,12 @@ macro_rules! impl_cardstack_ops {
                 Ok(())
             }
         }
+
+        impl Default for $t {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
     };
 }
 
@@ -146,12 +152,6 @@ macro_rules! impl_cardstack_ops {
 macro_rules! impl_cardstack {
     ($t:ident, $n:expr) => {
         impl_cardstack_ops!($t, $n);
-
-        impl Default for $t {
-            fn default() -> Self {
-                Self::new()
-            }
-        }
 
         impl $t {
             pub fn new() -> $t {
@@ -162,12 +162,6 @@ macro_rules! impl_cardstack {
 }
 
 impl_cardstack_ops!(ShuffledDeck, 52);
-
-impl Default for ShuffledDeck {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 impl ShuffledDeck {
     pub fn new() -> ShuffledDeck {
