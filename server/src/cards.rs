@@ -69,12 +69,10 @@ impl Display for Card {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         if self.currently_facing_up {
             write!(f, "{}{}", self.color, self.rank)
+        } else if self.ever_revealed {
+            write!(f, "({}{})", self.color, self.rank)
         } else {
-            if self.ever_revealed {
-                write!(f, "({}{})", self.color, self.rank)
-            } else {
-                write!(f, "*")
-            }
+            write!(f, "*")
         }
     }
 }
