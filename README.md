@@ -59,4 +59,4 @@ as long as you include the appropriate license text.
 
 ## Acknowledgements
 
-Special thanks to all contributors and supporters who have helped make Klondike MMO possible.
+Submit a notable pull request and your name could appear here :)
