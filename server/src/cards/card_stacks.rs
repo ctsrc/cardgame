@@ -95,17 +95,18 @@ impl ShuffledDeck {
 
         for color in Color::iter().skip(1) {
             for rank in Rank::iter().skip(1) {
-                deck.push(Card {
-                    color,
-                    rank,
-                    id: *(card_ids_iter.next().unwrap()),
-                    ever_revealed: false,
-                    currently_facing_up: false,
-                });
+                deck.push(
+                    Card::new()
+                        .with_color(color)
+                        .with_rank(rank)
+                        .with_ever_revealed(false)
+                        .with_currently_facing_up(false)
+                        .with_id(*(card_ids_iter.next().unwrap())),
+                );
             }
         }
 
-        deck.sort_unstable_by_key(|k| k.id);
+        deck.sort_unstable_by_key(|k| k.id());
 
         ShuffledDeck::from(deck)
     }
