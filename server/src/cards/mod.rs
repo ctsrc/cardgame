@@ -11,7 +11,7 @@ pub struct Card {
     /// Unique id of card in deck.
     ///
     /// This id is tied to the original position the card had in the deck after shuffling.
-    pub id: i8,
+    pub id: u8,
     /// The color of the card.
     pub color: Color,
     /// The rank of the card.

@@ -88,7 +88,7 @@ impl ShuffledDeck {
 
         let mut deck = ArrayVec::<Card, 52>::new();
 
-        let mut card_ids: Vec<i8> = (0..52).collect();
+        let mut card_ids: Vec<u8> = (0..52).collect();
         card_ids.shuffle(&mut rand::rng());
 
         let mut card_ids_iter = card_ids.iter_mut();
