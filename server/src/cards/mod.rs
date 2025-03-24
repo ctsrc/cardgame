@@ -1,10 +1,10 @@
-mod card_stacks;
 mod color;
+mod decks;
 mod rank;
 
 use bitfield_struct::bitfield;
-pub use card_stacks::{CardId, ShuffledDeck, WireShuffledDeckServerOrigin};
 use color::Color;
+pub use decks::{CardId, ShuffledDeck, WireShuffledDeckServerOrigin};
 use rank::Rank;
 use std::fmt::{self, Debug, Display, Formatter};
 

@@ -46,19 +46,12 @@ impl CardId {
     }
 }
 
-#[macro_export]
-macro_rules! impl_cardstack_ops {
+macro_rules! impl_deck_ops {
     ($t:ident, $c:ident, $n:expr) => {
         #[derive(Clone)]
         pub struct $t(ArrayVec<$c, $n>);
 
         NewtypeFrom! { () pub struct $t(ArrayVec<$c, $n>); }
-
-        impl $t {
-            pub fn push(&mut self, element: $c) {
-                self.0.push(element)
-            }
-        }
 
         impl Deref for $t {
             type Target = [$c];
@@ -98,26 +91,7 @@ macro_rules! impl_cardstack_ops {
     };
 }
 
-#[macro_export]
-macro_rules! impl_cardstack {
-    ($t:ident, $c:ident, $n:expr) => {
-        impl_cardstack_ops!($t, $c, $n);
-
-        impl $t {
-            pub fn new() -> $t {
-                $t::from(ArrayVec::<$c, $n>::new())
-            }
-        }
-
-        impl Default for $t {
-            fn default() -> Self {
-                Self::new()
-            }
-        }
-    };
-}
-
-impl_cardstack_ops!(ShuffledDeck, Card, 52);
+impl_deck_ops!(ShuffledDeck, Card, 52);
 
 impl ShuffledDeck {
     pub fn new() -> ShuffledDeck {
@@ -152,7 +126,13 @@ impl ShuffledDeck {
     }
 }
 
-impl_cardstack_ops!(WireShuffledDeckServerOrigin, WireCardServerOrigin, 52);
+impl Default for ShuffledDeck {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl_deck_ops!(WireShuffledDeckServerOrigin, WireCardServerOrigin, 52);
 
 impl From<ShuffledDeck> for WireShuffledDeckServerOrigin {
     fn from(deck: ShuffledDeck) -> Self {
