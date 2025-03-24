@@ -4,8 +4,47 @@ use crate::cards::{Card, WireCardServerOrigin};
 use arrayvec::ArrayVec;
 use newtype_derive::NewtypeFrom;
 use rand::prelude::SliceRandom;
+use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use strum::IntoEnumIterator;
+
+/// The unique identifier of a card within a deck.
+///
+/// The id is tied to the initial position of a card within its deck after initial shuffle.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub struct CardId(u8);
+
+NewtypeFrom! { () pub struct CardId(u8); }
+
+impl Display for CardId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl CardId {
+    pub const fn into_bits(self) -> u8 {
+        self.0
+    }
+
+    pub const fn from_bits(value: u8) -> Self {
+        // Only values in range `(0..=51)` are valid.
+        // We use a special value with all bits set to indicate invalid value.
+        if value >= 52 {
+            Self(0b11111111)
+        } else {
+            Self(value)
+        }
+    }
+
+    /// The situation in which we may encounter an invalid id (aside from bit flips in RAM)
+    /// is when a client sent an id to us. In the case where the id was sent to us by a client,
+    /// we will have converted it from bits already and any combination of bits outside of the
+    /// allowable range `(0..=51)` will have been converted to a special value of `0b11111111`.
+    pub fn is_valid(&self) -> bool {
+        self.0 != 0b11111111
+    }
+}
 
 #[macro_export]
 macro_rules! impl_cardstack_ops {
@@ -102,7 +141,7 @@ impl ShuffledDeck {
                         .with_rank(rank)
                         .with_ever_revealed(false)
                         .with_currently_facing_up(false)
-                        .with_id(*(card_ids_iter.next().unwrap())),
+                        .with_id(CardId::from(*(card_ids_iter.next().unwrap()))),
                 );
             }
         }

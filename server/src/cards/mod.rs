@@ -3,7 +3,7 @@ mod color;
 mod rank;
 
 use bitfield_struct::bitfield;
-pub use card_stacks::{ShuffledDeck, WireShuffledDeckServerOrigin};
+pub use card_stacks::{CardId, ShuffledDeck, WireShuffledDeckServerOrigin};
 use color::Color;
 use rank::Rank;
 use std::fmt::{self, Debug, Display, Formatter};
@@ -24,7 +24,7 @@ pub struct WireCardServerOrigin {
     pub ever_revealed: bool,
     pub currently_facing_up: bool,
     #[bits(6)]
-    pub id: u8,
+    pub id: CardId,
 }
 
 impl From<Card> for WireCardServerOrigin {
@@ -91,7 +91,7 @@ pub struct Card {
     ///
     /// This id is tied to the original position the card had in the deck after shuffling.
     #[bits(6)]
-    pub id: u8,
+    pub id: CardId,
 }
 
 impl Display for Card {
