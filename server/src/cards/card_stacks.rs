@@ -1,6 +1,6 @@
-use crate::cards::Card;
 use crate::cards::color::Color;
 use crate::cards::rank::Rank;
+use crate::cards::{Card, WireCardServerOrigin};
 use arrayvec::ArrayVec;
 use newtype_derive::NewtypeFrom;
 use rand::prelude::SliceRandom;
@@ -9,21 +9,22 @@ use strum::IntoEnumIterator;
 
 #[macro_export]
 macro_rules! impl_cardstack_ops {
-    ($t:ident, $n:expr) => {
-        pub struct $t(ArrayVec<Card, $n>);
+    ($t:ident, $c:ident, $n:expr) => {
+        #[derive(Clone)]
+        pub struct $t(ArrayVec<$c, $n>);
 
-        NewtypeFrom! { () pub struct $t(ArrayVec<Card, $n>); }
+        NewtypeFrom! { () pub struct $t(ArrayVec<$c, $n>); }
 
         impl $t {
-            pub fn push(&mut self, element: Card) {
+            pub fn push(&mut self, element: $c) {
                 self.0.push(element)
             }
         }
 
         impl Deref for $t {
-            type Target = [Card];
+            type Target = [$c];
 
-            fn deref(&self) -> &[Card] {
+            fn deref(&self) -> &[$c] {
                 self.0.deref()
             }
         }
@@ -55,6 +56,19 @@ macro_rules! impl_cardstack_ops {
                 Ok(())
             }
         }
+    };
+}
+
+#[macro_export]
+macro_rules! impl_cardstack {
+    ($t:ident, $c:ident, $n:expr) => {
+        impl_cardstack_ops!($t, $c, $n);
+
+        impl $t {
+            pub fn new() -> $t {
+                $t::from(ArrayVec::<$c, $n>::new())
+            }
+        }
 
         impl Default for $t {
             fn default() -> Self {
@@ -64,20 +78,7 @@ macro_rules! impl_cardstack_ops {
     };
 }
 
-#[macro_export]
-macro_rules! impl_cardstack {
-    ($t:ident, $n:expr) => {
-        impl_cardstack_ops!($t, $n);
-
-        impl $t {
-            pub fn new() -> $t {
-                $t::from(ArrayVec::<Card, $n>::new())
-            }
-        }
-    };
-}
-
-impl_cardstack_ops!(ShuffledDeck, 52);
+impl_cardstack_ops!(ShuffledDeck, Card, 52);
 
 impl ShuffledDeck {
     pub fn new() -> ShuffledDeck {
@@ -109,5 +110,13 @@ impl ShuffledDeck {
         deck.sort_unstable_by_key(|k| k.id());
 
         ShuffledDeck::from(deck)
+    }
+}
+
+impl_cardstack_ops!(WireShuffledDeckServerOrigin, WireCardServerOrigin, 52);
+
+impl From<ShuffledDeck> for WireShuffledDeckServerOrigin {
+    fn from(deck: ShuffledDeck) -> Self {
+        Self(deck.iter().map(|&c| c.into()).collect())
     }
 }

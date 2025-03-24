@@ -3,10 +3,10 @@ use arrayvec::ArrayVec;
 use newtype_derive::NewtypeFrom;
 use std::ops::Deref;
 
-impl_cardstack!(StockSlot, 21); // 52 - (1 + 2 + 3 + 4 + 5 + 6 + 7) = 21
-impl_cardstack!(WastePileSlot, 21);
-impl_cardstack!(FoundationSlot, 13);
-impl_cardstack!(TableauSlot, 19);
+impl_cardstack!(StockSlot, Card, 21); // 52 - (1 + 2 + 3 + 4 + 5 + 6 + 7) = 21
+impl_cardstack!(WastePileSlot, Card, 21);
+impl_cardstack!(FoundationSlot, Card, 13);
+impl_cardstack!(TableauSlot, Card, 19);
 
 pub struct Table {
     pub stock: StockSlot,
