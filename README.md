@@ -41,7 +41,9 @@ We welcome contributions from the community to help improve Klondike MMO.
 If you'd like to contribute, please follow these guidelines:
 
 1. Fork the repository and create a new branch for your feature or bug fix.
-2. Make your changes and ensure they adhere to the project's coding standards.
+2. Make your changes and ensure they adhere to the project's coding standards:
+  - Use `cargo fmt --all`
+  - Don't do anything too crazy :\^)
 3. Test your changes thoroughly to ensure they work as expected.
 4. Submit a pull request with a clear description of your changes and any relevant information.
 
