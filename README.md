@@ -45,6 +45,7 @@ If you'd like to contribute, please follow these guidelines:
   - Use `cargo fmt --all`
   - Don't do anything too crazy :\^)
 3. Test your changes thoroughly to ensure they work as expected.
+  - Include automated unit tests for your changes where sensible.
 4. Submit a pull request with a clear description of your changes and any relevant information.
 
 ## Support
