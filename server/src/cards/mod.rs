@@ -1,11 +1,11 @@
-mod color;
+mod colors;
 mod decks;
-mod rank;
+mod ranks;
 
 use bitfield_struct::bitfield;
-use color::Color;
+use colors::Color;
 pub use decks::{CardId, ShuffledDeck, WireShuffledDeckServerOrigin};
-use rank::Rank;
+use ranks::Rank;
 use std::fmt::{self, Debug, Display, Formatter};
 
 /// Wire representation of card for transmission from server to client.

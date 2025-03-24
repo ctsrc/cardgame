@@ -1,6 +1,4 @@
-use crate::cards::color::Color;
-use crate::cards::rank::Rank;
-use crate::cards::{Card, WireCardServerOrigin};
+use super::{Card, WireCardServerOrigin, colors::Color, ranks::Rank};
 use arrayvec::ArrayVec;
 use newtype_derive::NewtypeFrom;
 use rand::prelude::SliceRandom;
